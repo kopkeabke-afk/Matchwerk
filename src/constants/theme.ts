@@ -1,65 +1,58 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
- */
+import { Platform, useColorScheme } from 'react-native';
 
-import '@/global.css';
-
-import { Platform } from 'react-native';
+export const Brand = {
+  primary: '#FF4D6D',
+  primaryDark: '#E03157',
+  accent: '#FF8A3D',
+  gradient: ['#FF4D6D', '#FF8A3D'] as const,
+  like: '#22C55E',
+  pass: '#EF4444',
+  super: '#3B82F6',
+  gold: '#F5B301',
+};
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#14141A',
+    textSecondary: '#6B6B76',
+    background: '#FFFFFF',
+    surface: '#F5F5F8',
+    surfaceStrong: '#EAEAEF',
+    border: '#E2E2E8',
+    card: '#FFFFFF',
+    overlay: 'rgba(0,0,0,0.45)',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#F5F5F7',
+    textSecondary: '#A1A1AA',
+    background: '#0B0B0F',
+    surface: '#17171D',
+    surfaceStrong: '#24242C',
+    border: '#2A2A33',
+    card: '#17171D',
+    overlay: 'rgba(0,0,0,0.6)',
   },
-} as const;
+};
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type Palette = typeof Colors.light;
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+export function useTheme(): Palette & { dark: boolean } {
+  const scheme = useColorScheme();
+  const dark = scheme === 'dark';
+  return { ...(dark ? Colors.dark : Colors.light), dark };
+}
 
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
-} as const;
+export const Space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
+export const Radius = { sm: 8, md: 14, lg: 20, xl: 28, pill: 999 } as const;
+export const Type = {
+  title: { fontSize: 30, fontWeight: '800' as const, letterSpacing: -0.5 },
+  h2: { fontSize: 22, fontWeight: '700' as const },
+  h3: { fontSize: 17, fontWeight: '700' as const },
+  body: { fontSize: 16, lineHeight: 22 },
+  small: { fontSize: 13 },
+};
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+/** Space reserved for the native tab bar (it floats over content on iOS). */
+export const TabInset = Platform.select({ ios: 60, default: 0 }) ?? 0;
+/** On web the tab bar renders at the top; leave room for it. */
+export const WebTabTop = Platform.OS === 'web' ? 52 : 0;

@@ -1,56 +1,89 @@
-# Welcome to your Expo app 👋
+# funke 🔥 – Dating-App (iOS · Android · Web)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Eine vollständige Dating-App auf Basis von **Expo SDK 58 / React Native**, mit **Supabase** als Backend
+(Auth, Postgres, Realtime-Chat, Storage, Push) – und einem **Offline-Demo-Modus**, der ohne Server sofort läuft.
 
-## Get started
+## Was funke besser macht als Tinder, Hinge & Bumble
 
-1. Install dependencies
+| Feature | Tinder | Hinge | Bumble | **funke** |
+|---|---|---|---|---|
+| Swipen mit Gesten, Undo, Super-Like | ✅ | – | ✅ | ✅ (Undo kostenlos) |
+| Like auf ein Foto/eine Antwort + Kommentar | – | ✅ | – | ✅ |
+| Wer schreibt zuerst? | – | – | nur Frauen | **jede:r wählt selbst** |
+| Match läuft ab, 1× verlängerbar | – | – | ✅ | ✅ (48 h + 24 h) |
+| Sehen, wer dich geliked hat | 💰 | 💰 | 💰 | **kostenlos** |
+| Transparenter Match-Score mit Begründung | – | – | – | ✅ |
+| Daily Spark (bestes Match des Tages zuerst) | – | ✅ (Most Compatible) | – | ✅ |
+| Persönliche Icebreaker aus Gemeinsamkeiten | – | – | ✅ | ✅ |
+| Absichten als Dealbreaker-Filter | – | ✅ | ✅ | ✅ |
+| Kein Werbe-Tracking | – | – | – | ✅ |
 
-   ```bash
-   npm install
-   ```
+Dazu: E-Mail-Login per Code (kein Passwort), 8-stufiges Onboarding mit 18+-Prüfung, Profil-Vollständigkeit mit Tipps,
+Profil pausieren, Melden & Blockieren überall, Sicherheits-Center, In-App-Kontolöschung, Dark Mode, Haptik.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Schnellstart (Demo-Modus, ohne Server)
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
+```
+Im Browser `w` drücken oder mit einem Dev-Build auf dem Handy öffnen. Beliebige E-Mail + beliebigen Code eingeben.
+Der Demo-Modus enthält 28 Beispielprofile in Berlin, simulierte Likes, Matches und Antworten im Chat.
+
+## Produktion einrichten
+
+### 1. Supabase
+1. Projekt auf <https://supabase.com> anlegen (Region **EU / Frankfurt** für DSGVO).
+2. `supabase/migrations/0001_init.sql` im SQL-Editor ausführen (oder `supabase db push`).
+3. Auth → Providers → **Email** aktivieren, Template „Magic Link“ so anpassen, dass es `{{ .Token }}` (6-stelliger Code) enthält.
+4. Auth → SMTP: eigenen Mail-Provider eintragen (Supabase-Standard ist stark limitiert).
+5. `.env` anlegen (siehe `.env.example`) mit `EXPO_PUBLIC_SUPABASE_URL` und `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+
+### 2. Push-Benachrichtigungen
+```bash
+supabase functions deploy push --no-verify-jwt
+supabase secrets set WEBHOOK_SECRET=<zufälliger-string>
+```
+Dann unter Database → Webhooks zwei Webhooks (INSERT auf `messages` und `matches`) auf die Function zeigen lassen,
+mit Header `x-webhook-secret`.
+
+### 3. Moderation
+Meldungen landen in der Tabelle `reports`. Profile verifizieren: `update profiles set verified = true where id = '…'`
+(nur mit Service-Role möglich). Apple verlangt, dass Meldungen **innerhalb von 24 h** bearbeitet werden.
+
+### 4. Builds & Store
+```bash
+npm i -g eas-cli
+eas login
+eas init                       # verknüpft das Projekt, setzt extra.eas.projectId
+eas build --platform all --profile production
+eas submit --platform ios      # → TestFlight / App Store Connect
+eas submit --platform android  # → Google Play (internal track)
+```
+Store-Texte, Screenshots-Liste und App-Review-Hinweise: siehe **STORE.md**.
+
+## Vor dem Launch ausfüllen
+- `src/constants/app.ts` – Firmenname, Adresse, Support-Mail, URLs
+- `src/constants/legal.ts` – AGB/Datenschutz sind **Vorlagen** → anwaltlich prüfen lassen
+- `app.json` – `bundleIdentifier` / `package` auf deine Domain ändern
+- `eas.json` – `ascAppId`
+- Demo-Bilder (`src/lib/demo-data.ts`, pravatar.cc / picsum.photos) sind nur Platzhalter für den Demo-Modus
+
+## Projektstruktur
+```
+src/app/            Screens (Expo Router)
+  (tabs)/           Entdecken · Likes · Chats · Profil
+  auth, sign-in, onboarding
+  profile/[id]      Ganzes Profil, Like auf Foto/Prompt mit Kommentar
+  chat/[id]         Echtzeit-Chat mit Icebreakern & Ablauf-Timer
+  match/[id]        „Es ist ein Match!“
+  edit-profile, filters, settings, report/[id], legal/[doc]
+src/components/     Swipe-Deck, Profilkarte, Profilansicht, Editoren, UI-Kit
+src/lib/            Backend-Interface, Demo- & Supabase-Implementierung, Score-Algorithmus
+supabase/           SQL-Schema mit RLS & RPCs, Push-Edge-Function
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Checks
+```bash
+npx tsc --noEmit && npx expo lint && npx expo-doctor
+```
