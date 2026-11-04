@@ -7,7 +7,7 @@
 **Kategorie:** Dating · **Tags:** Dating, Partnersuche, Soziales
 
 **Vollständige Beschreibung (max. 4000):**
-Matchwerk ist die Dating-App für Menschen, die mehr wollen als endloses Swipen.
+Matchwerk ist die App für Menschen, die mehr wollen als endloses Durchklicken – für Dating und neue Freundschaften.
 
 • Transparenter Match-Score: Du siehst, was ihr gemeinsam habt – Interessen, Absichten, Nähe.
 • Like, was dich wirklich anspricht: ein bestimmtes Foto oder eine Antwort, gern mit Kommentar.

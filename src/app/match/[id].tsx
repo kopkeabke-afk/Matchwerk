@@ -45,7 +45,7 @@ export default function MatchCelebration() {
           icon="chatbubble-ellipses"
           onPress={() => { router.back(); router.push(`/chat/${id}`); }}
         />
-        <Button title="Weiter swipen" variant="ghost" onPress={() => router.back()} />
+        <Button title="Weiter entdecken" variant="ghost" onPress={() => router.back()} />
       </View>
     </LinearGradient>
   );

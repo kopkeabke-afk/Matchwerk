@@ -1,18 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ModeSwitch } from '@/components/mode-switch';
-import { SwipeDeck, type SwipeDeckHandle } from '@/components/swipe-deck';
+import { LikeSheet } from '@/components/like-sheet';
+import { ProfileView } from '@/components/profile-view';
 import { Button, Empty, IconButton } from '@/components/ui';
 import { Brand, Space, TabInset, useTheme, WebTabTop } from '@/constants/theme';
 import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { bus } from '@/lib/events';
 import { useSession } from '@/lib/session';
-import { limitReason, type Limits, type Profile, type SwipeAction } from '@/lib/types';
+import { limitReason, type LikeNote, type Limits, type Profile, type SwipeAction } from '@/lib/types';
 import { compatibility } from '@/lib/utils';
 
 export default function Discover() {
@@ -22,7 +26,8 @@ export default function Discover() {
   const [sparkId, setSparkId] = useState<string>();
   const [last, setLast] = useState<{ p: Profile; action: SwipeAction } | null>(null);
   const [limits, setLimits] = useState<Limits | null>(null);
-  const deckRef = useRef<SwipeDeckHandle>(null);
+  const [noteFor, setNoteFor] = useState<LikeNote['item'] | null>(null);
+  const [sending, setSending] = useState(false);
   const refreshLimits = useCallback(() => { backend.getLimits().then(setLimits).catch(() => {}); }, []);
 
   const compat = useCallback((p: Profile) => compatibility(me!, p, mode), [me, mode]);
@@ -48,11 +53,16 @@ export default function Discover() {
   useFocusEffect(refreshLimits);
   useEffect(() => bus.on('swiped', ({ id }) => setDeck((d) => d?.filter((p) => p.id !== id) ?? d)), []);
 
-  async function onSwipe(p: Profile, action: SwipeAction) {
+  /** Pass, like or Funke for the profile currently shown. */
+  async function decide(p: Profile, action: SwipeAction, note?: LikeNote) {
+    if (Platform.OS !== 'web') {
+      if (action === 'pass') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      else Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
     setDeck((d) => d?.filter((x) => x.id !== p.id) ?? d);
     setLast({ p, action });
     try {
-      const { match } = await backend.swipe(p.id, action, undefined, mode);
+      const { match } = await backend.swipe(p.id, action, note, mode);
       if (match) {
         setLast(null);
         router.push(`/match/${match.id}`);
@@ -115,6 +125,11 @@ export default function Discover() {
             <Text style={{ color: c.text, fontWeight: '700', fontSize: 13 }}>♥ {limits.likesLeft} übrig</Text>
           </Pressable>
         ) : null}
+        {last && (
+          <Pressable onPress={undo} hitSlop={10} accessibilityLabel="Rückgängig" style={[styles.headerBtn, { backgroundColor: c.surface }]}>
+            <Ionicons name="arrow-undo" size={20} color={Brand.gold} />
+          </Pressable>
+        )}
         <Pressable onPress={boost} hitSlop={10} accessibilityLabel="Boost"
           style={[styles.headerBtn, { backgroundColor: limits?.boostActiveUntil ? Brand.super : c.surface }]}>
           <Ionicons name="flash" size={20} color={limits?.boostActiveUntil ? '#fff' : Brand.super} />
@@ -140,25 +155,29 @@ export default function Discover() {
         </Empty>
       ) : (
         <>
-          <View style={styles.deck}>
-            <SwipeDeck
-              ref={deckRef}
-              profiles={deck}
-              compat={compat}
-              sparkId={sparkId}
-              onSwipe={onSwipe}
-              mode={mode}
-              onInfo={(p) => router.push({ pathname: '/profile/[id]', params: { id: p.id, from: 'deck' } })}
-            />
+          {/* one profile at a time, read like a page – no card swiping */}
+          <ScrollView key={deck[0].id} contentContainerStyle={styles.feed} showsVerticalScrollIndicator={false}>
+            <Animated.View entering={last ? FadeInRight.duration(260) : FadeIn.duration(200)}>
+              <ProfileView profile={deck[0]} compat={compat(deck[0])} mode={mode} spark={deck[0].id === sparkId}
+                onLikeItem={(item) => setNoteFor(item)} />
+            </Animated.View>
+          </ScrollView>
+          <LinearGradient pointerEvents="none" colors={[c.dark ? 'rgba(11,11,15,0)' : 'rgba(255,255,255,0)', c.background]}
+            locations={[0, 0.6]} style={styles.fade} />
+          <View style={styles.actions} pointerEvents="box-none">
+            <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => decide(deck[0], 'pass')} />
+            <IconButton icon="flame" color={Brand.accent} size={52} label="Funke senden" onPress={() => decide(deck[0], 'superlike')} />
+            <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={Brand.primary} size={60}
+              label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => decide(deck[0], 'like')} />
           </View>
-          <View style={styles.actions}>
-            <IconButton icon="arrow-undo" color={Brand.gold} size={46} label="Rückgängig" onPress={undo} />
-            <IconButton icon="close" color={Brand.pass} size={64} label="Weiter" onPress={() => deckRef.current?.swipe('pass')} />
-            <IconButton icon="flame" color={Brand.accent} size={46} label="Funke" onPress={() => deckRef.current?.swipe('superlike')} />
-            <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={Brand.like} size={64} label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => deckRef.current?.swipe('like')} />
-            <IconButton icon="information" color={c.textSecondary} size={46} label="Profil ansehen"
-              onPress={() => deck[0] && router.push({ pathname: '/profile/[id]', params: { id: deck[0].id, from: 'deck' } })} />
-          </View>
+          <LikeSheet profile={deck[0]} item={noteFor ?? null} mode={mode} busy={sending}
+            onClose={() => setNoteFor(null)}
+            onSend={async (note) => {
+              setSending(true);
+              setNoteFor(null);
+              await decide(deck[0], 'like', note);
+              setSending(false);
+            }} />
         </>
       )}
     </SafeAreaView>
@@ -170,6 +189,10 @@ const styles = StyleSheet.create({
   pill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   logo: { fontSize: 26, fontWeight: '900', color: Brand.primary, letterSpacing: -1 },
   headerBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  deck: { flex: 1, marginHorizontal: Space.md, marginTop: Space.xs },
-  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingTop: Space.lg, paddingBottom: TabInset + Space.md },
+  feed: { paddingHorizontal: Space.md, paddingTop: Space.xs, paddingBottom: TabInset + 120 },
+  fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: TabInset + 130 },
+  actions: {
+    position: 'absolute', left: 0, right: 0, bottom: TabInset + Space.lg,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Space.xl,
+  },
 });

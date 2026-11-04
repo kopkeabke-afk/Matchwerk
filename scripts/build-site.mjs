@@ -52,8 +52,8 @@ const out = join(root, 'site');
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 const pages = {
-  'index.html': ['Dating mit Funkenflug', `<h1>Weniger swipen. Mehr echte Verbindungen.</h1>
-<p>${esc(APP.name)} zeigt dir, warum ihr zusammenpasst: transparenter Match-Score, Likes auf einzelne Fotos und Antworten, und du entscheidest, wer zuerst schreibt. Sehen, wer dich mag, ist kostenlos.</p>
+  'index.html': ['Dating und neue Freunde', `<h1>${esc(APP.slogan)}</h1>
+<p>${esc(APP.name)} zeigt dir, warum ihr zusammenpasst: transparenter Match-Score, Reaktionen auf einzelne Fotos und Antworten, Dating oder neue Freunde – und sehen, wer dich mag, ist kostenlos.</p>
 <div class="card"><h2 style="margin-top:0">Bald bei Google Play</h2><p><a href="${esc(APP.playStoreUrl)}">${esc(APP.name)} bei Google Play ansehen</a></p></div>
 <h2>Sicherheit zuerst</h2><p>Verifizierte Profile, Melden und Blockieren in jedem Chat, Moderation innerhalb von 24 Stunden. Kein Werbe-Tracking.</p>`],
   'datenschutz.html': ['Datenschutzerklärung', legalPage('privacy')],

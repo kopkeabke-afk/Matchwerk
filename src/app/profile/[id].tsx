@@ -1,14 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActionSheetIOS, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActionSheetIOS, Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { LikeSheet } from '@/components/like-sheet';
 import { ProfileView } from '@/components/profile-view';
-import { Button, Field, IconButton, T } from '@/components/ui';
-import { Brand, Radius, Space, useTheme } from '@/constants/theme';
+import { IconButton, T } from '@/components/ui';
+import { Brand, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { bus } from '@/lib/events';
@@ -23,7 +23,6 @@ export default function ProfileScreen() {
   const { profile: me, mode } = useSession();
   const [p, setP] = useState<Profile | null>(profileCache.get(id) ?? null);
   const [noteFor, setNoteFor] = useState<LikeNote['item'] | null>(null);
-  const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
   const canSwipe = from === 'deck' || from === 'likes';
 
@@ -84,13 +83,11 @@ export default function ProfileScreen() {
 
   if (!p || !me) return <View style={{ flex: 1, backgroundColor: c.background }} />;
 
-  const target = noteFor?.kind === 'photo' ? p.photos[noteFor.index] : undefined;
-  const targetPrompt = noteFor?.kind === 'prompt' ? p.prompts[noteFor.index] : undefined;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
       <ScrollView contentContainerStyle={{ padding: Space.lg, paddingTop: Space.xxl, paddingBottom: 140 }}>
-        <ProfileView profile={p} compat={compatibility(me, p)} onLikeItem={canSwipe ? (item) => setNoteFor(item) : undefined} />
+        <ProfileView profile={p} compat={compatibility(me, p, mode)} mode={from === 'match' ? 'dating' : mode} onLikeItem={canSwipe ? (item) => setNoteFor(item) : undefined} />
         {canSwipe && (
           <T muted variant="small" style={{ textAlign: 'center', marginTop: Space.xl }}>
             Tipp: Like ein bestimmtes Foto oder eine Antwort und schreib etwas dazu – das erhöht deine Match-Chance deutlich.
@@ -114,27 +111,13 @@ export default function ProfileScreen() {
           style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
           <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => act('pass')} />
           <IconButton icon="flame" color={Brand.accent} size={48} label="Funke" onPress={() => act('superlike')} />
-          <IconButton icon="heart" color={Brand.like} size={60} label="Like" onPress={() => act('like')} />
+          <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={Brand.primary} size={60} label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => act('like')} />
         </LinearGradient>
       )}
 
-      <Modal visible={!!noteFor} transparent animationType="fade" onRequestClose={() => setNoteFor(null)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[styles.backdrop, { backgroundColor: c.overlay }]}>
-          <View style={[styles.sheet, { backgroundColor: c.background }]}>
-            {target && <Image source={target} style={styles.notePhoto} contentFit="cover" />}
-            {targetPrompt && (
-              <View style={[styles.notePrompt, { backgroundColor: c.surface }]}>
-                <T variant="small" muted>{targetPrompt.question}</T>
-                <T variant="h3">{targetPrompt.answer}</T>
-              </View>
-            )}
-            <Field value={comment} onChangeText={setComment} placeholder="Kommentar hinzufügen (optional)" maxLength={200} autoFocus multiline />
-            <Button title={comment.trim() ? 'Like mit Kommentar senden' : 'Like senden'} icon="heart" loading={busy}
-              onPress={() => act('like', { item: noteFor!, comment: comment.trim() || undefined })} />
-            <Button title="Abbrechen" variant="ghost" onPress={() => { setNoteFor(null); setComment(''); }} />
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      <LikeSheet profile={p} item={noteFor ?? null} mode={mode} busy={busy}
+        onClose={() => setNoteFor(null)}
+        onSend={(note) => act('like', note)} />
     </View>
   );
 }
@@ -146,8 +129,4 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
   bottom: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 28, paddingTop: 40 },
-  backdrop: { flex: 1, justifyContent: 'flex-end' },
-  sheet: { borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, padding: Space.xl, gap: Space.md, paddingBottom: 40 },
-  notePhoto: { width: 120, height: 150, borderRadius: Radius.md, alignSelf: 'center' },
-  notePrompt: { padding: Space.lg, borderRadius: Radius.md, gap: 4 },
 });

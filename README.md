@@ -7,7 +7,8 @@ Eine vollständige Dating-App auf Basis von **Expo SDK 58 / React Native**, mit 
 
 | Feature | Tinder | Hinge | Bumble | **matchwerk** |
 |---|---|---|---|---|
-| Swipen mit Gesten, Undo, Super-Like | ✅ | – | ✅ | ✅ (Undo kostenlos) |
+| Ein Profil nach dem anderen lesen (kein Karten-Wischen), Undo, Funken | – | ✅ | – | ✅ (Undo kostenlos) |
+| Dating **und** Freunde in einer App | – | – | ✅ (BFF) | ✅ |
 | Like auf ein Foto/eine Antwort + Kommentar | – | ✅ | – | ✅ |
 | Wer schreibt zuerst? | – | – | nur Frauen | **jede:r wählt selbst** |
 | Match läuft ab, 1× verlängerbar | – | – | ✅ | ✅ (48 h + 24 h) |
