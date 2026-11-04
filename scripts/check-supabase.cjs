@@ -40,7 +40,7 @@ const ok = (cond, what, extra = '') => { console.log(`${cond ? '✅' : '❌'} ${
     id: me, name: 'Testkonto', birthdate: '1995-05-05', gender: 'man', interested_in: 'everyone',
     bio: 'Test-Konto für die App-Prüfung. Hier gibt es nichts Echtes zu sehen.',
     prompts: [{ question: 'Ein perfekter Sonntag sieht so aus …', answer: 'Apps testen und danach Pasta.' }, { question: 'Mein größter Green Flag:', answer: 'Ich melde Bugs sofort.' }],
-    interests: ['Tech', 'Kaffee', 'Wandern'], intention: 'unsure', city: 'Berlin', lat: 52.52, lng: 13.4, first_move: 'anyone',
+    interests: ['Tech', 'Kaffee', 'Wandern'], intention: 'unsure', city: 'Berlin', lat: 52.52, lng: 13.4, first_move: 'anyone', modes: ['dating', 'friends'],
   };
   const { data: p, error: e2 } = await sb.from('profiles').upsert(profile).select('*').single();
   ok(!e2 && p?.name === 'Testkonto', 'Profil speichern', e2?.message);
@@ -58,9 +58,11 @@ const ok = (cond, what, extra = '') => { console.log(`${cond ? '✅' : '❌'} ${
 
   // app RPCs
   const { data: lim, error: e6 } = await sb.rpc('my_limits');
-  ok(!e6 && lim.premium === false && lim.likes_left === 50 && lim.superlikes_left === 1, 'Gratis-Limits (50 Likes, 1 Super-Like)', e6?.message ?? JSON.stringify(lim));
+  ok(!e6 && lim.tier === 'free' && lim.likes_left <= 25 && lim.swipes_left <= 60 && lim.superlikes_left <= 1, 'Gratis-Stufe (25 Likes, 60 Profile, 1 Funke pro Tag)', e6?.message ?? `noch ${lim.swipes_left} Profile, ${lim.likes_left} Likes, ${lim.superlikes_left} Funke heute`);
   const { data: deck, error: e7 } = await sb.rpc('get_deck', { min_age: 18, max_age: 99, max_km: 500, intentions: [], verified_only: false, lim: 30 });
   ok(!e7 && Array.isArray(deck), 'Profil-Stapel laden', e7?.message ?? `${deck.length} andere Profile`);
+  const { data: fdeck, error: e7b } = await sb.rpc('get_deck', { min_age: 18, max_age: 99, max_km: 500, intentions: [], verified_only: false, lim: 30, mode: 'friends' });
+  ok(!e7b && Array.isArray(fdeck), 'Freunde-Stapel laden', e7b?.message ?? `${fdeck.length} andere Profile`);
   const { data: likes, error: e8 } = await sb.rpc('incoming_likes');
   ok(!e8 && Array.isArray(likes), 'Likes laden', e8?.message);
   const { data: matches, error: e9 } = await sb.rpc('my_matches');
