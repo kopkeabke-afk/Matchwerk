@@ -6,9 +6,9 @@ export const APP = {
   /** shown on the welcome screen, website and store listing */
   slogan: 'Dating, bei dem es funkt.',
   // TODO: eine Adresse, die du wirklich liest (kostenlos z. B. ein eigenes Gmail-Postfach nur für Matchwerk)
-  supportEmail: 'support@matchwerk.app',
-  company: '[Vor- und Nachname bzw. Firma]',
-  address: '[Straße Nr., PLZ Ort, Land]',
+  supportEmail: 'matchwerk@web.de',
+  company: '[Tobias Kopke]',
+  address: '[Fleetstraße 2, 49453 Wetschen, Deutschland]',
   site: SITE,
   privacyUrl: `${SITE}/datenschutz.html`,
   termsUrl: `${SITE}/agb.html`,
