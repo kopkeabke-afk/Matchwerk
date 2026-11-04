@@ -94,8 +94,19 @@ const PHASES = [
     { id: 'schema', t: 'Datenbank-Schema einspielen', who: 'du', must: true, d: 'Zwei Migrationen: Tabellen, Zugriffsregeln, Match-Logik, Fotospeicher, Spam-Schutz und Moderation. 19 automatische Sicherheitsprüfungen bestanden.', cmd: 'supabase link --project-ref DEIN_REF && supabase db push' },
     { id: 'env', t: 'Zugangsdaten in .env eintragen', who: 'du', must: true, d: 'Ohne diese Datei läuft die App im Demo-Modus.', cmd: 'cp .env.example .env' },
     { id: 'smtp', t: 'Mail-Versand für Login-Codes einrichten', who: 'du', must: true, d: 'In Supabase unter Auth → SMTP einen Anbieter wie Resend oder Postmark eintragen. In der Mailvorlage {{ .Token }} verwenden.' },
+    { id: 'login-phone', t: 'SMS-Login einrichten', who: 'du', must: true, d: 'Supabase → Auth → Providers → Phone aktivieren und einen SMS-Anbieter wie Twilio eintragen. Kostet ca. 5–10 Cent pro SMS.' },
+    { id: 'login-google', t: 'Google-Login einrichten', who: 'du', must: true, d: 'Google Cloud Console: OAuth-Client-IDs für Web, iOS und Android anlegen. Web-ID in Supabase eintragen, alle IDs in .env, iOS-URL-Schema in app.json.' },
+    { id: 'login-apple', t: 'Apple-Login einrichten', who: 'du', must: true, d: 'Pflicht, sobald Google-Login angeboten wird. In der App-ID „Sign in with Apple“ aktivieren und in Supabase den Apple-Provider mit .p8-Schlüssel eintragen.' },
     { id: 'push', t: 'Push-Funktion deployen und Webhooks anlegen', who: 'du', d: 'Zwei Webhooks: INSERT auf messages und matches, mit Header x-webhook-secret.', cmd: 'supabase functions deploy push --no-verify-jwt && supabase secrets set WEBHOOK_SECRET=$(openssl rand -hex 24)' },
     { id: 'review-user', t: 'Test-Konto für Apples Prüfung anlegen', who: 'du', must: true, d: 'In Supabase einen Nutzer mit Passwort anlegen; die App hat dafür „Mit Passwort anmelden“. Dazu 3–5 echte Testprofile in der Nähe, damit der Stapel nicht leer ist.' },
+  ]},
+  { id: 'money', title: 'Bezahlsystem funke+', items: [
+    { id: 'iap-products', t: 'Abos und Boosts in beiden Stores anlegen', who: 'du', must: true, d: 'Produkt-IDs: funke_plus_1m, funke_plus_6m, funke_plus_12m (Auto-Abos) und funke_boost_1, funke_boost_5. Preisvorschlag: 7,99 / 29,99 / 44,99 € und 2,99 / 9,99 €.' },
+    { id: 'sbp', t: 'Apple Small Business Program beantragen', who: 'du', d: 'Apple nimmt dann 15 % statt 30 % Gebühr. Google nimmt bei Abos ohnehin 15 %.' },
+    { id: 'paid-apps', t: 'Bankkonto und Steuerdaten hinterlegen', who: 'du', must: true, d: 'App Store Connect → Verträge (Paid Apps Agreement) und Google Play → Zahlungsprofil. Ohne das werden keine Käufe angezeigt.' },
+    { id: 'revenuecat', t: 'RevenueCat verbinden', who: 'du', must: true, d: 'Kostenlos bis 2.500 $ Monatsumsatz. Entitlement „plus“, Offering „default“ mit allen fünf Produkten, öffentliche API-Keys in .env.' },
+    { id: 'rc-webhook', t: 'Kauf-Webhook deployen', who: 'du', must: true, d: 'Überträgt Käufe in die Datenbank. In RevenueCat unter Integrations → Webhooks die Function-URL und den Bearer-Secret eintragen.', cmd: 'supabase functions deploy revenuecat --no-verify-jwt && supabase secrets set REVENUECAT_WEBHOOK_SECRET=$(openssl rand -hex 24)' },
+    { id: 'sandbox', t: 'Käufe mit Testkonten prüfen', who: 'du', must: true, d: 'Apple-Sandbox-Konto bzw. Google-Lizenztester: Abo kaufen, kündigen, wiederherstellen, Boost kaufen.' },
   ]},
   { id: 'legal', title: 'Rechtliches', items: [
     { id: 'imprint', t: 'Firmenname, Adresse und Support-Mail eintragen', who: 'du', must: true, d: 'Alles an einer Stelle: src/constants/app.ts' },
@@ -118,11 +129,12 @@ const PHASES = [
   { id: 'ops', title: 'Nach dem Launch', items: [
     { id: 'moderation', t: 'Meldungen täglich bearbeiten', who: 'du', must: true, d: 'Apple erwartet eine Reaktion innerhalb von 24 Stunden. Die Ansicht moderation_queue zeigt gemeldete Profile; ab 3 Meldungen wird ein Profil automatisch ausgeblendet.', cmd: "select moderate('<user-id>', 'ban');  -- oder 'dismiss' / 'verify'" },
     { id: 'verify', t: 'Ablauf für Profil-Verifizierung festlegen', who: 'du', d: 'Aktuell per SQL mit moderate(..., \'verify\'). Später lässt sich ein Selfie-Abgleich anbinden.' },
+    { id: 'revenue', t: 'Umsätze wöchentlich ansehen', who: 'du', d: 'RevenueCat-Dashboard oder in Supabase die Ansicht revenue_daily. Bei 29,99 € für 6 Monate kommen nach Steuer und Store-Gebühr ca. 21,42 € bei dir an.' },
     { id: 'seed', t: 'Startregion mit echten Nutzer:innen füllen', who: 'du', d: 'Eine Dating-App lebt von Dichte. Mit einer Stadt starten, z. B. Berlin.' },
   ]},
 ];
 
-const DONE = ['Swipen mit Gesten, Undo, Super-Like', 'Like auf Foto oder Antwort mit Kommentar', 'Wer zuerst schreibt, wählt jede:r selbst', 'Matches laufen nach 48 h ab, 1× verlängerbar', 'Likes kostenlos sehen', 'Match-Score mit Begründung', 'Daily Spark', 'Echtzeit-Chat mit Icebreakern', 'Login per E-Mail-Code', 'Onboarding mit 18+-Prüfung', 'Melden, Blockieren, Sicherheits-Center', 'Konto in der App löschen', 'Datenbank mit Zugriffsregeln (getestet)', 'Push-Benachrichtigungen', 'Dark Mode, iOS, Android, Web', 'Demo-Modus ohne Server', 'Spam-Schutz und Tageslimits', 'Auto-Ausblenden nach 3 Meldungen', 'Passwort-Login für App Review', 'Kamera & Foto-Komprimierung', '19 App-Tests + 19 Datenbank-Tests', 'GitHub-Actions-CI', '7 Store-Screenshots'];
+const DONE = ['Swipen mit Gesten, Undo, Super-Like', 'Like auf Foto oder Antwort mit Kommentar', 'Wer zuerst schreibt, wählt jede:r selbst', 'Matches laufen nach 48 h ab, 1× verlängerbar', 'Likes kostenlos sehen', 'Match-Score mit Begründung', 'Daily Spark', 'Echtzeit-Chat mit Icebreakern', 'Login per E-Mail-Code', 'Onboarding mit 18+-Prüfung', 'Melden, Blockieren, Sicherheits-Center', 'Konto in der App löschen', 'Datenbank mit Zugriffsregeln (getestet)', 'Push-Benachrichtigungen', 'Dark Mode, iOS, Android, Web', 'Demo-Modus ohne Server', 'Spam-Schutz und Tageslimits', 'Auto-Ausblenden nach 3 Meldungen', 'Passwort-Login für App Review', 'Kamera & Foto-Komprimierung', '19 App-Tests + 19 Datenbank-Tests', 'GitHub-Actions-CI', '7 Store-Screenshots', 'Premium-Abo funke+ mit Paywall', 'Boosts einzeln kaufbar', 'Gratis-Limits serverseitig gesichert', 'Login mit Apple, Google, SMS, E-Mail', '35 Datenbank-Tests, 27 App-Tests'];
 
 const TEXTS = [
   { label: 'App-Name', text: 'funke – Dating & echte Matches' },
