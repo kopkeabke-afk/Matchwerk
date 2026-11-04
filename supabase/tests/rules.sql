@@ -134,4 +134,29 @@ select tst.check(user_tier('eeeeeeee-0000-0000-0000-000000000005') = 'free', 'Pl
 select billing_apply('evt6', 'eeeeeeee-0000-0000-0000-000000000005', 'NON_RENEWING_PURCHASE', 'matchwerk_boost_5', 'PLAY_STORE', 14.99, null);
 select tst.check((select boost_credits from profiles where name = 'Eli') = 5, 'boost pack adds credits');
 select tst.check((select count(*) from revenue_daily) = 1, 'revenue view works');
+
+-- ───────── Freunde mode ─────────
+reset role;
+insert into auth.users (id) values ('99999999-0000-0000-0000-000000000001'),('99999999-0000-0000-0000-000000000002'),('99999999-0000-0000-0000-000000000003');
+insert into profiles (id, name, birthdate, gender, interested_in, modes, first_move) values
+  ('99999999-0000-0000-0000-000000000001', 'Gerd', '1960-01-01', 'man', 'women', '{dating,friends}', 'them'),
+  ('99999999-0000-0000-0000-000000000002', 'Hans', '1962-01-01', 'man', 'women', '{friends}', 'anyone'),
+  ('99999999-0000-0000-0000-000000000003', 'Ilse', '1961-01-01', 'woman', 'men', '{dating}', 'anyone');
+set role authenticated;
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000001';
+select tst.check((select count(*) from get_deck(18, 99, 500, '{}', false, 30, 'dating') d where d->>'name' = 'Hans') = 0, 'friends-only profiles stay out of Dating');
+select tst.check((select count(*) from get_deck(18, 99, 500, '{}', false, 30, 'friends') d where d->>'name' = 'Hans') = 1, 'Freunde shows same-gender friends');
+select tst.check((select count(*) from get_deck(18, 99, 500, '{}', false, 30, 'friends') d where d->>'name' = 'Ilse') = 0, 'dating-only profiles stay out of Freunde');
+select tst.check((select count(*) from get_deck(18, 99, 500, '{}', false, 30, 'dating') d where d->>'name' = 'Ilse') = 1, 'Dating still works for the same user');
+select swipe('99999999-0000-0000-0000-000000000003', 'pass', null, 'dating');
+select swipe('99999999-0000-0000-0000-000000000002', 'like', null, 'friends');
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000003';
+select tst.fails($$select swipe('99999999-0000-0000-0000-000000000001', 'like', null, 'friends')$$, 'Freunde needs Freunde mode on both sides');
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000002';
+select tst.check((select count(*) from incoming_likes('friends')) = 1 and (select count(*) from incoming_likes('dating')) = 0, 'likes are kept per mode');
+select tst.check(swipe('99999999-0000-0000-0000-000000000001', 'like', null, 'friends') is not null, 'mutual Freunde like creates a connection');
+select tst.check((select mode from my_matches()) = 'friends' and (select opener from my_matches()) = 'anyone', 'Freunde connection: anyone may write first');
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000002';
+insert into messages (match_id, sender_id, text) select id, auth.uid(), 'Lust auf Skat?' from matches where mode = 'friends' and '99999999-0000-0000-0000-000000000002' in (user_a, user_b);
+select tst.check((select count(*) from messages) >= 1, 'first-move rule not applied to Freunde');
 \echo ALL DATABASE CHECKS PASSED

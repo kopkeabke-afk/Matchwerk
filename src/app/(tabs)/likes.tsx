@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ModeSwitch } from '@/components/mode-switch';
 import { Empty, T } from '@/components/ui';
 import { Brand, Radius, Space, TabInset, useTheme, WebTabTop } from '@/constants/theme';
 import { backend } from '@/lib';
@@ -17,15 +18,15 @@ import { ageFrom, compatibility } from '@/lib/utils';
 
 export default function Likes() {
   const c = useTheme();
-  const { profile: me } = useSession();
+  const { profile: me, mode } = useSession();
   const [likes, setLikes] = useState<IncomingLike[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const l = await backend.getIncomingLikes().catch(() => []);
+    const l = await backend.getIncomingLikes(mode).catch(() => []);
     profileCache.put(l.map((x) => x.profile));
     setLikes(l);
-  }, []);
+  }, [mode]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
   useEffect(() => bus.on('swiped', ({ id }) => setLikes((l) => l?.filter((x) => x.profile.id !== id) ?? l)), []);
@@ -34,8 +35,13 @@ export default function Likes() {
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <View style={{ height: WebTabTop }} />
       <View style={styles.header}>
-        <T variant="title">Likes</T>
-        <T muted>Bei matchwerk siehst du kostenlos, wer dich mag. Like zurück – und es ist ein Match.</T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <T variant="title">{mode === 'friends' ? 'Anfragen' : 'Likes'}</T>
+          <ModeSwitch />
+        </View>
+        <T muted>{mode === 'friends'
+          ? 'Diese Leute möchten dich kennenlernen. Verbinde dich zurück – und ihr könnt schreiben.'
+          : 'Bei Matchwerk siehst du kostenlos, wer dich mag. Like zurück – und es ist ein Match.'}</T>
       </View>
       <FlatList
         data={likes ?? []}
@@ -45,7 +51,8 @@ export default function Likes() {
         contentContainerStyle={{ padding: Space.lg, gap: Space.md, paddingBottom: TabInset + Space.xl, flexGrow: 1 }}
         refreshControl={<RefreshControl refreshing={refreshing} tintColor={Brand.primary} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
         ListEmptyComponent={likes ? (
-          <Empty icon="heart-outline" title="Noch keine Likes" text="Ein vollständiges Profil mit 3+ Fotos und beantworteten Prompts bekommt bis zu 3× mehr Likes." />
+          <Empty icon={mode === 'friends' ? 'people-outline' : 'heart-outline'} title={mode === 'friends' ? 'Noch keine Anfragen' : 'Noch keine Likes'}
+            text="Ein vollständiges Profil mit 3+ Fotos und beantworteten Prompts wird deutlich öfter angefragt." />
         ) : undefined}
         renderItem={({ item }) => {
           const score = me ? compatibility(me, item.profile).score : undefined;

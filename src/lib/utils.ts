@@ -54,15 +54,17 @@ export interface Compatibility {
  * Transparent compatibility score – shown to users so they understand *why* someone is suggested.
  * Weighted: shared interests 45 %, dating intentions 35 %, distance 10 %, profile quality 10 %.
  */
-export function compatibility(me: Profile, other: Profile): Compatibility {
+export function compatibility(me: Profile, other: Profile, mode: 'dating' | 'friends' = 'dating'): Compatibility {
   const shared = other.interests.filter((i) => me.interests.includes(i));
   const reasons: string[] = [];
   const interestScore = Math.min(1, shared.length / 3);
   if (shared.length) reasons.push(`${shared.length} gemeinsame Interessen`);
 
-  const gap = Math.abs((INTENTION_GROUP[me.intention] ?? 2) - (INTENTION_GROUP[other.intention] ?? 2));
+  // in Freunde mode dating intentions don't matter
+  const gap = mode === 'friends' ? 0 : Math.abs((INTENTION_GROUP[me.intention] ?? 2) - (INTENTION_GROUP[other.intention] ?? 2));
   const intentionScore = gap === 0 ? 1 : gap === 1 ? 0.75 : gap === 2 ? 0.45 : 0.15;
-  if (gap === 0) reasons.push('Ihr sucht dasselbe');
+  if (mode === 'friends') reasons.push('Ihr sucht beide neue Leute');
+  else if (gap === 0) reasons.push('Ihr sucht dasselbe');
   else if (gap === 1) reasons.push('Ähnliche Absichten');
 
   const d = other.distanceKm ?? 25;
@@ -116,3 +118,16 @@ export function resolveOpener(mine: Profile['firstMove'], theirs: Profile['first
 
 export const MATCH_TTL_HOURS = 48;
 export const DEFAULT_FILTERS: Filters = { minAge: 18, maxAge: 45, maxDistanceKm: 50, intentions: [], verifiedOnly: false };
+
+/** Sensible starting filters for every age: roughly ±10 years (narrower for the youngest), 60 km for rural areas. */
+export function defaultFiltersFor(birthdate?: string): Filters {
+  if (!birthdate) return DEFAULT_FILTERS;
+  const age = ageFrom(birthdate);
+  const below = age < 25 ? 4 : age < 35 ? 7 : 10;
+  return {
+    ...DEFAULT_FILTERS,
+    minAge: Math.max(18, age - below),
+    maxAge: Math.min(99, age + (age < 25 ? 7 : 10)),
+    maxDistanceKm: 60,
+  };
+}

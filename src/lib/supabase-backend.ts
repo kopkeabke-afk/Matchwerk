@@ -29,6 +29,7 @@ function toProfile(r: Row): Profile {
     verified: !!r.verified,
     firstMove: r.first_move ?? 'anyone',
     paused: !!r.paused,
+    modes: r.modes ?? ['dating'],
     distanceKm: r.distance_km ?? undefined,
   };
 }
@@ -53,6 +54,7 @@ function fromProfile(p: Profile, id: string): Row {
     lng: p.lng ?? null,
     first_move: p.firstMove,
     paused: p.paused,
+    modes: p.modes?.length ? p.modes : ['dating'],
   };
 }
 
@@ -90,6 +92,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
 
   const mapMatch = (r: Row): Match => ({
     id: r.id,
+    mode: r.mode ?? 'dating',
     profile: toProfile(r.profile),
     createdAt: r.created_at,
     expiresAt: r.expires_at,
@@ -176,15 +179,15 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       return row ? toProfile(row) : null;
     },
 
-    async getDeck(f: Filters) {
+    async getDeck(f: Filters, mode = 'dating') {
       const rows = check(await sb.rpc('get_deck', {
         min_age: f.minAge, max_age: f.maxAge, max_km: f.maxDistanceKm,
-        intentions: f.intentions, verified_only: f.verifiedOnly, lim: 30,
+        intentions: f.intentions, verified_only: f.verifiedOnly, lim: 30, mode,
       })) as Row[];
       return (rows ?? []).map(toProfile);
     },
-    async swipe(targetId, action, note) {
-      const matchId = check(await sb.rpc('swipe', { target_id: targetId, act: action, note: note ?? null })) as string | null;
+    async swipe(targetId, action, note, mode = 'dating') {
+      const matchId = check(await sb.rpc('swipe', { target_id: targetId, act: action, note: note ?? null, mode })) as string | null;
       if (!matchId) return {};
       const match = await backend.getMatch(matchId);
       if (match && note?.comment && match.opener !== 'them') {
@@ -192,11 +195,11 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       }
       return { match: match ?? undefined };
     },
-    async undoSwipe(targetId) {
-      check(await sb.rpc('undo_swipe', { target_id: targetId }));
+    async undoSwipe(targetId, mode = 'dating') {
+      check(await sb.rpc('undo_swipe', { target_id: targetId, mode }));
     },
-    async getIncomingLikes(): Promise<IncomingLike[]> {
-      const rows = check(await sb.rpc('incoming_likes')) as Row[];
+    async getIncomingLikes(mode = 'dating'): Promise<IncomingLike[]> {
+      const rows = check(await sb.rpc('incoming_likes', { mode })) as Row[];
       return (rows ?? []).map((r) => ({
         profile: toProfile(r.profile), action: r.action, note: r.note ?? undefined, createdAt: r.created_at,
       }));

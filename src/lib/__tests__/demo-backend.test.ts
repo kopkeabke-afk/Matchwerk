@@ -60,3 +60,35 @@ describe('demo backend', () => {
     expect((await b.getDeck(DEFAULT_FILTERS)).some((p) => p.id === first.id)).toBe(true);
   });
 });
+
+describe('Freunde mode (demo)', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('keeps dating and friends separate', async () => {
+    const b = createDemoBackend();
+    await b.deleteAccount();
+    await b.verifyLoginCode('a@b.de', '0');
+    await b.saveMyProfile({ ...me, modes: ['dating'] });
+    expect(await b.getDeck({ ...DEFAULT_FILTERS, maxAge: 99, maxDistanceKm: 500 }, 'friends')).toHaveLength(0);
+
+    await b.saveMyProfile({ ...me, modes: ['dating', 'friends'] });
+    const friends = await b.getDeck({ ...DEFAULT_FILTERS, maxAge: 99, maxDistanceKm: 500 }, 'friends');
+    expect(friends.length).toBeGreaterThan(0);
+    expect(friends.some((p) => p.gender === 'man')).toBe(true); // no gender filter for friends
+    expect(friends.every((p) => p.modes?.includes('friends'))).toBe(true);
+
+    const target = friends[0];
+    await b.swipe(target.id, 'pass', undefined, 'friends');
+    const dating = await b.getDeck({ ...DEFAULT_FILTERS, maxAge: 99, maxDistanceKm: 500 }, 'dating');
+    if (target.modes?.includes('dating') && target.gender === 'woman') {
+      expect(dating.some((p) => p.id === target.id)).toBe(true); // a Freunde pass doesn't hide them in Dating
+    }
+
+    const requests = await b.getIncomingLikes('friends');
+    expect(requests.length).toBeGreaterThan(0);
+    const { match } = await b.swipe(requests[0].profile.id, 'like', undefined, 'friends');
+    expect(match?.mode).toBe('friends');
+    expect(match?.opener).toBe('anyone');
+  });
+});

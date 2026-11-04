@@ -9,11 +9,24 @@ import { backend } from '@/lib';
 import { useSession } from '@/lib/session';
 import {
   FIRST_MOVE_LABELS, GENDER_LABELS, INTENTION_EMOJI, INTENTION_LABELS, INTEREST_LABELS,
-  type FirstMove, type Gender, type Intention, type Interest, type Profile,
+  type FirstMove, type Gender, type Intention, type Interest, type Mode, type Profile,
 } from '@/lib/types';
 import { isAdult } from '@/lib/utils';
 
 const STEPS = 8;
+
+function ModePicker({ value, onChange }: { value: Mode[]; onChange: (m: Mode[]) => void }) {
+  const toggle = (m: Mode) => {
+    const next = value.includes(m) ? value.filter((x) => x !== m) : [...value, m];
+    if (next.length) onChange(next);
+  };
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Chip icon="🔥" label="Dating" selected={value.includes('dating')} onPress={() => toggle('dating')} />
+      <Chip icon="👋" label="Neue Freunde" selected={value.includes('friends')} onPress={() => toggle('friends')} />
+    </View>
+  );
+}
 
 export default function Onboarding() {
   const c = useTheme();
@@ -25,7 +38,7 @@ export default function Onboarding() {
   const [yyyy, setYyyy] = useState('');
   const [p, setP] = useState<Profile>({
     id: '', name: '', birthdate: '', gender: 'woman', interestedIn: 'men', bio: '', photos: [], prompts: [],
-    interests: [], intention: 'long_term', verified: false, firstMove: 'anyone', paused: false,
+    interests: [], intention: 'long_term', verified: false, firstMove: 'anyone', paused: false, modes: ['dating'],
   });
   const set = (patch: Partial<Profile>) => setP((x) => ({ ...x, ...patch }));
   const birthdate = `${yyyy.padStart(4, '0')}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
@@ -68,7 +81,7 @@ export default function Onboarding() {
   ];
   const subtitles = [
     'So wird dein Name auf matchwerk angezeigt.', 'Dein Alter wird angezeigt, dein Geburtsdatum nicht.', '',
-    'Ehrlichkeit von Anfang an – wir zeigen dir Menschen mit ähnlichen Zielen.',
+    'Dating, neue Freunde oder beides – wir zeigen dir Menschen mit ähnlichen Zielen.',
     'Mindestens 2 Fotos. Tipp: Gesicht gut sichtbar, natürliches Licht.',
     'Wähle 3–10 Interessen. Gemeinsamkeiten erhöhen deinen Match-Score.',
     'Beantworte mindestens 2 Prompts – sie sind der beste Einstieg ins Gespräch.',
@@ -117,10 +130,18 @@ export default function Onboarding() {
           )}
 
           {step === 3 && (
-            <View style={{ gap: 10 }}>
-              {(Object.keys(INTENTION_LABELS) as Intention[]).map((i) => (
-                <Chip key={i} icon={INTENTION_EMOJI[i]} label={INTENTION_LABELS[i]} selected={p.intention === i} onPress={() => set({ intention: i })} />
-              ))}
+            <View style={{ gap: Space.lg }}>
+              <T variant="h3">Ich bin hier für</T>
+              <ModePicker value={p.modes ?? ['dating']} onChange={(modes) => set({ modes, intention: modes.includes('dating') ? (p.intention === 'friends' ? 'unsure' : p.intention) : 'friends' })} />
+              <T muted variant="small">Du kannst beides wählen und später jederzeit oben in der App zwischen Dating und Freunden wechseln.</T>
+              {(p.modes ?? ['dating']).includes('dating') && (
+                <View style={{ gap: 10 }}>
+                  <T variant="h3">Beim Dating suche ich</T>
+                  {(Object.keys(INTENTION_LABELS) as Intention[]).filter((i) => i !== 'friends').map((i) => (
+                    <Chip key={i} icon={INTENTION_EMOJI[i]} label={INTENTION_LABELS[i]} selected={p.intention === i} onPress={() => set({ intention: i })} />
+                  ))}
+                </View>
+              )}
             </View>
           )}
 

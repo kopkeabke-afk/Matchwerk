@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { Backend, SwipeResult } from './backend';
-import { DEMO_INCOMING_LIKES, DEMO_PROFILES, DEMO_REPLIES } from './demo-data';
+import { DEMO_INCOMING_FRIENDS, DEMO_INCOMING_LIKES, DEMO_PROFILES, DEMO_REPLIES } from './demo-data';
 import { TIER_LIMITS, type Tier } from './plans';
-import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Profile, SwipeAction } from './types';
+import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Mode, Profile, SwipeAction } from './types';
 import { MATCH_TTL_HOURS, mutuallyCompatible, passesFilters, resolveOpener, uid } from './utils';
 
 const KEY = 'matchwerk.demo.v1';
@@ -13,7 +13,7 @@ interface State {
   signedIn: boolean;
   me: Profile | null;
   swipes: Record<string, SwipeAction>;
-  matches: { id: string; userId: string; createdAt: string; extended: boolean; expiresAt: string; lastReadAt: string }[];
+  matches: { id: string; userId: string; createdAt: string; extended: boolean; expiresAt: string; lastReadAt: string; mode?: Mode }[];
   messages: Message[];
   blocked: string[];
   /** every swipe of the last 24 h (for the daily limits) */
@@ -30,6 +30,9 @@ const empty = (): State => ({
   signedIn: false, me: null, swipes: {}, matches: [], messages: [], blocked: [], likeLog: [], boostCredits: 0,
 });
 const DAY = 86_400_000;
+/** swipes are stored per mode; dating keeps the plain id for older saved demo data */
+const key = (mode: Mode, id: string) => (mode === 'dating' ? id : `${mode}:${id}`);
+const hasMode = (p: Profile, mode: Mode) => (p.modes?.length ? p.modes : ['dating']).includes(mode);
 const active = (iso?: string) => !!iso && new Date(iso) > new Date();
 const tierOf = (s: State): Tier => (active(s.vipUntil) ? 'vip' : active(s.premiumUntil) ? 'plus' : 'free');
 const isPremium = (s: State) => tierOf(s) !== 'free';
@@ -73,11 +76,13 @@ export function createDemoBackend(): Backend {
     const profile = profileById(m.userId);
     if (!profile) return null;
     const msgs = s.messages.filter((x) => x.matchId === m.id);
+    const mode = m.mode ?? 'dating';
     return {
       id: m.id,
+      mode,
       profile,
       createdAt: m.createdAt,
-      opener: resolveOpener(s.me?.firstMove ?? 'anyone', profile.firstMove),
+      opener: mode === 'friends' ? 'anyone' : resolveOpener(s.me?.firstMove ?? 'anyone', profile.firstMove),
       expiresAt: m.expiresAt,
       extended: m.extended,
       lastMessage: msgs[msgs.length - 1],
@@ -165,12 +170,14 @@ export function createDemoBackend(): Backend {
       return id === ME ? s.me : profileById(id);
     },
 
-    async getDeck(filters: Filters) {
+    async getDeck(filters: Filters, mode: Mode = 'dating') {
       const s = await load();
-      if (!s.me) return [];
-      return others(s).filter((p) => !s.swipes[p.id] && mutuallyCompatible(s.me!, p) && passesFilters(p, filters));
+      if (!s.me || !hasMode(s.me, mode)) return [];
+      return others(s).filter((p) => !s.swipes[key(mode, p.id)] && hasMode(p, mode)
+        && (mode === 'friends' || mutuallyCompatible(s.me!, p))
+        && passesFilters(p, mode === 'friends' ? { ...filters, intentions: [] } : filters));
     },
-    async swipe(targetId: string, action: SwipeAction, _note?: LikeNote): Promise<SwipeResult> {
+    async swipe(targetId: string, action: SwipeAction, _note?: LikeNote, mode: Mode = 'dating'): Promise<SwipeResult> {
       const s = await load();
       const lim = TIER_LIMITS[tierOf(s)];
       const u = usage(s);
@@ -183,15 +190,15 @@ export function createDemoBackend(): Backend {
         paid = true;
       }
       s.likeLog = [...s.likeLog.filter((l) => Date.now() - new Date(l.at).getTime() < DAY), { at: new Date().toISOString(), action, paid }];
-      s.swipes[targetId] = action;
+      s.swipes[key(mode, targetId)] = action;
       let match: Match | undefined;
       // In the demo, people who liked you match instantly; others match with ~35 % chance.
-      const likedMe = DEMO_INCOMING_LIKES.some((l) => l.id === targetId);
+      const likedMe = (mode === 'friends' ? DEMO_INCOMING_FRIENDS : DEMO_INCOMING_LIKES).some((l) => l.id === targetId);
       const lucky = Number.parseInt(targetId.replace(/\D/g, ''), 10) % 3 === 0;
-      if (action !== 'pass' && (likedMe || lucky || action === 'superlike') && !s.matches.some((m) => m.userId === targetId)) {
+      if (action !== 'pass' && (likedMe || lucky || action === 'superlike') && !s.matches.some((m) => m.userId === targetId && (m.mode ?? 'dating') === mode)) {
         const now = new Date();
         const rec = {
-          id: uid(), userId: targetId, createdAt: now.toISOString(), extended: false, lastReadAt: now.toISOString(),
+          id: uid(), userId: targetId, mode, createdAt: now.toISOString(), extended: false, lastReadAt: now.toISOString(),
           expiresAt: new Date(now.getTime() + MATCH_TTL_HOURS * 3_600_000).toISOString(),
         };
         s.matches.unshift(rec);
@@ -207,22 +214,22 @@ export function createDemoBackend(): Backend {
       await save();
       return { match };
     },
-    async undoSwipe(targetId) {
+    async undoSwipe(targetId, mode: Mode = 'dating') {
       const s = await load();
-      delete s.swipes[targetId];
+      delete s.swipes[key(mode, targetId)];
       await save();
     },
-    async getIncomingLikes(): Promise<IncomingLike[]> {
+    async getIncomingLikes(mode: Mode = 'dating'): Promise<IncomingLike[]> {
       const s = await load();
-      if (!s.me) return [];
-      return DEMO_INCOMING_LIKES.filter((l) => !s.swipes[l.id] && !s.blocked.includes(l.id))
+      if (!s.me || !hasMode(s.me, mode)) return [];
+      return (mode === 'friends' ? DEMO_INCOMING_FRIENDS : DEMO_INCOMING_LIKES).filter((l) => !s.swipes[key(mode, l.id)] && !s.blocked.includes(l.id))
         .map((l, i) => ({
           profile: profileById(l.id)!,
           action: 'like' as const,
           note: l.comment ? { comment: l.comment, item: l.item } : undefined,
           createdAt: new Date(Date.now() - (i + 1) * 3_600_000 * 3).toISOString(),
         }))
-        .filter((l) => l.profile && mutuallyCompatible(s.me!, l.profile));
+        .filter((l) => l.profile && (mode === 'friends' ? hasMode(l.profile, 'friends') : mutuallyCompatible(s.me!, l.profile)));
     },
 
     async getMatches() {

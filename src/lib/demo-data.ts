@@ -126,6 +126,8 @@ export const DEMO_PROFILES: Profile[] = SEEDS.map((s, i) => {
     verified: !!verified,
     firstMove: gender === 'woman' && i % 3 === 0 ? 'me' : 'anyone',
     paused: false,
+    // every third person is also open to new friends, some only want friends
+    modes: intention === 'friends' ? ['friends'] : i % 3 === 1 ? ['dating', 'friends'] : ['dating'],
     distanceKm: km,
   };
 });
@@ -140,6 +142,12 @@ export const DEMO_INCOMING_LIKES: { id: string; comment?: string; item?: { kind:
   { id: 'demo-19' },
   { id: 'demo-24' },
   { id: 'demo-27' },
+];
+
+/** Profiles that sent a friend request to the demo user. */
+export const DEMO_INCOMING_FRIENDS: { id: string; comment?: string; item?: { kind: 'photo' | 'prompt'; index: number } }[] = [
+  { id: 'demo-10', comment: 'Brettspielabend am Wochenende? 🎲' },
+  { id: 'demo-25' },
 ];
 
 export const DEMO_REPLIES = [

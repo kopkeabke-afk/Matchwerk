@@ -3,6 +3,9 @@ export type Interest = 'women' | 'men' | 'everyone';
 export type Intention = 'long_term' | 'long_open' | 'short_open' | 'short_fun' | 'friends' | 'unsure';
 /** Who may send the first message after a match. */
 export type FirstMove = 'me' | 'them' | 'anyone';
+/** What someone is on Matchwerk for. Swipes and matches are kept separately per mode. */
+export type Mode = 'dating' | 'friends';
+export const MODE_LABELS: Record<Mode, string> = { dating: 'Dating', friends: 'Freunde' };
 
 export interface Prompt {
   question: string;
@@ -29,6 +32,8 @@ export interface Profile {
   verified: boolean;
   firstMove: FirstMove;
   paused: boolean;
+  /** defaults to ['dating'] */
+  modes?: Mode[];
   /** Only on other profiles: distance from me in km */
   distanceKm?: number;
 }
@@ -66,6 +71,7 @@ export interface Message {
 
 export interface Match {
   id: string;
+  mode: Mode;
   profile: Profile;
   createdAt: string;
   /** Who is allowed to open the conversation (resolved from both users' firstMove settings). */

@@ -1,4 +1,4 @@
-import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Profile, SwipeAction } from './types';
+import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Mode, Profile, SwipeAction } from './types';
 
 export interface SwipeResult {
   match?: Match;
@@ -28,10 +28,10 @@ export interface Backend {
   uploadPhoto(localUri: string): Promise<string>;
   getProfile(id: string): Promise<Profile | null>;
   // discovery
-  getDeck(filters: Filters): Promise<Profile[]>;
-  swipe(targetId: string, action: SwipeAction, note?: LikeNote): Promise<SwipeResult>;
-  undoSwipe(targetId: string): Promise<void>;
-  getIncomingLikes(): Promise<IncomingLike[]>;
+  getDeck(filters: Filters, mode?: Mode): Promise<Profile[]>;
+  swipe(targetId: string, action: SwipeAction, note?: LikeNote, mode?: Mode): Promise<SwipeResult>;
+  undoSwipe(targetId: string, mode?: Mode): Promise<void>;
+  getIncomingLikes(mode?: Mode): Promise<IncomingLike[]>;
   // matches & chat
   getMatches(): Promise<Match[]>;
   getMatch(id: string): Promise<Match | null>;

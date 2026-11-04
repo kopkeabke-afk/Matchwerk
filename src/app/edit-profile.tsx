@@ -6,13 +6,26 @@ import { InterestPicker, PhotoGrid, PromptEditor } from '@/components/profile-ed
 import { Button, Chip, Field, T } from '@/components/ui';
 import { Space } from '@/constants/theme';
 import { useSession } from '@/lib/session';
-import { GENDER_LABELS, INTENTION_EMOJI, INTENTION_LABELS, INTEREST_LABELS, type Gender, type Intention, type Interest, type Profile } from '@/lib/types';
+import { GENDER_LABELS, INTENTION_EMOJI, INTENTION_LABELS, INTEREST_LABELS, type Gender, type Intention, type Interest, type Mode, type Profile } from '@/lib/types';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <View style={{ gap: Space.md }}>
       <T variant="h3">{title}</T>
       {children}
+    </View>
+  );
+}
+
+function ModePicker({ value, onChange }: { value: Mode[]; onChange: (m: Mode[]) => void }) {
+  const toggle = (m: Mode) => {
+    const next = value.includes(m) ? value.filter((x) => x !== m) : [...value, m];
+    if (next.length) onChange(next);
+  };
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Chip icon="🔥" label="Dating" selected={value.includes('dating')} onPress={() => toggle('dating')} />
+      <Chip icon="👋" label="Neue Freunde" selected={value.includes('friends')} onPress={() => toggle('friends')} />
     </View>
   );
 }
@@ -57,6 +70,9 @@ export default function EditProfile() {
           <Field label="Job" value={p.job ?? ''} onChangeText={(job) => set({ job })} maxLength={60} placeholder="z. B. Designerin" />
           <Field label="Ausbildung" value={p.school ?? ''} onChangeText={(school) => set({ school })} maxLength={60} placeholder="z. B. TU Berlin" />
           <Field label="Größe (cm)" value={height} onChangeText={(t) => setHeight(t.replace(/\D/g, '').slice(0, 3))} keyboardType="number-pad" placeholder="175" />
+        </Section>
+        <Section title="Ich bin hier für">
+          <ModePicker value={p.modes ?? ['dating']} onChange={(modes) => set({ modes })} />
         </Section>
         <Section title="Ich bin">
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

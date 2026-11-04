@@ -20,7 +20,7 @@ export default function ProfileScreen() {
   const { id, from, matchId } = useLocalSearchParams<{ id: string; from?: 'deck' | 'likes' | 'match'; matchId?: string }>();
   const c = useTheme();
   const insets = useSafeAreaInsets();
-  const { profile: me } = useSession();
+  const { profile: me, mode } = useSession();
   const [p, setP] = useState<Profile | null>(profileCache.get(id) ?? null);
   const [noteFor, setNoteFor] = useState<LikeNote['item'] | null>(null);
   const [comment, setComment] = useState('');
@@ -35,7 +35,7 @@ export default function ProfileScreen() {
     if (!p) return;
     setBusy(true);
     try {
-      const { match } = await backend.swipe(p.id, action, note);
+      const { match } = await backend.swipe(p.id, action, note, mode);
       bus.emit('swiped', { id: p.id });
       router.back();
       if (match) setTimeout(() => router.push(`/match/${match.id}`), 350);

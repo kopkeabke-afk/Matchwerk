@@ -21,9 +21,11 @@ export default function MatchCelebration() {
 
   return (
     <LinearGradient colors={['rgba(255,77,109,0.97)', 'rgba(255,138,61,0.97)']} style={styles.wrap}>
-      <Animated.Text entering={ZoomIn.springify()} style={styles.title}>Es ist ein Match!</Animated.Text>
+      <Animated.Text entering={ZoomIn.springify()} style={styles.title}>{m?.mode === 'friends' ? 'Neue Verbindung!' : 'Es ist ein Match!'}</Animated.Text>
       <Animated.Text entering={FadeInDown.delay(150)} style={styles.sub}>
-        Du und {m?.profile.name ?? '…'} mögt euch gegenseitig.
+        {m?.mode === 'friends'
+          ? `Du und ${m.profile.name} wollt euch kennenlernen. Schlagt doch gleich etwas vor!`
+          : `Du und ${m?.profile.name ?? '…'} mögt euch gegenseitig.`}
       </Animated.Text>
       <View style={styles.pics}>
         <Animated.View entering={FadeInDown.delay(200).springify()} style={[styles.pic, { transform: [{ rotate: '-8deg' }] }]}>

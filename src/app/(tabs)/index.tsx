@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ModeSwitch } from '@/components/mode-switch';
 import { SwipeDeck, type SwipeDeckHandle } from '@/components/swipe-deck';
 import { Button, Empty, IconButton } from '@/components/ui';
 import { Brand, Space, TabInset, useTheme, WebTabTop } from '@/constants/theme';
@@ -16,7 +17,7 @@ import { compatibility } from '@/lib/utils';
 
 export default function Discover() {
   const c = useTheme();
-  const { profile: me, filters } = useSession();
+  const { profile: me, filters, mode } = useSession();
   const [deck, setDeck] = useState<Profile[] | null>(null);
   const [sparkId, setSparkId] = useState<string>();
   const [last, setLast] = useState<{ p: Profile; action: SwipeAction } | null>(null);
@@ -24,11 +25,11 @@ export default function Discover() {
   const deckRef = useRef<SwipeDeckHandle>(null);
   const refreshLimits = useCallback(() => { backend.getLimits().then(setLimits).catch(() => {}); }, []);
 
-  const compat = useCallback((p: Profile) => compatibility(me!, p), [me]);
+  const compat = useCallback((p: Profile) => compatibility(me!, p, mode), [me, mode]);
 
   const load = useCallback(async () => {
     try {
-      const list = await backend.getDeck(filters);
+      const list = await backend.getDeck(filters, mode);
       profileCache.put(list);
       // Daily Spark: best match of the day goes first
       const scored = list.map((p) => ({ p, s: compatibility(me!, p).score }));
@@ -39,7 +40,7 @@ export default function Discover() {
       setDeck([]);
       Alert.alert('Laden fehlgeschlagen', (e as Error).message);
     }
-  }, [filters, me]);
+  }, [filters, me, mode]);
 
   // load() sets state only after awaiting the backend
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -51,7 +52,7 @@ export default function Discover() {
     setDeck((d) => d?.filter((x) => x.id !== p.id) ?? d);
     setLast({ p, action });
     try {
-      const { match } = await backend.swipe(p.id, action);
+      const { match } = await backend.swipe(p.id, action, undefined, mode);
       if (match) {
         setLast(null);
         router.push(`/match/${match.id}`);
@@ -88,7 +89,7 @@ export default function Discover() {
 
   async function undo() {
     if (!last) return;
-    await backend.undoSwipe(last.p.id).catch(() => {});
+    await backend.undoSwipe(last.p.id, mode).catch(() => {});
     setDeck((d) => [last.p, ...(d ?? [])]);
     setLast(null);
   }
@@ -100,7 +101,7 @@ export default function Discover() {
       <View style={{ height: WebTabTop }} />
       <View style={styles.header}>
         <Text style={styles.logo}>matchwerk{limits?.tier === 'vip' ? <Text style={{ color: Brand.gold }}> VIP</Text> : limits?.premium ? <Text style={{ color: Brand.gold }}>+</Text> : null}</Text>
-        <View style={{ flex: 1 }} />
+        <View style={{ flex: 1, alignItems: 'center' }}><ModeSwitch /></View>
         {limits && limits.swipesLeft !== null && limits.swipesLeft <= 10 ? (
           <Pressable onPress={() => router.push({ pathname: '/premium', params: { reason: 'swipes' } })} style={[styles.pill, { backgroundColor: c.surface }]}>
             <Text style={{ color: c.text, fontWeight: '700', fontSize: 13 }}>{limits.swipesLeft} Profile übrig</Text>
@@ -126,7 +127,10 @@ export default function Discover() {
       ) : deck === null ? (
         <View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator color={Brand.primary} size="large" /></View>
       ) : deck.length === 0 ? (
-        <Empty icon="sparkles" title="Das war's für jetzt" text="Du hast alle Profile in deiner Nähe gesehen. Erweitere deine Filter oder schau später wieder vorbei.">
+        <Empty icon={mode === 'friends' ? 'people' : 'sparkles'} title="Das war's für jetzt"
+          text={mode === 'friends'
+            ? 'Gerade sucht niemand in deiner Nähe neue Freunde. Erweitere den Umkreis oder schau später wieder vorbei.'
+            : 'Du hast alle Profile in deiner Nähe gesehen. Erweitere deine Filter oder schau später wieder vorbei.'}>
           <Button title="Filter anpassen" icon="options-outline" onPress={() => router.push('/filters')} />
           <Button title="Neu laden" variant="ghost" onPress={() => { setDeck(null); load(); }} />
         </Empty>
@@ -139,6 +143,7 @@ export default function Discover() {
               compat={compat}
               sparkId={sparkId}
               onSwipe={onSwipe}
+              mode={mode}
               onInfo={(p) => router.push({ pathname: '/profile/[id]', params: { id: p.id, from: 'deck' } })}
             />
           </View>
@@ -146,7 +151,7 @@ export default function Discover() {
             <IconButton icon="arrow-undo" color={Brand.gold} size={46} label="Rückgängig" onPress={undo} />
             <IconButton icon="close" color={Brand.pass} size={64} label="Weiter" onPress={() => deckRef.current?.swipe('pass')} />
             <IconButton icon="flame" color={Brand.accent} size={46} label="Funke" onPress={() => deckRef.current?.swipe('superlike')} />
-            <IconButton icon="heart" color={Brand.like} size={64} label="Like" onPress={() => deckRef.current?.swipe('like')} />
+            <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={Brand.like} size={64} label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => deckRef.current?.swipe('like')} />
             <IconButton icon="information" color={c.textSecondary} size={46} label="Profil ansehen"
               onPress={() => deck[0] && router.push({ pathname: '/profile/[id]', params: { id: deck[0].id, from: 'deck' } })} />
           </View>

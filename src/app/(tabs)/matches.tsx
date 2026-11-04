@@ -75,7 +75,10 @@ export default function Matches() {
             <Image source={m.profile.photos[0]} style={styles.avatar} contentFit="cover" />
             <View style={{ flex: 1, gap: 2 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <T variant="h3">{m.profile.name}</T>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <T variant="h3">{m.profile.name}</T>
+                  {m.mode === 'friends' && <View style={styles.friendTag}><Text style={styles.friendTagText}>Freunde</Text></View>}
+                </View>
                 <T variant="small" muted>{timeAgo(m.lastMessage!.createdAt)}</T>
               </View>
               <T muted={!m.unread} numberOfLines={1} style={m.unread ? { fontWeight: '700' } : undefined}>
@@ -95,6 +98,8 @@ const styles = StyleSheet.create({
   avatarLg: { width: 70, height: 70, borderRadius: 35, backgroundColor: '#333' },
   row: { flexDirection: 'row', alignItems: 'center', gap: Space.md, paddingHorizontal: Space.lg, paddingVertical: Space.md },
   avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#333' },
+  friendTag: { backgroundColor: Brand.super, borderRadius: Radius.pill, paddingHorizontal: 7, paddingVertical: 1 },
+  friendTagText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   dot: { minWidth: 22, height: 22, borderRadius: Radius.pill, backgroundColor: Brand.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   dotText: { color: '#fff', fontWeight: '800', fontSize: 12 },
 });

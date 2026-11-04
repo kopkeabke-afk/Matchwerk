@@ -98,7 +98,7 @@ export default function Chat() {
         ListHeaderComponent={
           <View style={styles.intro}>
             <Image source={p.photos[0]} style={styles.introImg} />
-            <T variant="h2">Du und {p.name} habt ein Match 🔥</T>
+            <T variant="h2" style={{ textAlign: 'center' }}>{match.mode === 'friends' ? `Du und ${p.name} seid verbunden 👋` : `Du und ${p.name} habt ein Match 🔥`}</T>
             {first && (
               <T muted style={{ textAlign: 'center' }}>
                 {waiting

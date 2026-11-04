@@ -8,7 +8,7 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { Brand } from '@/constants/theme';
-import type { Profile, SwipeAction } from '@/lib/types';
+import type { Mode, Profile, SwipeAction } from '@/lib/types';
 import type { Compatibility } from '@/lib/utils';
 
 import { ProfileCard } from './profile-card';
@@ -23,6 +23,7 @@ interface Props {
   sparkId?: string;
   onSwipe: (p: Profile, action: SwipeAction) => void;
   onInfo: (p: Profile) => void;
+  mode?: Mode;
 }
 
 const haptic = (a: SwipeAction) => {
@@ -31,7 +32,7 @@ const haptic = (a: SwipeAction) => {
   else Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 };
 
-export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck({ profiles, compat, sparkId, onSwipe, onInfo }, ref) {
+export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck({ profiles, compat, sparkId, onSwipe, onInfo, mode = 'dating' }, ref) {
   const { width, height } = useWindowDimensions();
   const x = useSharedValue(0);
   const y = useSharedValue(0);
@@ -108,7 +109,7 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck({
           <Animated.View key={top.id} style={[StyleSheet.absoluteFill, topStyle]}>
             <ProfileCard profile={top} compat={compat(top)} spark={top.id === sparkId} onInfo={() => onInfo(top)} />
             <Animated.View style={[styles.stamp, styles.like, likeStyle]} pointerEvents="none">
-              <Text style={[styles.stampText, { color: Brand.like }]}>LIKE</Text>
+              <Text style={[styles.stampText, { color: Brand.like }]}>{mode === 'friends' ? 'HALLO' : 'LIKE'}</Text>
             </Animated.View>
             <Animated.View style={[styles.stamp, styles.nope, nopeStyle]} pointerEvents="none">
               <Text style={[styles.stampText, { color: Brand.pass }]}>NOPE</Text>
