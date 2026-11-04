@@ -85,64 +85,60 @@ const imgs = JSON.parse(document.getElementById('imgs').textContent || '[]');
 const PHASES = [
   { id: 'accounts', title: 'Konten anlegen', items: [
     { id: 'github', t: 'GitHub verbinden und Code hochladen', who: 'du', must: true, d: 'Erledigt: Der Code liegt in kopkeabke-afk/Matchwerk, die automatischen Tests laufen bei jedem Push.' },
-    { id: 'apple', t: 'Apple Developer Program beitreten', who: 'du', must: true, d: '99 $ pro Jahr, Freischaltung dauert 1–2 Tage. Als Firma brauchst du eine D-U-N-S-Nummer.' },
-    { id: 'google', t: 'Google Play Console registrieren', who: 'du', must: true, d: '25 $ einmalig. Neue private Konten müssen vor dem Launch 14 Tage mit 12 Testern testen.' },
-    { id: 'expo', t: 'Expo-Konto erstellen und Projekt verknüpfen', who: 'du', d: 'Danach steht die projectId in app.json, die Push-Benachrichtigungen brauchen.', cmd: 'npx eas-cli@latest login && npx eas-cli@latest init' },
-    { id: 'supabase', t: 'Supabase-Projekt in der Region Frankfurt anlegen', who: 'du', must: true, d: 'EU-Region wegen DSGVO. Für den Start reicht der Pro-Plan (25 $/Monat).' },
+    { id: 'google', t: 'Google Play Console registrieren', who: 'du', must: true, d: '25 $ einmalig – die einzigen Pflichtkosten. Ausweis-Prüfung dauert ein paar Tage.' },
+    { id: 'expo', t: 'Expo-Konto erstellen und Projekt verknüpfen', who: 'du', d: 'Kostenlos, ca. 30 Builds pro Monat.', cmd: 'npx eas-cli@latest login && npx eas-cli@latest init' },
+    { id: 'supabase', t: 'Supabase-Projekt in der Region Frankfurt anlegen', who: 'du', must: true, d: 'Kostenlos bis ca. 50.000 aktive Nutzer im Monat. Ein Gratis-Projekt pausiert nach 7 Tagen ohne Nutzung.' },
+    { id: 'pages', t: 'GitHub Pages einschalten', who: 'du', must: true, d: 'Repository → Settings → Pages → Source: „GitHub Actions“. Danach unter Actions den Workflow „Website …“ einmal starten. Google Play braucht diese Links.' },
   ]},
   { id: 'backend', title: 'Backend einrichten', items: [
-    { id: 'schema', t: 'Datenbank-Schema einspielen', who: 'du', must: true, d: 'Zwei Migrationen: Tabellen, Zugriffsregeln, Match-Logik, Fotospeicher, Spam-Schutz und Moderation. 19 automatische Sicherheitsprüfungen bestanden.', cmd: 'supabase link --project-ref DEIN_REF && supabase db push' },
+    { id: 'schema', t: 'Datenbank-Schema einspielen', who: 'du', must: true, d: 'Drei Migrationen: Tabellen, Zugriffsregeln, Match-Logik, Fotos, Spam-Schutz, Moderation, Matchwerk+. 35 automatische Prüfungen bestanden.', cmd: 'supabase link --project-ref DEIN_REF && supabase db push' },
     { id: 'env', t: 'Zugangsdaten in .env eintragen', who: 'du', must: true, d: 'Ohne diese Datei läuft die App im Demo-Modus.', cmd: 'cp .env.example .env' },
-    { id: 'smtp', t: 'Mail-Versand für Login-Codes einrichten', who: 'du', must: true, d: 'In Supabase unter Auth → SMTP einen Anbieter wie Resend oder Postmark eintragen. In der Mailvorlage {{ .Token }} verwenden.' },
-    { id: 'login-phone', t: 'SMS-Login einrichten', who: 'du', must: true, d: 'Supabase → Auth → Providers → Phone aktivieren und einen SMS-Anbieter wie Twilio eintragen. Kostet ca. 5–10 Cent pro SMS.' },
-    { id: 'login-google', t: 'Google-Login einrichten', who: 'du', must: true, d: 'Google Cloud Console: OAuth-Client-IDs für Web, iOS und Android anlegen. Web-ID in Supabase eintragen, alle IDs in .env, iOS-URL-Schema in app.json.' },
-    { id: 'login-apple', t: 'Apple-Login einrichten', who: 'du', must: true, d: 'Pflicht, sobald Google-Login angeboten wird. In der App-ID „Sign in with Apple“ aktivieren und in Supabase den Apple-Provider mit .p8-Schlüssel eintragen.' },
-    { id: 'push', t: 'Push-Funktion deployen und Webhooks anlegen', who: 'du', d: 'Zwei Webhooks: INSERT auf messages und matches, mit Header x-webhook-secret.', cmd: 'supabase functions deploy push --no-verify-jwt && supabase secrets set WEBHOOK_SECRET=$(openssl rand -hex 24)' },
-    { id: 'review-user', t: 'Test-Konto für Apples Prüfung anlegen', who: 'du', must: true, d: 'In Supabase einen Nutzer mit Passwort anlegen; die App hat dafür „Mit Passwort anmelden“. Dazu 3–5 echte Testprofile in der Nähe, damit der Stapel nicht leer ist.' },
+    { id: 'smtp', t: 'Kostenlosen Mailversand für Login-Codes einrichten', who: 'du', must: true, d: 'Konto bei Brevo oder Resend (Gratis-Stufe), SMTP-Daten in Supabase unter Auth → SMTP. In der Mailvorlage {{ .Token }} verwenden.' },
+    { id: 'login-google', t: 'Google-Login einrichten', who: 'du', must: true, d: 'Google Cloud Console: OAuth-Client-IDs für Web und Android (Paket app.matchwerk.dating + SHA-1). Web-ID in Supabase und in .env.' },
+    { id: 'push', t: 'Push-Benachrichtigungen einrichten', who: 'du', d: 'Kostenlos. Firebase-Projekt für Android-Push (FCM) anlegen, Schlüssel per eas credentials hinterlegen, dann die Push-Funktion deployen.', cmd: 'supabase functions deploy push --no-verify-jwt && supabase secrets set WEBHOOK_SECRET=$(openssl rand -hex 24)' },
+    { id: 'review-user', t: 'Test-Konto für Googles Prüfung anlegen', who: 'du', must: true, d: 'In Supabase einen Nutzer mit Passwort anlegen („Mit E-Mail“ → „Mit Passwort anmelden“) und 3–5 Testprofile in der Nähe.' },
   ]},
   { id: 'money', title: 'Bezahlsystem Matchwerk+', items: [
-    { id: 'iap-products', t: 'Abos und Boosts in beiden Stores anlegen', who: 'du', must: true, d: 'Produkt-IDs: matchwerk_plus_1m, matchwerk_plus_6m, matchwerk_plus_12m (Auto-Abos) und matchwerk_boost_1, matchwerk_boost_5. Preisvorschlag: 7,99 / 29,99 / 44,99 € und 2,99 / 9,99 €.' },
-    { id: 'sbp', t: 'Apple Small Business Program beantragen', who: 'du', d: 'Apple nimmt dann 15 % statt 30 % Gebühr. Google nimmt bei Abos ohnehin 15 %.' },
-    { id: 'paid-apps', t: 'Bankkonto und Steuerdaten hinterlegen', who: 'du', must: true, d: 'App Store Connect → Verträge (Paid Apps Agreement) und Google Play → Zahlungsprofil. Ohne das werden keine Käufe angezeigt.' },
-    { id: 'revenuecat', t: 'RevenueCat verbinden', who: 'du', must: true, d: 'Kostenlos bis 2.500 $ Monatsumsatz. Entitlement „plus“, Offering „default“ mit allen fünf Produkten, öffentliche API-Keys in .env.' },
-    { id: 'rc-webhook', t: 'Kauf-Webhook deployen', who: 'du', must: true, d: 'Überträgt Käufe in die Datenbank. In RevenueCat unter Integrations → Webhooks die Function-URL und den Bearer-Secret eintragen.', cmd: 'supabase functions deploy revenuecat --no-verify-jwt && supabase secrets set REVENUECAT_WEBHOOK_SECRET=$(openssl rand -hex 24)' },
-    { id: 'sandbox', t: 'Käufe mit Testkonten prüfen', who: 'du', must: true, d: 'Apple-Sandbox-Konto bzw. Google-Lizenztester: Abo kaufen, kündigen, wiederherstellen, Boost kaufen.' },
+    { id: 'iap-products', t: 'Abos und Boosts in der Play Console anlegen', who: 'du', must: true, d: 'matchwerk_plus_1m, _6m, _12m (Abos) und matchwerk_boost_1, _5. Preisvorschlag: 7,99 / 29,99 / 44,99 € und 2,99 / 9,99 €.' },
+    { id: 'paid-apps', t: 'Zahlungsprofil mit Bankkonto anlegen', who: 'du', must: true, d: 'Play Console → Zahlungsprofil. Ohne das keine Auszahlungen. Google behält bei Abos 15 %.' },
+    { id: 'revenuecat', t: 'RevenueCat verbinden', who: 'du', must: true, d: 'Kostenlos bis 2.500 $ Monatsumsatz. Google-Play-App verbinden, Entitlement „plus“, Offering „default“, Android-Key in .env.' },
+    { id: 'rc-webhook', t: 'Kauf-Webhook deployen', who: 'du', must: true, d: 'Überträgt Käufe in die Datenbank. URL und Bearer-Secret in RevenueCat unter Integrations → Webhooks eintragen.', cmd: 'supabase functions deploy revenuecat --no-verify-jwt && supabase secrets set REVENUECAT_WEBHOOK_SECRET=$(openssl rand -hex 24)' },
+    { id: 'sandbox', t: 'Käufe mit Lizenztestern prüfen', who: 'du', must: true, d: 'Play Console → Einstellungen → Lizenztests: Abo kaufen, kündigen, wiederherstellen, Boost kaufen.' },
   ]},
   { id: 'legal', title: 'Rechtliches', items: [
-    { id: 'imprint', t: 'Firmenname, Adresse und Support-Mail eintragen', who: 'du', must: true, d: 'Alles an einer Stelle: src/constants/app.ts' },
-    { id: 'lawyer', t: 'AGB und Datenschutz anwaltlich prüfen lassen', who: 'du', must: true, d: 'Die Texte in der App sind Vorlagen. Sexuelle Orientierung ist ein besonders geschütztes Datum nach Art. 9 DSGVO.' },
-    { id: 'urls', t: 'AGB und Datenschutz auch als Webseite veröffentlichen', who: 'du', must: true, d: 'Beide Stores verlangen eine öffentlich erreichbare URL zur Datenschutzerklärung.' },
-    { id: 'dpa', t: 'Auftragsverarbeitungsverträge abschließen', who: 'du', d: 'Mit Supabase und deinem Mail-Anbieter. Beide bieten das im Dashboard an.' },
+    { id: 'imprint', t: 'Name, Adresse und Support-Mail eintragen', who: 'du', must: true, d: 'In src/constants/app.ts. Als Support-Mail reicht ein kostenloses Postfach, das du wirklich liest.' },
+    { id: 'lawyer', t: 'AGB und Datenschutz prüfen lassen', who: 'du', must: true, d: 'Die Texte sind Vorlagen. Sexuelle Orientierung ist ein besonders geschütztes Datum nach Art. 9 DSGVO.' },
+    { id: 'dpa', t: 'Auftragsverarbeitungsverträge abschließen', who: 'du', d: 'Mit Supabase, RevenueCat und deinem Mail-Anbieter – kostenlos im jeweiligen Dashboard.' },
   ]},
-  { id: 'brand', title: 'Marke & Store-Assets', items: [
-    { id: 'bundle', t: 'Bundle-ID auf deine Domain ändern', who: 'du', must: true, d: 'In app.json: ios.bundleIdentifier und android.package. Lässt sich nach dem ersten Upload nicht mehr ändern.' },
-    { id: 'icon', t: 'Finales App-Icon gestalten', who: 'du', d: 'Das aktuelle Flammen-Icon ist ein Platzhalter. 1024 × 1024 px, ohne Transparenz.' },
-    { id: 'name-check', t: 'Markennamen prüfen', who: 'du', d: '„Matchwerk“ beim DPMA/EUIPO und im App Store suchen. Notfalls in app.json umbenennen.' },
-    { id: 'shots', t: 'Store-Screenshots prüfen', who: 'du', must: true, d: '7 fertige Bilder im Format 1320 × 2868 liegen in store/screenshots/phone. Sie stammen aus der Web-Version; nach dem ersten TestFlight-Build gegen Aufnahmen vom echten Gerät tauschen.' },
+  { id: 'brand', title: 'Marke & Store-Eintrag', items: [
+    { id: 'name-check', t: 'Namen „Matchwerk“ prüfen', who: 'du', must: true, d: 'Beim DPMA/EUIPO und in Google Play suchen, ob der Name schon vergeben ist.' },
+    { id: 'icon', t: 'Finales App-Icon und Feature-Grafik (1024 × 500)', who: 'du', d: 'Das Flammen-Icon ist ein Platzhalter. Kostenlos gestalten z. B. mit Canva.' },
+    { id: 'shots', t: 'Store-Screenshots prüfen', who: 'du', must: true, d: '7 fertige Bilder liegen in store/screenshots/phone. Nach dem ersten Testbuild gern durch echte Aufnahmen ersetzen.' },
+    { id: 'listing', t: 'Store-Eintrag und App-Inhalte ausfüllen', who: 'du', must: true, d: 'Texte, Datensicherheit, Altersfreigabe (18+) und die Links zu Datenschutz und Kontolöschung stehen fertig in STORE.md.' },
   ]},
-  { id: 'ship', title: 'Bauen & einreichen', items: [
-    { id: 'beta', t: 'Testversion auf echten Geräten prüfen', who: 'du', must: true, d: 'Gesten, Kamera, Standort und Push laufen nur auf echten Geräten. Ideal: 10–20 Testpersonen über TestFlight.', cmd: 'npx eas-cli@latest build --profile preview --platform all' },
-    { id: 'build', t: 'Produktions-Build erstellen', who: 'du', must: true, cmd: 'npx eas-cli@latest build --profile production --platform all' },
-    { id: 'privacy-labels', t: 'Datenschutzangaben ausfüllen', who: 'du', must: true, d: 'App Store Connect → App Privacy und Google Play → Data Safety. Antworten stehen in STORE.md.' },
-    { id: 'submit', t: 'Bei Apple und Google einreichen', who: 'du', must: true, d: 'Altersfreigabe 17+ wählen. Prüfnotizen aus STORE.md einfügen.', cmd: 'npx eas-cli@latest submit --platform ios && npx eas-cli@latest submit --platform android' },
+  { id: 'ship', title: 'Bauen & veröffentlichen', items: [
+    { id: 'beta', t: 'Test-APK auf deinem Handy installieren', who: 'du', must: true, d: 'Gesten, Kamera, Standort, Login, Push und Käufe laufen nur auf echten Geräten.', cmd: 'npx eas-cli@latest build --platform android --profile preview' },
+    { id: 'build', t: 'Produktions-Build (AAB) erstellen', who: 'du', must: true, cmd: 'npx eas-cli@latest build --platform android --profile production' },
+    { id: 'closed-test', t: 'Geschlossener Test: 12 Tester, 14 Tage', who: 'du', must: true, d: 'Pflicht für neue private Konten, bevor die App öffentlich gehen darf. Freunde und Familie per E-Mail-Liste einladen.' },
+    { id: 'production', t: 'Produktion beantragen und veröffentlichen', who: 'du', must: true, d: 'Nach dem Test in der Play Console „Produktion“ beantragen. Die Prüfung dauert meist wenige Tage.' },
   ]},
   { id: 'ops', title: 'Nach dem Launch', items: [
-    { id: 'moderation', t: 'Meldungen täglich bearbeiten', who: 'du', must: true, d: 'Apple erwartet eine Reaktion innerhalb von 24 Stunden. Die Ansicht moderation_queue zeigt gemeldete Profile; ab 3 Meldungen wird ein Profil automatisch ausgeblendet.', cmd: "select moderate('<user-id>', 'ban');  -- oder 'dismiss' / 'verify'" },
-    { id: 'verify', t: 'Ablauf für Profil-Verifizierung festlegen', who: 'du', d: 'Aktuell per SQL mit moderate(..., \'verify\'). Später lässt sich ein Selfie-Abgleich anbinden.' },
-    { id: 'revenue', t: 'Umsätze wöchentlich ansehen', who: 'du', d: 'RevenueCat-Dashboard oder in Supabase die Ansicht revenue_daily. Bei 29,99 € für 6 Monate kommen nach Steuer und Store-Gebühr ca. 21,42 € bei dir an.' },
-    { id: 'seed', t: 'Startregion mit echten Nutzer:innen füllen', who: 'du', d: 'Eine Dating-App lebt von Dichte. Mit einer Stadt starten, z. B. Berlin.' },
+    { id: 'moderation', t: 'Meldungen täglich bearbeiten', who: 'du', must: true, d: 'Die Ansicht moderation_queue zeigt gemeldete Profile; ab 3 Meldungen wird ein Profil automatisch ausgeblendet.', cmd: "select moderate('<user-id>', 'ban');  -- oder 'dismiss' / 'verify'" },
+    { id: 'revenue', t: 'Umsätze wöchentlich ansehen', who: 'du', d: 'RevenueCat-Dashboard oder in Supabase die Ansicht revenue_daily. Bei 29,99 € für 6 Monate bleiben dir ca. 21,42 €.' },
+    { id: 'seed', t: 'Mit einer Stadt starten', who: 'du', d: 'Eine Dating-App lebt von Dichte: erst eine Stadt füllen, dann wachsen.' },
+    { id: 'ios-later', t: 'Später optional: iPhone-Version', who: 'du', d: 'Der Code kann iOS schon. Dafür bräuchtest du das Apple Developer Program (99 $/Jahr).' },
   ]},
 ];
 
-const DONE = ['Swipen mit Gesten, Undo, Super-Like', 'Like auf Foto oder Antwort mit Kommentar', 'Wer zuerst schreibt, wählt jede:r selbst', 'Matches laufen nach 48 h ab, 1× verlängerbar', 'Likes kostenlos sehen', 'Match-Score mit Begründung', 'Daily Spark', 'Echtzeit-Chat mit Icebreakern', 'Login per E-Mail-Code', 'Onboarding mit 18+-Prüfung', 'Melden, Blockieren, Sicherheits-Center', 'Konto in der App löschen', 'Datenbank mit Zugriffsregeln (getestet)', 'Push-Benachrichtigungen', 'Dark Mode, iOS, Android, Web', 'Demo-Modus ohne Server', 'Spam-Schutz und Tageslimits', 'Auto-Ausblenden nach 3 Meldungen', 'Passwort-Login für App Review', 'Kamera & Foto-Komprimierung', '19 App-Tests + 19 Datenbank-Tests', 'GitHub-Actions-CI', '7 Store-Screenshots', 'Premium-Abo Matchwerk+ mit Paywall', 'Boosts einzeln kaufbar', 'Gratis-Limits serverseitig gesichert', 'Login mit Apple, Google, SMS, E-Mail', '35 Datenbank-Tests, 27 App-Tests'];
+const DONE = ['Swipen mit Gesten, Undo, Super-Like', 'Like auf Foto oder Antwort mit Kommentar', 'Wer zuerst schreibt, wählt jede:r selbst', 'Matches laufen nach 48 h ab, 1× verlängerbar', 'Likes kostenlos sehen', 'Match-Score mit Begründung', 'Daily Spark', 'Echtzeit-Chat mit Icebreakern', 'Login per E-Mail-Code', 'Onboarding mit 18+-Prüfung', 'Melden, Blockieren, Sicherheits-Center', 'Konto in der App löschen', 'Datenbank mit Zugriffsregeln (getestet)', 'Push-Benachrichtigungen', 'Dark Mode, iOS, Android, Web', 'Demo-Modus ohne Server', 'Spam-Schutz und Tageslimits', 'Auto-Ausblenden nach 3 Meldungen', 'Passwort-Login für App Review', 'Kamera & Foto-Komprimierung', '19 App-Tests + 19 Datenbank-Tests', 'GitHub-Actions-CI', '7 Store-Screenshots', 'Premium-Abo Matchwerk+ mit Paywall', 'Boosts einzeln kaufbar', 'Gratis-Limits serverseitig gesichert', 'Login mit Google und E-Mail (SMS & Apple vorbereitet)', 'Webseite für Datenschutz & Kontolöschung', '35 Datenbank-Tests, 27 App-Tests'];
 
 const TEXTS = [
-  { label: 'App-Name', text: 'Matchwerk – Dating & echte Matches' },
-  { label: 'Untertitel (max. 30 Zeichen)', text: 'Weniger swipen, mehr verbinden' },
-  { label: 'Werbetext', text: 'Sieh kostenlos, wer dich mag – und erfahre, warum ihr zusammenpasst.' },
-  { label: 'Keywords (max. 100 Zeichen)', text: 'dating,partnersuche,singles,kennenlernen,flirt,beziehung,match,chat,liebe,date' },
-  { label: 'Beschreibung', text: 'Matchwerk ist die Dating-App für Menschen, die mehr wollen als endloses Swipen.\n\n• Transparenter Match-Score: Du siehst, was ihr gemeinsam habt – Interessen, Absichten, Nähe.\n• Like, was dich wirklich anspricht: ein bestimmtes Foto oder eine Antwort, gern mit Kommentar.\n• Du entscheidest, wer zuerst schreibt – du, dein Match oder egal.\n• Kostenlos sehen, wer dich geliked hat.\n• Daily Spark: Jeden Tag dein kompatibelstes Profil zuerst.\n• Persönliche Icebreaker, damit das erste „Hey“ nie wieder schwer ist.\n• Klare Absichten: von „Feste Beziehung“ bis „Neue Freundschaften“ – als Filter nutzbar.\n• Sicherheit zuerst: verifizierte Profile, Melden & Blockieren in jedem Chat, Sicherheits-Center.\n• Kein Werbe-Tracking. Deine Daten gehören dir.' },
-  { label: 'Notizen für Apples Prüfung', text: 'Login per E-Mail-Code. Test-Konto: [E-Mail] / Code: [Code].\nNutzerinhalte (Guideline 1.2): Nutzungsbedingungen mit Null-Toleranz-Regel werden vor der Registrierung akzeptiert. Melden und Blockieren gibt es in jedem Profil und Chat oben rechts. Meldungen werden innerhalb von 24 Stunden geprüft.\nKonto löschen (5.1.1(v)): Profil → Einstellungen → Konto löschen.\nMindestalter 18: Das Geburtsdatum wird im Onboarding geprüft, die Datenbank lehnt Minderjährige ab.' },
+  { label: 'App-Name (max. 30 Zeichen)', text: 'Matchwerk – Dating & Matches' },
+  { label: 'Kurzbeschreibung (max. 80 Zeichen)', text: 'Sieh kostenlos, wer dich mag – und warum ihr wirklich zusammenpasst.' },
+  { label: 'Vollständige Beschreibung', text: 'Matchwerk ist die Dating-App für Menschen, die mehr wollen als endloses Swipen.\n\n• Transparenter Match-Score: Du siehst, was ihr gemeinsam habt – Interessen, Absichten, Nähe.\n• Like, was dich wirklich anspricht: ein bestimmtes Foto oder eine Antwort, gern mit Kommentar.\n• Du entscheidest, wer zuerst schreibt – du, dein Match oder egal.\n• Kostenlos sehen, wer dich geliked hat.\n• Daily Spark: Jeden Tag dein kompatibelstes Profil zuerst.\n• Persönliche Gesprächsstarter, damit das erste „Hey“ nie wieder schwer ist.\n• Klare Absichten: von „Feste Beziehung“ bis „Neue Freundschaften“ – als Filter nutzbar.\n• Sicherheit zuerst: verifizierte Profile, Melden & Blockieren in jedem Chat, Sicherheits-Center.\n• Kein Werbe-Tracking.\n\nMatchwerk ist kostenlos. Optional gibt es Matchwerk+ für unbegrenzte Likes, 5 Super-Likes am Tag, einen wöchentlichen Boost und unbegrenzte Match-Verlängerungen. Abos verlängern sich automatisch und sind jederzeit in Google Play kündbar.\n\nNur für Personen ab 18 Jahren.' },
+  { label: 'Datenschutz-URL', text: 'https://kopkeabke-afk.github.io/Matchwerk/datenschutz.html' },
+  { label: 'URL zur Kontolöschung', text: 'https://kopkeabke-afk.github.io/Matchwerk/konto-loeschen.html' },
+  { label: 'Hinweis für Googles Prüfung (App-Zugriff)', text: 'Anmelden → „Mit E-Mail“ → „Mit Passwort anmelden“. Test-Konto: [E-Mail] / Passwort: [Passwort].\nMelden und Blockieren gibt es in jedem Profil und Chat oben rechts. Konto löschen: Profil → Einstellungen → Konto löschen.\nNur für Erwachsene: Das Geburtsdatum wird im Onboarding geprüft.' },
 ];
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -159,8 +155,8 @@ function render() {
   const app = document.getElementById('app');
   app.innerHTML = `
     <header>
-      <span class="eyebrow">Dating-App · Expo SDK 58 · Supabase</span>
-      <h1>Von fertigem Code zum <em>App Store</em></h1>
+      <span class="eyebrow">Dating-App für Android · Expo SDK 58 · Supabase</span>
+      <h1>Von fertigem Code zu <em>Google Play</em></h1>
       <p class="lede">Die App ist programmiert und getestet. Was noch fehlt, braucht deine Konten, deine Firma oder deine Entscheidung. Hake ab, was erledigt ist; der Stand bleibt gespeichert.</p>
       <div class="meter">
         <div class="meter-top"><strong>${n} von ${all.length}</strong><span class="muted">${pct} % bis zum Launch</span></div>
@@ -173,7 +169,7 @@ function render() {
     </section>
     <section>
       <h2>Was noch zu tun ist</h2>
-      <p class="note">Markiert mit <span class="who must">Pflicht</span>: ohne diese Schritte lehnt Apple oder Google die App ab, oder sie funktioniert nicht.</p>
+      <p class="note">Markiert mit <span class="who must">Pflicht</span>: ohne diese Schritte lehnt Google die App ab, oder sie funktioniert nicht.</p>
       ${PHASES.map((p) => {
         const d = p.items.filter((i) => state.done[i.id]).length;
         return `<div class="phase"><div class="phase-head"><h3>${esc(p.title)}</h3><span>${d}/${p.items.length}</span></div>
