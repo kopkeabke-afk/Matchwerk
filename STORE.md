@@ -22,10 +22,12 @@ funke ist die Dating-App für Menschen, die mehr wollen als endloses Swipen.
 • Sicherheit zuerst: verifizierte Profile, Melden & Blockieren in jedem Chat, Sicherheits-Center.
 • Kein Werbe-Tracking. Deine Daten gehören dir.
 
+funke ist kostenlos. Optional: funke+ für unbegrenzte Likes, 5 Super-Likes am Tag, einen wöchentlichen Boost und unbegrenzte Match-Verlängerungen. Das Abo verlängert sich automatisch, wenn es nicht 24 Stunden vor Ablauf gekündigt wird. Nutzungsbedingungen: [URL] · Datenschutz: [URL]
+
 **Keywords (100):** dating,partnersuche,singles,kennenlernen,flirt,beziehung,match,chat,liebe,date
 
 ## App Privacy (Apple) – „Data Linked to You“
-E-Mail · Name · Fotos · Ungefährer Standort · Sensible Infos (sexuelle Orientierung aus Präferenzen) · Sonstige Nutzerinhalte (Nachrichten, Prompts). **Kein Tracking.**
+E-Mail · Telefonnummer · Kaufhistorie · Name · Fotos · Ungefährer Standort · Sensible Infos (sexuelle Orientierung aus Präferenzen) · Sonstige Nutzerinhalte (Nachrichten, Prompts). **Kein Tracking.**
 
 ## Google Play – Data Safety
 Gleiche Angaben; Daten verschlüsselt übertragen; Löschung in der App möglich (Einstellungen → Konto löschen).
@@ -46,3 +48,14 @@ Gleiche Angaben; Daten verschlüsselt übertragen; Löschung in der App möglich
 5. Match-Screen – „Es funkt!“
 6. Chat mit Icebreakern – „Nie wieder nur ‚Hey‘“
 7. Einstellungen „Wer schreibt zuerst?“ – „Du entscheidest“
+
+## In-App-Käufe (App Store Connect)
+| Produkt-ID | Typ | Vorschlag | Anzeigename |
+|---|---|---|---|
+| funke_plus_1m | Auto-Abo, 1 Monat | 7,99 € | funke+ (1 Monat) |
+| funke_plus_6m | Auto-Abo, 6 Monate | 29,99 € | funke+ (6 Monate) |
+| funke_plus_12m | Auto-Abo, 1 Jahr | 44,99 € | funke+ (12 Monate) |
+| funke_boost_1 | Verbrauchsartikel | 2,99 € | 1 Boost |
+| funke_boost_5 | Verbrauchsartikel | 9,99 € | 5 Boosts |
+
+Für die Prüfung braucht jedes Produkt einen Screenshot der Paywall (Profil → funke+).

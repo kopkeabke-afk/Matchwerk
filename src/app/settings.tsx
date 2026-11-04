@@ -7,6 +7,7 @@ import { Card, Chip, Row, T } from '@/components/ui';
 import { APP } from '@/constants/app';
 import { Brand, Space } from '@/constants/theme';
 import { backend } from '@/lib';
+import { manageSubscriptionsUrl } from '@/lib/purchases';
 import { useSession } from '@/lib/session';
 import { FIRST_MOVE_LABELS, type FirstMove } from '@/lib/types';
 
@@ -68,6 +69,12 @@ export default function Settings() {
           <T muted variant="small">Du wirst niemandem mehr angezeigt. Bestehende Chats bleiben.</T>
         </View>
         <Switch value={profile.paused} disabled={busy} onValueChange={(paused) => update({ paused })} trackColor={{ true: Brand.primary }} />
+      </View>
+
+      <View>
+        <T variant="h3">funke+</T>
+        <Row icon="sparkles-outline" label="funke+ & Boosts" onPress={() => router.push('/premium')} />
+        <Row icon="card-outline" label="Abo verwalten oder kündigen" onPress={() => Linking.openURL(manageSubscriptionsUrl)} />
       </View>
 
       <View>

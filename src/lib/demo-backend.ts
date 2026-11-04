@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { Backend, SwipeResult } from './backend';
 import { DEMO_INCOMING_LIKES, DEMO_PROFILES, DEMO_REPLIES } from './demo-data';
-import type { Filters, IncomingLike, LikeNote, Match, Message, Profile, SwipeAction } from './types';
+import { FREE_LIMITS, PLUS_LIMITS } from './plans';
+import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Profile, SwipeAction } from './types';
 import { MATCH_TTL_HOURS, mutuallyCompatible, passesFilters, resolveOpener, uid } from './utils';
 
 const KEY = 'funke.demo.v1';
@@ -15,9 +16,23 @@ interface State {
   matches: { id: string; userId: string; createdAt: string; extended: boolean; expiresAt: string; lastReadAt: string }[];
   messages: Message[];
   blocked: string[];
+  likeLog: { at: string; action: SwipeAction }[];
+  premiumUntil?: string;
+  boostedUntil?: string;
+  lastBoostAt?: string;
+  boostCredits: number;
 }
 
-const empty = (): State => ({ signedIn: false, me: null, swipes: {}, matches: [], messages: [], blocked: [] });
+const empty = (): State => ({
+  signedIn: false, me: null, swipes: {}, matches: [], messages: [], blocked: [], likeLog: [], boostCredits: 0,
+});
+const DAY = 86_400_000;
+const isPremium = (s: State) => !!s.premiumUntil && new Date(s.premiumUntil) > new Date();
+function usage(s: State) {
+  const since = Date.now() - DAY;
+  const recent = s.likeLog.filter((l) => new Date(l.at).getTime() > since);
+  return { likes: recent.length, superlikes: recent.filter((l) => l.action === 'superlike').length };
+}
 
 /**
  * Fully offline backend for demos, App Review and development.
@@ -95,6 +110,16 @@ export function createDemoBackend(): Backend {
       authListeners.forEach((cb) => cb(ME));
       return ME;
     },
+    async sendPhoneCode() {},
+    async verifyPhoneCode(phone) {
+      return this.verifyLoginCode(phone, '');
+    },
+    async signInWithGoogle() {
+      return this.verifyLoginCode('google', '');
+    },
+    async signInWithApple() {
+      return this.verifyLoginCode('apple', '');
+    },
     async signInWithPassword(email, _password) {
       return this.verifyLoginCode(email, '');
     },
@@ -138,6 +163,15 @@ export function createDemoBackend(): Backend {
     },
     async swipe(targetId: string, action: SwipeAction, _note?: LikeNote): Promise<SwipeResult> {
       const s = await load();
+      if (action !== 'pass') {
+        const u = usage(s);
+        const prem = isPremium(s);
+        if (!prem && u.likes >= FREE_LIMITS.likesPerDay) throw new Error('LIMIT:likes');
+        if (action === 'superlike' && u.superlikes >= (prem ? PLUS_LIMITS.superlikesPerDay : FREE_LIMITS.superlikesPerDay)) {
+          throw new Error('LIMIT:superlikes');
+        }
+        s.likeLog = [...s.likeLog.filter((l) => Date.now() - new Date(l.at).getTime() < DAY), { at: new Date().toISOString(), action }];
+      }
       s.swipes[targetId] = action;
       let match: Match | undefined;
       // In the demo, people who liked you match instantly; others match with ~35 % chance.
@@ -195,12 +229,12 @@ export function createDemoBackend(): Backend {
     async extendMatch(id) {
       const s = await load();
       const m = s.matches.find((x) => x.id === id);
-      if (m && !m.extended) {
-        m.extended = true;
-        m.expiresAt = new Date(new Date(m.expiresAt).getTime() + 24 * 3_600_000).toISOString();
-        await save();
-        matchListeners.forEach((cb) => cb());
-      }
+      if (!m) return;
+      if (m.extended && !isPremium(s)) throw new Error('LIMIT:extend');
+      m.extended = true;
+      m.expiresAt = new Date(Math.max(new Date(m.expiresAt).getTime(), Date.now()) + 24 * 3_600_000).toISOString();
+      await save();
+      matchListeners.forEach((cb) => cb());
     },
     async unmatch(id) {
       const s = await load();
@@ -239,6 +273,48 @@ export function createDemoBackend(): Backend {
     subscribeMatches(cb) {
       matchListeners.add(cb);
       return () => matchListeners.delete(cb);
+    },
+
+    async getLimits(): Promise<Limits> {
+      const s = await load();
+      const prem = isPremium(s);
+      const u = usage(s);
+      const boostActive = s.boostedUntil && new Date(s.boostedUntil) > new Date() ? s.boostedUntil : undefined;
+      return {
+        premium: prem,
+        premiumUntil: s.premiumUntil,
+        likesLeft: prem ? null : Math.max(0, FREE_LIMITS.likesPerDay - u.likes),
+        superlikesLeft: Math.max(0, (prem ? PLUS_LIMITS.superlikesPerDay : FREE_LIMITS.superlikesPerDay) - u.superlikes),
+        boostActiveUntil: boostActive,
+        freeBoostAvailable: prem && (!s.lastBoostAt || Date.now() - new Date(s.lastBoostAt).getTime() > 7 * DAY),
+        boostCredits: s.boostCredits,
+      };
+    },
+    async activateBoost() {
+      const s = await load();
+      if (s.boostedUntil && new Date(s.boostedUntil) > new Date()) return s.boostedUntil;
+      const until = new Date(Date.now() + 30 * 60_000).toISOString();
+      if (isPremium(s) && (!s.lastBoostAt || Date.now() - new Date(s.lastBoostAt).getTime() > 7 * DAY)) {
+        s.lastBoostAt = new Date().toISOString();
+      } else if (s.boostCredits > 0) {
+        s.boostCredits -= 1;
+      } else {
+        throw new Error('LIMIT:boost');
+      }
+      s.boostedUntil = until;
+      await save();
+      return until;
+    },
+    async simulatePurchase(productId) {
+      const s = await load();
+      const months = /(\d+)m$/.exec(productId)?.[1];
+      if (months) {
+        const base = isPremium(s) ? new Date(s.premiumUntil!).getTime() : Date.now();
+        s.premiumUntil = new Date(base + Number(months) * 30 * DAY).toISOString();
+      } else if (productId.includes('boost')) {
+        s.boostCredits += productId.endsWith('_5') ? 5 : 1;
+      }
+      await save();
     },
 
     async block(userId) {

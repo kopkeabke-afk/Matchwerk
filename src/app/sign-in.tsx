@@ -1,108 +1,147 @@
-import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, Card, Field, T } from '@/components/ui';
-import { Space } from '@/constants/theme';
+import { Button, Card, Field, T, type IconName } from '@/components/ui';
+import { Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { useSession } from '@/lib/session';
+import { appleSignInAvailable, toE164 } from '@/lib/social-auth';
+
+type Stage = 'choose' | 'phone' | 'phone-code' | 'email' | 'email-code' | 'password';
+
+function Provider({ icon, label, onPress, dark, busy }: { icon: IconName; label: string; onPress: () => void; dark?: boolean; busy?: boolean }) {
+  const c = useTheme();
+  const bg = dark ? (c.dark ? '#fff' : '#000') : c.surface;
+  const fg = dark ? (c.dark ? '#000' : '#fff') : c.text;
+  return (
+    <Pressable
+      onPress={busy ? undefined : onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [styles.provider, { backgroundColor: bg, borderColor: c.border, opacity: busy ? 0.6 : pressed ? 0.85 : 1 }]}>
+      <Ionicons name={icon} size={20} color={fg} />
+      <Text style={[styles.providerText, { color: fg }]}>{label}</Text>
+    </Pressable>
+  );
+}
 
 export default function SignIn() {
   const { refresh } = useSession();
+  const [stage, setStage] = useState<Stage>('choose');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
-  const [sent, setSent] = useState(false);
-  const [usePassword, setUsePassword] = useState(false);
   const [password, setPassword] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [apple, setApple] = useState(false);
   const demo = backend.mode === 'demo';
   const validEmail = /^\S+@\S+\.\S+$/.test(email.trim());
+  const e164 = toE164(phone);
 
-  async function send() {
-    setBusy(true);
+  useEffect(() => {
+    appleSignInAvailable().then(setApple);
+  }, []);
+
+  async function run(key: string, fn: () => Promise<unknown>, title = 'Anmeldung fehlgeschlagen') {
+    setBusy(key);
     try {
-      await backend.sendLoginCode(email.trim().toLowerCase());
-      setSent(true);
+      const res = await fn();
+      if (res !== null && res !== undefined && key !== 'send') await refresh();
     } catch (e) {
-      Alert.alert('Fehler', (e as Error).message);
+      Alert.alert(title, (e as Error).message);
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
-  async function verify() {
-    setBusy(true);
-    try {
-      await backend.verifyLoginCode(email.trim().toLowerCase(), code.trim());
-      await refresh();
-    } catch (e) {
-      Alert.alert('Code ungültig', (e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function passwordLogin() {
-    setBusy(true);
-    try {
-      await backend.signInWithPassword(email.trim().toLowerCase(), password);
-      await refresh();
-    } catch (e) {
-      Alert.alert('Anmeldung fehlgeschlagen', (e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
+  const titles: Record<Stage, string> = {
+    choose: 'Willkommen bei funke',
+    phone: 'Deine Handynummer',
+    'phone-code': 'Code eingeben',
+    email: 'Deine E-Mail',
+    'email-code': 'Code eingeben',
+    password: 'Mit Passwort anmelden',
+  };
+  const subtitles: Record<Stage, string> = {
+    choose: 'Wähle, wie du dich anmelden möchtest. Neu hier? Dann wird dein Konto automatisch erstellt.',
+    phone: 'Wir schicken dir einen Code per SMS. Deine Nummer ist für andere nie sichtbar.',
+    'phone-code': `Wir haben dir einen 6-stelligen Code an ${e164 ?? phone} geschickt.`,
+    email: 'Kein Passwort nötig – wir senden dir einen Anmeldecode.',
+    'email-code': `Wir haben dir einen 6-stelligen Code an ${email} geschickt.`,
+    password: 'Für Test-Konten (z. B. App-Prüfung).',
+  };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: Space.xl, paddingTop: 60, gap: Space.lg }} keyboardShouldPersistTaps="handled">
-          <T variant="title">{sent ? 'Code eingeben' : usePassword ? 'Anmelden' : 'Wie lautet deine E-Mail?'}</T>
-          <T muted>
-            {sent
-              ? `Wir haben dir einen 6-stelligen Code an ${email} geschickt.`
-              : 'Kein Passwort nötig – wir senden dir einen Anmeldecode.'}
-          </T>
+          {stage !== 'choose' && (
+            <Pressable onPress={() => { setStage('choose'); setCode(''); }} hitSlop={10} accessibilityLabel="Zurück zur Auswahl">
+              <T muted>← Andere Anmeldemethode</T>
+            </Pressable>
+          )}
+          <T variant="title">{titles[stage]}</T>
+          <T muted>{subtitles[stage]}</T>
           {demo && (
             <Card>
-              <T variant="small">🧪 Demo-Modus: Es ist kein Server verbunden. Gib eine beliebige E-Mail und einen beliebigen Code ein.</T>
+              <T variant="small">🧪 Demo-Modus: Es ist kein Server verbunden. Jede Methode meldet dich sofort an, Codes sind beliebig.</T>
             </Card>
           )}
-          {!sent ? (
-            <>
-              <Field
-                value={email} onChangeText={setEmail} placeholder="du@beispiel.de" autoFocus
-                keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress"
-                onSubmitEditing={validEmail ? send : undefined} returnKeyType="next"
-              />
-              {usePassword ? (
-                <>
-                  <Field value={password} onChangeText={setPassword} placeholder="Passwort" secureTextEntry textContentType="password" autoComplete="password" onSubmitEditing={passwordLogin} />
-                  <Button title="Anmelden" onPress={passwordLogin} loading={busy} disabled={!validEmail || !password} />
-                </>
-              ) : (
-                <Button title="Code senden" onPress={send} loading={busy} disabled={!validEmail} />
+
+          {stage === 'choose' && (
+            <View style={{ gap: Space.md }}>
+              {(apple || demo) && Platform.OS !== 'android' && (
+                <Provider icon="logo-apple" label="Mit Apple anmelden" dark busy={busy === 'apple'}
+                  onPress={() => run('apple', () => backend.signInWithApple())} />
               )}
-              <View style={{ alignItems: 'center' }}>
-                <Button
-                  title={usePassword ? 'Stattdessen Code per E-Mail' : 'Mit Passwort anmelden'}
-                  variant="ghost"
-                  onPress={() => setUsePassword(!usePassword)}
-                />
-              </View>
-            </>
-          ) : (
+              <Provider icon="logo-google" label="Mit Google fortfahren" busy={busy === 'google'}
+                onPress={() => run('google', () => backend.signInWithGoogle())} />
+              <Provider icon="call-outline" label="Mit Telefonnummer" onPress={() => setStage('phone')} />
+              <Provider icon="mail-outline" label="Mit E-Mail" onPress={() => setStage('email')} />
+            </View>
+          )}
+
+          {stage === 'phone' && (
             <>
-              <Field
-                value={code} onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))} placeholder="123456"
+              <Field value={phone} onChangeText={setPhone} placeholder="0151 23456789" autoFocus
+                keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" />
+              <T variant="small" muted>{e164 ? `Wird gesendet an ${e164}` : 'Ohne Ländervorwahl nehmen wir +49 (Deutschland) an.'}</T>
+              <Button title="Code per SMS senden" disabled={!e164} loading={busy === 'send'}
+                onPress={() => run('send', async () => { await backend.sendPhoneCode(e164!); setStage('phone-code'); }, 'SMS konnte nicht gesendet werden')} />
+            </>
+          )}
+
+          {(stage === 'phone-code' || stage === 'email-code') && (
+            <>
+              <Field value={code} onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))} placeholder="123456"
                 keyboardType="number-pad" autoFocus textContentType="oneTimeCode" autoComplete="one-time-code"
-                style={{ fontSize: 28, letterSpacing: 8, textAlign: 'center' }}
-              />
-              <Button title="Bestätigen" onPress={verify} loading={busy} disabled={!demo && code.length < 6} />
-              <View style={{ alignItems: 'center' }}>
-                <Button title="Andere E-Mail verwenden" variant="ghost" onPress={() => { setSent(false); setCode(''); }} />
-              </View>
+                style={{ fontSize: 28, letterSpacing: 8, textAlign: 'center' }} />
+              <Button title="Bestätigen" disabled={!demo && code.length < 6} loading={busy === 'verify'}
+                onPress={() => run('verify', () => stage === 'phone-code'
+                  ? backend.verifyPhoneCode(e164!, code)
+                  : backend.verifyLoginCode(email.trim().toLowerCase(), code), 'Code ungültig')} />
+              <Button title="Code erneut senden" variant="ghost"
+                onPress={() => run('send', () => stage === 'phone-code' ? backend.sendPhoneCode(e164!) : backend.sendLoginCode(email.trim().toLowerCase()))} />
+            </>
+          )}
+
+          {stage === 'email' && (
+            <>
+              <Field value={email} onChangeText={setEmail} placeholder="du@beispiel.de" autoFocus
+                keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress" />
+              <Button title="Code senden" disabled={!validEmail} loading={busy === 'send'}
+                onPress={() => run('send', async () => { await backend.sendLoginCode(email.trim().toLowerCase()); setStage('email-code'); }, 'E-Mail konnte nicht gesendet werden')} />
+              <Button title="Mit Passwort anmelden" variant="ghost" onPress={() => setStage('password')} />
+            </>
+          )}
+
+          {stage === 'password' && (
+            <>
+              <Field value={email} onChangeText={setEmail} placeholder="du@beispiel.de" keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+              <Field value={password} onChangeText={setPassword} placeholder="Passwort" secureTextEntry textContentType="password" autoComplete="password" />
+              <Button title="Anmelden" disabled={!validEmail || !password} loading={busy === 'pw'}
+                onPress={() => run('pw', () => backend.signInWithPassword(email.trim().toLowerCase(), password))} />
             </>
           )}
         </ScrollView>
@@ -110,3 +149,8 @@ export default function SignIn() {
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  provider: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 15, borderRadius: Radius.pill, borderWidth: StyleSheet.hairlineWidth },
+  providerText: { fontSize: 16, fontWeight: '700' },
+});

@@ -13,7 +13,7 @@ import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { bus } from '@/lib/events';
 import { useSession } from '@/lib/session';
-import type { LikeNote, Profile, SwipeAction } from '@/lib/types';
+import { limitReason, type LikeNote, type Profile, type SwipeAction } from '@/lib/types';
 import { compatibility } from '@/lib/utils';
 
 export default function ProfileScreen() {
@@ -40,7 +40,13 @@ export default function ProfileScreen() {
       router.back();
       if (match) setTimeout(() => router.push(`/match/${match.id}`), 350);
     } catch (e) {
-      Alert.alert('Fehler', (e as Error).message);
+      const reason = limitReason(e);
+      if (reason) {
+        setNoteFor(null);
+        router.push({ pathname: '/premium', params: { reason } });
+      } else {
+        Alert.alert('Fehler', (e as Error).message);
+      }
     } finally {
       setBusy(false);
     }

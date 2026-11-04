@@ -1,14 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProfileView } from '@/components/profile-view';
 import { Button, Card, T } from '@/components/ui';
 import { Brand, Space, TabInset, useTheme, WebTabTop } from '@/constants/theme';
+import { backend } from '@/lib';
 import { useSession } from '@/lib/session';
+import type { Limits } from '@/lib/types';
 import { ageFrom } from '@/lib/utils';
 
 /** Profile completeness drives tips – complete profiles get noticeably more matches. */
@@ -29,6 +32,8 @@ export default function Me() {
   const c = useTheme();
   const { profile } = useSession();
   const [preview, setPreview] = useState(false);
+  const [limits, setLimits] = useState<Limits | null>(null);
+  useFocusEffect(useCallback(() => { backend.getLimits().then(setLimits).catch(() => {}); }, []));
   if (!profile) return null;
   const { pct, todo } = completeness(profile);
 
@@ -59,6 +64,22 @@ export default function Me() {
           <Button title={preview ? 'Schließen' : 'Vorschau'} icon="eye-outline" variant="secondary" onPress={() => setPreview(!preview)} style={{ flex: 1 }} />
         </View>
 
+        {!preview && (
+          <Pressable onPress={() => router.push('/premium')} accessibilityRole="button">
+            <LinearGradient colors={Brand.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.plus}>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={styles.plusTitle}>{limits?.premium ? 'funke+ ist aktiv' : 'funke+ holen'}</Text>
+                <Text style={styles.plusText}>
+                  {limits?.premium
+                    ? `${limits.freeBoostAvailable ? '1 Gratis-Boost verfügbar · ' : ''}${limits.superlikesLeft} Super-Likes heute`
+                    : 'Unbegrenzt liken, 5 Super-Likes am Tag, wöchentlicher Boost – ab 3,75 € im Monat'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color="#fff" />
+            </LinearGradient>
+          </Pressable>
+        )}
+
         {todo.length > 0 && !preview && (
           <Card style={{ gap: Space.sm }}>
             <T variant="h3">💡 Mehr Matches bekommen</T>
@@ -87,5 +108,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   ring: { borderWidth: 3, borderRadius: 80, padding: 4 },
   avatar: { width: 140, height: 140, borderRadius: 70, backgroundColor: '#333' },
+  plus: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.lg, borderRadius: 20 },
+  plusTitle: { color: '#fff', fontSize: 20, fontWeight: '900' },
+  plusText: { color: '#fff', fontSize: 14, fontWeight: '500', opacity: 0.95 },
   pct: { marginTop: -22, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
 });

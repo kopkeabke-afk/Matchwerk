@@ -12,14 +12,17 @@ Eine vollständige Dating-App auf Basis von **Expo SDK 58 / React Native**, mit 
 | Wer schreibt zuerst? | – | – | nur Frauen | **jede:r wählt selbst** |
 | Match läuft ab, 1× verlängerbar | – | – | ✅ | ✅ (48 h + 24 h) |
 | Sehen, wer dich geliked hat | 💰 | 💰 | 💰 | **kostenlos** |
+| Premium-Abo | ab ca. 10 € / Monat* | ab ca. 15 € / Monat* | ab ca. 15 € / Monat* | **ab 3,75 € / Monat** (Jahresabo) |
 | Transparenter Match-Score mit Begründung | – | – | – | ✅ |
 | Daily Spark (bestes Match des Tages zuerst) | – | ✅ (Most Compatible) | – | ✅ |
 | Persönliche Icebreaker aus Gemeinsamkeiten | – | – | ✅ | ✅ |
 | Absichten als Dealbreaker-Filter | – | ✅ | ✅ | ✅ |
 | Kein Werbe-Tracking | – | – | – | ✅ |
 
-Dazu: E-Mail-Login per Code (kein Passwort), 8-stufiges Onboarding mit 18+-Prüfung, Profil-Vollständigkeit mit Tipps,
+Dazu: Anmeldung mit Apple, Google, Telefonnummer (SMS) oder E-Mail, Premium-Abo funke+ mit Boosts, 8-stufiges Onboarding mit 18+-Prüfung, Profil-Vollständigkeit mit Tipps,
 Profil pausieren, Melden & Blockieren überall, Sicherheits-Center, In-App-Kontolöschung, Dark Mode, Haptik.
+
+*Konkurrenzpreise schwanken je nach Land, Alter und Laufzeit – vor jeder Werbeaussage aktuell prüfen.
 
 ## Schnellstart (Demo-Modus, ohne Server)
 
@@ -34,10 +37,44 @@ Der Demo-Modus enthält 28 Beispielprofile in Berlin, simulierte Likes, Matches 
 
 ### 1. Supabase
 1. Projekt auf <https://supabase.com> anlegen (Region **EU / Frankfurt** für DSGVO).
-2. Beide Dateien aus `supabase/migrations/` der Reihe nach im SQL-Editor ausführen (oder `supabase db push`).
+2. Alle Dateien aus `supabase/migrations/` der Reihe nach im SQL-Editor ausführen (oder `supabase db push`).
 3. Auth → Providers → **Email** aktivieren, Template „Magic Link“ so anpassen, dass es `{{ .Token }}` (6-stelliger Code) enthält.
 4. Auth → SMTP: eigenen Mail-Provider eintragen (Supabase-Standard ist stark limitiert).
 5. `.env` anlegen (siehe `.env.example`) mit `EXPO_PUBLIC_SUPABASE_URL` und `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+
+### 1b. Anmeldung (Apple, Google, Telefon, E-Mail)
+| Methode | Was du einrichten musst | Kosten |
+|---|---|---|
+| **Telefonnummer** | Supabase → Auth → Providers → **Phone** aktivieren, SMS-Anbieter eintragen (Twilio, MessageBird oder Vonage) | ca. 0,05–0,10 € pro SMS |
+| **Google** | Google Cloud Console → Credentials: OAuth-Client-IDs für **Web**, **iOS** und **Android** (SHA-1 aus `eas credentials`). Web-Client-ID + Secret in Supabase → Providers → Google eintragen. In `.env` beide Client-IDs, in `app.json` bei `@react-native-google-signin/google-signin` die `iosUrlScheme` (umgedrehte iOS-Client-ID) | kostenlos |
+| **Apple** | Apple Developer → Identifiers → deine App-ID → „Sign in with Apple“ aktivieren. Supabase → Providers → Apple: Bundle-ID `app.funke.dating` als Client-ID eintragen | kostenlos |
+| **E-Mail** | SMTP wie oben | je nach Anbieter |
+
+Apple-Regel 4.8: Wer Google-Login anbietet, muss auf dem iPhone auch „Mit Apple anmelden“ anbieten – ist eingebaut.
+Hinweis: Apple verlangt beim Löschen eines Kontos, das per Apple angemeldet wurde, dass das Apple-Token widerrufen wird.
+Supabase erledigt das, wenn unter Providers → Apple der Secret Key (.p8) hinterlegt ist.
+
+### 1c. Bezahlsystem (funke+) einrichten
+Digitale Abos müssen in iOS/Android-Apps über Apple bzw. Google abgerechnet werden. funke nutzt dafür **RevenueCat**
+(kostenlos bis 2.500 $ Monatsumsatz, danach 1 %).
+
+1. **App Store Connect** → deine App → Abonnements: Gruppe „funke+“ mit den Produkten `funke_plus_1m`, `funke_plus_6m`, `funke_plus_12m`.
+   Unter In-App-Käufe (Verbrauchsartikel): `funke_boost_1`, `funke_boost_5`. Preise frei wählbar, Vorschlag: 7,99 € / 29,99 € / 44,99 € und 2,99 € / 9,99 €.
+2. **Google Play Console** → Monetarisierung: dieselben Produkt-IDs anlegen.
+3. **Apple Small Business Program** beantragen → Apple nimmt dann 15 % statt 30 %. Google nimmt bei Abos ohnehin 15 %.
+4. **RevenueCat**: Projekt anlegen, beide Stores verbinden, Entitlement `plus` mit den drei Abo-Produkten,
+   Offering `default` mit allen fünf Produkten. Die öffentlichen API-Keys in `.env` eintragen.
+5. **Webhook**: `supabase functions deploy revenuecat --no-verify-jwt`, `supabase secrets set REVENUECAT_WEBHOOK_SECRET=…`,
+   in RevenueCat → Integrations → Webhooks die URL `https://<projekt>.supabase.co/functions/v1/revenuecat` und
+   Header `Authorization: Bearer <secret>` eintragen.
+6. Testen mit Sandbox-Konten (Apple) bzw. Lizenztestern (Google).
+
+Was Gratis-Nutzer bekommen und was funke+ freischaltet, steht in `src/lib/plans.ts` und (serverseitig verbindlich) in
+`plan_limits()` in `supabase/migrations/0003_premium.sql`. Umsätze siehst du in der Ansicht `revenue_daily`
+und im RevenueCat-Dashboard.
+
+**Was bei dir ankommt** (Beispiel 6-Monats-Abo für 29,99 € in Deutschland):
+29,99 € − 19 % USt. = 25,20 € − 15 % Store-Gebühr = **≈ 21,42 €** (abzüglich ggf. 1 % RevenueCat).
 
 ### 2. Push-Benachrichtigungen
 ```bash
@@ -96,7 +133,7 @@ supabase/           SQL-Schema mit RLS & RPCs, Push-Edge-Function
 ```bash
 npx tsc --noEmit && npx expo lint && npx jest && npx expo-doctor
 ```
-Datenbank-Regeln (19 Prüfungen, braucht ein lokales Postgres):
+Datenbank-Regeln (35 Prüfungen, braucht ein lokales Postgres):
 ```bash
 psql -f supabase/tests/stub.sql && for f in supabase/migrations/*.sql; do psql -f "$f"; done && psql -f supabase/tests/rules.sql
 ```

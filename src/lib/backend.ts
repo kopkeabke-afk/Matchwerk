@@ -1,4 +1,4 @@
-import type { Filters, IncomingLike, LikeNote, Match, Message, Profile, SwipeAction } from './types';
+import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Profile, SwipeAction } from './types';
 
 export interface SwipeResult {
   match?: Match;
@@ -13,6 +13,12 @@ export interface Backend {
   verifyLoginCode(email: string, code: string): Promise<string>;
   /** Password login – used for the App Review test account. */
   signInWithPassword(email: string, password: string): Promise<string>;
+  /** SMS login (Supabase phone auth, needs an SMS provider like Twilio). Phone in E.164, e.g. +4915112345678 */
+  sendPhoneCode(phone: string): Promise<void>;
+  verifyPhoneCode(phone: string, code: string): Promise<string>;
+  /** Native Google / Apple sign-in; resolves null if the user cancelled. */
+  signInWithGoogle(): Promise<string | null>;
+  signInWithApple(): Promise<string | null>;
   signOut(): Promise<void>;
   deleteAccount(): Promise<void>;
   onAuthChange(cb: (userId: string | null) => void): () => void;
@@ -36,6 +42,11 @@ export interface Backend {
   markRead(matchId: string): Promise<void>;
   subscribeMessages(matchId: string, cb: (m: Message) => void): () => void;
   subscribeMatches(cb: () => void): () => void;
+  // premium
+  getLimits(): Promise<Limits>;
+  activateBoost(): Promise<string>;
+  /** Demo mode only: pretend a store purchase succeeded. */
+  simulatePurchase?(productId: string): Promise<void>;
   // safety
   block(userId: string): Promise<void>;
   report(userId: string, reason: string, details: string): Promise<void>;

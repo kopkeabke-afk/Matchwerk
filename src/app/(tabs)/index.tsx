@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,7 +11,7 @@ import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { bus } from '@/lib/events';
 import { useSession } from '@/lib/session';
-import type { Profile, SwipeAction } from '@/lib/types';
+import { limitReason, type Limits, type Profile, type SwipeAction } from '@/lib/types';
 import { compatibility } from '@/lib/utils';
 
 export default function Discover() {
@@ -20,7 +20,9 @@ export default function Discover() {
   const [deck, setDeck] = useState<Profile[] | null>(null);
   const [sparkId, setSparkId] = useState<string>();
   const [last, setLast] = useState<{ p: Profile; action: SwipeAction } | null>(null);
+  const [limits, setLimits] = useState<Limits | null>(null);
   const deckRef = useRef<SwipeDeckHandle>(null);
+  const refreshLimits = useCallback(() => { backend.getLimits().then(setLimits).catch(() => {}); }, []);
 
   const compat = useCallback((p: Profile) => compatibility(me!, p), [me]);
 
@@ -42,6 +44,7 @@ export default function Discover() {
   // load() sets state only after awaiting the backend
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
+  useFocusEffect(refreshLimits);
   useEffect(() => bus.on('swiped', ({ id }) => setDeck((d) => d?.filter((p) => p.id !== id) ?? d)), []);
 
   async function onSwipe(p: Profile, action: SwipeAction) {
@@ -53,8 +56,33 @@ export default function Discover() {
         setLast(null);
         router.push(`/match/${match.id}`);
       }
+      if (action !== 'pass') refreshLimits();
     } catch (e) {
-      Alert.alert('Fehler', (e as Error).message);
+      const reason = limitReason(e);
+      if (reason) {
+        // put the card back and offer funke+
+        setDeck((d) => [p, ...(d ?? []).filter((x) => x.id !== p.id)]);
+        setLast(null);
+        router.push({ pathname: '/premium', params: { reason } });
+      } else {
+        Alert.alert('Fehler', (e as Error).message);
+      }
+    }
+  }
+
+  async function boost() {
+    if (limits?.boostActiveUntil) {
+      const min = Math.max(1, Math.round((new Date(limits.boostActiveUntil).getTime() - Date.now()) / 60_000));
+      Alert.alert('⚡ Boost läuft', `Dein Profil wird noch ${min} Minuten bevorzugt gezeigt.`);
+      return;
+    }
+    try {
+      await backend.activateBoost();
+      refreshLimits();
+      Alert.alert('⚡ Boost aktiviert', 'Für die nächsten 30 Minuten siehst du dein Profil ganz oben in den Stapeln in deiner Nähe.');
+    } catch (e) {
+      if (limitReason(e)) router.push({ pathname: '/premium', params: { reason: 'boost' } });
+      else Alert.alert('Fehler', (e as Error).message);
     }
   }
 
@@ -71,7 +99,17 @@ export default function Discover() {
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <View style={{ height: WebTabTop }} />
       <View style={styles.header}>
-        <Text style={styles.logo}>funke</Text>
+        <Text style={styles.logo}>funke{limits?.premium ? <Text style={{ color: Brand.gold }}>+</Text> : null}</Text>
+        <View style={{ flex: 1 }} />
+        {limits && !limits.premium && limits.likesLeft !== null && limits.likesLeft <= 10 && (
+          <Pressable onPress={() => router.push({ pathname: '/premium', params: { reason: 'likes' } })} style={[styles.pill, { backgroundColor: c.surface }]}>
+            <Text style={{ color: c.text, fontWeight: '700', fontSize: 13 }}>♥ {limits.likesLeft} übrig</Text>
+          </Pressable>
+        )}
+        <Pressable onPress={boost} hitSlop={10} accessibilityLabel="Boost"
+          style={[styles.headerBtn, { backgroundColor: limits?.boostActiveUntil ? Brand.super : c.surface }]}>
+          <Ionicons name="flash" size={20} color={limits?.boostActiveUntil ? '#fff' : Brand.super} />
+        </Pressable>
         <Pressable onPress={() => router.push('/filters')} hitSlop={10} accessibilityLabel="Filter" style={[styles.headerBtn, { backgroundColor: c.surface }]}>
           <Ionicons name="options-outline" size={22} color={c.text} />
         </Pressable>
@@ -115,7 +153,8 @@ export default function Discover() {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Space.lg, paddingVertical: Space.sm },
+  header: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, paddingHorizontal: Space.lg, paddingVertical: Space.sm },
+  pill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   logo: { fontSize: 30, fontWeight: '900', color: Brand.primary, letterSpacing: -1 },
   headerBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   deck: { flex: 1, marginHorizontal: Space.md, marginTop: Space.xs },

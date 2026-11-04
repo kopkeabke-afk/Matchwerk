@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { backend } from './index';
+import { identifyPurchaser, resetPurchaser } from './purchases';
 import type { Filters, Profile } from './types';
 import { DEFAULT_FILTERS } from './utils';
 
@@ -28,8 +29,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setUserId(id);
     if (!id) {
       setProfile(null);
+      resetPurchaser().catch(() => {});
       return;
     }
+    identifyPurchaser(id).catch((e) => console.warn('RevenueCat', e));
     try {
       setProfile(await backend.getMyProfile());
     } catch {

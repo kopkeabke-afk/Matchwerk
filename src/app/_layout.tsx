@@ -58,6 +58,7 @@ function RootStack() {
         <Stack.Screen name="filters" options={{ title: 'Filter', presentation: 'modal' }} />
         <Stack.Screen name="settings" options={{ title: 'Einstellungen' }} />
         <Stack.Screen name="report/[id]" options={{ title: 'Melden', presentation: 'modal' }} />
+        <Stack.Screen name="premium" options={{ presentation: 'modal', headerShown: false }} />
       </Stack.Protected>
       <Stack.Screen name="legal/[doc]" options={{ title: '' }} />
     </Stack>

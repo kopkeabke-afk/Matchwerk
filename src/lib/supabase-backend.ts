@@ -3,7 +3,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';
 
 import type { Backend } from './backend';
-import type { Filters, IncomingLike, Match, Message, Profile } from './types';
+import { appleIdToken, googleIdToken } from './social-auth';
+import type { Filters, IncomingLike, Limits, Match, Message, Profile } from './types';
 
 type Row = Record<string, any>;
 
@@ -110,6 +111,27 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     async verifyLoginCode(email, code) {
       const data = check(await sb.auth.verifyOtp({ email, token: code, type: 'email' }));
       return data.user!.id;
+    },
+    async sendPhoneCode(phone) {
+      check(await sb.auth.signInWithOtp({ phone }));
+    },
+    async verifyPhoneCode(phone, code) {
+      const data = check(await sb.auth.verifyOtp({ phone, token: code, type: 'sms' }));
+      return data.user!.id;
+    },
+    async signInWithGoogle() {
+      const token = await googleIdToken();
+      if (!token) return null;
+      const { data, error } = await sb.auth.signInWithIdToken({ provider: 'google', token });
+      if (error || !data.user) throw new Error(error?.message ?? 'Google-Anmeldung fehlgeschlagen');
+      return data.user.id;
+    },
+    async signInWithApple() {
+      const res = await appleIdToken();
+      if (!res) return null;
+      const { data, error } = await sb.auth.signInWithIdToken({ provider: 'apple', token: res.token, nonce: res.nonce });
+      if (error || !data.user) throw new Error(error?.message ?? 'Apple-Anmeldung fehlgeschlagen');
+      return data.user.id;
     },
     async signInWithPassword(email, password) {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
@@ -222,6 +244,22 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => cb())
         .subscribe();
       return () => { sb.removeChannel(ch); };
+    },
+
+    async getLimits(): Promise<Limits> {
+      const r = check(await sb.rpc('my_limits')) as Row;
+      return {
+        premium: !!r.premium,
+        premiumUntil: r.premium_until ?? undefined,
+        likesLeft: r.likes_left ?? null,
+        superlikesLeft: r.superlikes_left ?? 0,
+        boostActiveUntil: r.boost_active_until ?? undefined,
+        freeBoostAvailable: !!r.free_boost_available,
+        boostCredits: r.boost_credits ?? 0,
+      };
+    },
+    async activateBoost() {
+      return check(await sb.rpc('activate_boost')) as string;
     },
 
     async block(userId) {

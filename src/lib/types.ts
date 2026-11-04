@@ -146,3 +146,22 @@ export const REPORT_REASONS = [
   'Gefährliches Verhalten',
   'Sonstiges',
 ];
+
+export interface Limits {
+  premium: boolean;
+  premiumUntil?: string;
+  /** null = unlimited */
+  likesLeft: number | null;
+  superlikesLeft: number;
+  boostActiveUntil?: string;
+  freeBoostAvailable: boolean;
+  boostCredits: number;
+}
+
+/** Error codes the backend throws when a plan limit is hit (message starts with "LIMIT:"). */
+export type LimitReason = 'likes' | 'superlikes' | 'boost' | 'extend' | 'daily';
+export function limitReason(e: unknown): LimitReason | null {
+  const m = (e as Error)?.message ?? '';
+  const hit = /LIMIT:(\w+)/.exec(m);
+  return hit ? (hit[1] as LimitReason) : null;
+}

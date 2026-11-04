@@ -10,7 +10,7 @@ import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { useSession } from '@/lib/session';
-import type { Match, Message } from '@/lib/types';
+import { limitReason, type Match, type Message } from '@/lib/types';
 import { hoursLeft, icebreakers } from '@/lib/utils';
 
 export default function Chat() {
@@ -106,8 +106,21 @@ export default function Chat() {
                   : `Noch ${Math.ceil(left)} Stunden, um das Gespräch zu beginnen.`}
               </T>
             )}
-            {first && !match.extended && left < 24 && (
-              <Button title="Um 24 h verlängern" icon="time-outline" variant="secondary" onPress={async () => { await backend.extendMatch(match.id); load(); }} />
+            {first && left < 24 && (
+              <Button
+                title={match.extended ? 'Erneut verlängern (funke+)' : 'Um 24 h verlängern'}
+                icon="time-outline"
+                variant="secondary"
+                onPress={async () => {
+                  try {
+                    await backend.extendMatch(match.id);
+                    load();
+                  } catch (e) {
+                    if (limitReason(e)) router.push({ pathname: '/premium', params: { reason: 'extend' } });
+                    else Alert.alert('Fehler', (e as Error).message);
+                  }
+                }}
+              />
             )}
           </View>
         }
