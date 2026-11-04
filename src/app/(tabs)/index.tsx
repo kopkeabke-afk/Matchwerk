@@ -60,7 +60,7 @@ export default function Discover() {
     } catch (e) {
       const reason = limitReason(e);
       if (reason) {
-        // put the card back and offer matchwerk+
+        // put the card back and offer an upgrade
         setDeck((d) => [p, ...(d ?? []).filter((x) => x.id !== p.id)]);
         setLast(null);
         router.push({ pathname: '/premium', params: { reason } });
@@ -99,13 +99,17 @@ export default function Discover() {
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <View style={{ height: WebTabTop }} />
       <View style={styles.header}>
-        <Text style={styles.logo}>matchwerk{limits?.premium ? <Text style={{ color: Brand.gold }}>+</Text> : null}</Text>
+        <Text style={styles.logo}>matchwerk{limits?.tier === 'vip' ? <Text style={{ color: Brand.gold }}> VIP</Text> : limits?.premium ? <Text style={{ color: Brand.gold }}>+</Text> : null}</Text>
         <View style={{ flex: 1 }} />
-        {limits && !limits.premium && limits.likesLeft !== null && limits.likesLeft <= 10 && (
+        {limits && limits.swipesLeft !== null && limits.swipesLeft <= 10 ? (
+          <Pressable onPress={() => router.push({ pathname: '/premium', params: { reason: 'swipes' } })} style={[styles.pill, { backgroundColor: c.surface }]}>
+            <Text style={{ color: c.text, fontWeight: '700', fontSize: 13 }}>{limits.swipesLeft} Profile übrig</Text>
+          </Pressable>
+        ) : limits && limits.likesLeft !== null && limits.likesLeft <= 10 ? (
           <Pressable onPress={() => router.push({ pathname: '/premium', params: { reason: 'likes' } })} style={[styles.pill, { backgroundColor: c.surface }]}>
             <Text style={{ color: c.text, fontWeight: '700', fontSize: 13 }}>♥ {limits.likesLeft} übrig</Text>
           </Pressable>
-        )}
+        ) : null}
         <Pressable onPress={boost} hitSlop={10} accessibilityLabel="Boost"
           style={[styles.headerBtn, { backgroundColor: limits?.boostActiveUntil ? Brand.super : c.surface }]}>
           <Ionicons name="flash" size={20} color={limits?.boostActiveUntil ? '#fff' : Brand.super} />
@@ -141,7 +145,7 @@ export default function Discover() {
           <View style={styles.actions}>
             <IconButton icon="arrow-undo" color={Brand.gold} size={46} label="Rückgängig" onPress={undo} />
             <IconButton icon="close" color={Brand.pass} size={64} label="Weiter" onPress={() => deckRef.current?.swipe('pass')} />
-            <IconButton icon="star" color={Brand.super} size={46} label="Super-Like" onPress={() => deckRef.current?.swipe('superlike')} />
+            <IconButton icon="flame" color={Brand.accent} size={46} label="Funke" onPress={() => deckRef.current?.swipe('superlike')} />
             <IconButton icon="heart" color={Brand.like} size={64} label="Like" onPress={() => deckRef.current?.swipe('like')} />
             <IconButton icon="information" color={c.textSecondary} size={46} label="Profil ansehen"
               onPress={() => deck[0] && router.push({ pathname: '/profile/[id]', params: { id: deck[0].id, from: 'deck' } })} />

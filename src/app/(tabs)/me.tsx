@@ -68,11 +68,11 @@ export default function Me() {
           <Pressable onPress={() => router.push('/premium')} accessibilityRole="button">
             <LinearGradient colors={Brand.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.plus}>
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={styles.plusTitle}>{limits?.premium ? 'matchwerk+ ist aktiv' : 'matchwerk+ holen'}</Text>
+                <Text style={styles.plusTitle}>{limits?.premium ? `${limits.tier === 'vip' ? 'Matchwerk VIP' : 'Matchwerk+'} ist aktiv` : 'Matchwerk+ oder VIP holen'}</Text>
                 <Text style={styles.plusText}>
                   {limits?.premium
-                    ? `${limits.freeBoostAvailable ? '1 Gratis-Boost verfügbar · ' : ''}${limits.superlikesLeft} Super-Likes heute`
-                    : 'Unbegrenzt liken, 5 Super-Likes am Tag, wöchentlicher Boost – ab 3,75 € im Monat'}
+                    ? `${limits.freeBoostAvailable ? 'Boost verfügbar · ' : ''}${limits.superlikesLeft + limits.funkenCredits} Funken heute`
+                    : 'Mehr Profile, unbegrenzt Likes, mehr Funken – ab 5,83 € im Monat'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={22} color="#fff" />

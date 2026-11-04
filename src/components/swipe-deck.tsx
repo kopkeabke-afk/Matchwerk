@@ -114,7 +114,7 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck({
               <Text style={[styles.stampText, { color: Brand.pass }]}>NOPE</Text>
             </Animated.View>
             <Animated.View style={[styles.stamp, styles.super, superStyle]} pointerEvents="none">
-              <Text style={[styles.stampText, { color: Brand.super }]}>SUPER</Text>
+              <Text style={[styles.stampText, { color: Brand.super }]}>FUNKE</Text>
             </Animated.View>
           </Animated.View>
         </GestureDetector>

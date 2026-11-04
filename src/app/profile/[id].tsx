@@ -113,7 +113,7 @@ export default function ProfileScreen() {
           locations={[0, 0.45]}
           style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
           <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => act('pass')} />
-          <IconButton icon="star" color={Brand.super} size={48} label="Super-Like" onPress={() => act('superlike')} />
+          <IconButton icon="flame" color={Brand.accent} size={48} label="Funke" onPress={() => act('superlike')} />
           <IconButton icon="heart" color={Brand.like} size={60} label="Like" onPress={() => act('like')} />
         </LinearGradient>
       )}

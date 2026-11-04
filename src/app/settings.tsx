@@ -72,8 +72,8 @@ export default function Settings() {
       </View>
 
       <View>
-        <T variant="h3">matchwerk+</T>
-        <Row icon="sparkles-outline" label="matchwerk+ & Boosts" onPress={() => router.push('/premium')} />
+        <T variant="h3">Premium</T>
+        <Row icon="sparkles-outline" label="Matchwerk+, VIP, Funken & Boosts" onPress={() => router.push('/premium')} />
         <Row icon="card-outline" label="Abo verwalten oder kündigen" onPress={() => Linking.openURL(manageSubscriptionsUrl)} />
       </View>
 

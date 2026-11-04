@@ -1,5 +1,5 @@
 import { createDemoBackend } from '../demo-backend';
-import { FREE_LIMITS } from '../plans';
+import { TIER_LIMITS } from '../plans';
 import { toE164 } from '../social-auth';
 import { limitReason } from '../types';
 import { DEFAULT_FILTERS } from '../utils';
@@ -22,36 +22,55 @@ async function fresh() {
   return b;
 }
 
-describe('free plan limits and matchwerk+', () => {
+describe('tiers, Funken and boosts', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
-  it('blocks the second super-like and the 51st like for free users', async () => {
+
+  it('free: 1 Funke, 25 likes and 60 profiles per day', async () => {
     const b = await fresh();
     const deck = await b.getDeck({ ...DEFAULT_FILTERS, maxAge: 99, maxDistanceKm: 500 });
     await b.swipe(deck[0].id, 'superlike');
     await expect(b.swipe(deck[1].id, 'superlike')).rejects.toThrow('LIMIT:superlikes');
-    // fill up the remaining likes with ids outside the deck
-    for (let i = 1; i < FREE_LIMITS.likesPerDay; i++) await b.swipe(`x-${i}`, 'like');
-    expect((await b.getLimits()).likesLeft).toBe(0);
+    for (let i = 1; i < TIER_LIMITS.free.likesPerDay; i++) await b.swipe(`x-${i}`, 'like');
     const err = await b.swipe(deck[2].id, 'like').catch((e) => e);
     expect(limitReason(err)).toBe('likes');
-    await expect(b.swipe(deck[2].id, 'pass')).resolves.toBeDefined();
+    for (let i = 0; i < TIER_LIMITS.free.swipesPerDay - TIER_LIMITS.free.likesPerDay; i++) await b.swipe(`p-${i}`, 'pass');
+    expect((await b.getLimits()).swipesLeft).toBe(0);
+    expect(limitReason(await b.swipe('p-last', 'pass').catch((e) => e))).toBe('swipes');
   });
 
-  it('a purchase unlocks unlimited likes, 5 super-likes and a weekly boost', async () => {
+  it('Plus: unlimited likes, 250 profiles, 3 Funken, monthly boost', async () => {
     const b = await fresh();
-    for (let i = 0; i < FREE_LIMITS.likesPerDay; i++) await b.swipe(`y-${i}`, 'like');
     await expect(b.activateBoost()).rejects.toThrow('LIMIT:boost');
     await b.simulatePurchase!('matchwerk_plus_6m');
     const l = await b.getLimits();
-    expect(l.premium).toBe(true);
+    expect(l.tier).toBe('plus');
     expect(l.likesLeft).toBeNull();
-    expect(new Date(l.premiumUntil!).getTime()).toBeGreaterThan(Date.now() + 170 * 86_400_000);
-    await b.swipe('y-extra', 'like');
+    expect(l.swipesLeft).toBe(250);
+    expect(l.superlikesLeft).toBe(3);
     expect(l.freeBoostAvailable).toBe(true);
-    const until = await b.activateBoost();
-    expect(new Date(until).getTime()).toBeGreaterThan(Date.now());
+    await b.activateBoost();
     expect((await b.getLimits()).freeBoostAvailable).toBe(false);
+  });
+
+  it('VIP: unlimited profiles and 7 Funken', async () => {
+    const b = await fresh();
+    await b.simulatePurchase!('matchwerk_vip_1m');
+    const l = await b.getLimits();
+    expect(l.tier).toBe('vip');
+    expect(l.swipesLeft).toBeNull();
+    expect(l.superlikesLeft).toBe(7);
+  });
+
+  it('bought Funken are used after the daily ones', async () => {
+    const b = await fresh();
+    await b.simulatePurchase!('matchwerk_funken_5');
+    expect((await b.getLimits()).funkenCredits).toBe(5);
+    await b.swipe('a', 'superlike'); // daily one
+    await b.swipe('b', 'superlike'); // bought one
+    const l = await b.getLimits();
+    expect(l.superlikesLeft).toBe(0);
+    expect(l.funkenCredits).toBe(4);
   });
 
   it('boost packs add credits', async () => {

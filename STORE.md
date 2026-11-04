@@ -19,8 +19,8 @@ Matchwerk ist die Dating-App für Menschen, die mehr wollen als endloses Swipen.
 • Sicherheit zuerst: verifizierte Profile, Melden & Blockieren in jedem Chat, Sicherheits-Center.
 • Kein Werbe-Tracking.
 
-Matchwerk ist kostenlos. Optional gibt es Matchwerk+ für unbegrenzte Likes, 5 Super-Likes am Tag, einen wöchentlichen
-Boost und unbegrenzte Match-Verlängerungen. Abos verlängern sich automatisch und sind jederzeit in Google Play kündbar.
+Matchwerk ist kostenlos. Optional gibt es Matchwerk+ (mehr Profile pro Tag, unbegrenzte Likes, 3 Funken am Tag, monatlicher Boost)
+und Matchwerk VIP (unbegrenzt Profile, 7 Funken am Tag, wöchentlicher Boost, bevorzugte Anzeige). Funken und Boosts gibt es auch einzeln. Abos verlängern sich automatisch und sind jederzeit in Google Play kündbar.
 
 Nur für Personen ab 18 Jahren.
 
@@ -66,13 +66,21 @@ Mindestens **12 Tester** müssen die App **14 Tage** lang installiert haben, bev
 Play Console → Testen → Geschlossener Test → Tester per E-Mail-Liste hinzufügen → Link teilen.
 
 ## In-App-Produkte (Play Console → Monetarisierung)
-| Produkt-ID | Typ | Vorschlag | Name |
+| Produkt-ID | Typ | Preis | Name |
 |---|---|---|---|
-| matchwerk_plus_1m | Abo, Basis-Abo monatlich | 7,99 € | Matchwerk+ (1 Monat) |
-| matchwerk_plus_6m | Abo, alle 6 Monate | 29,99 € | Matchwerk+ (6 Monate) |
-| matchwerk_plus_12m | Abo, jährlich | 44,99 € | Matchwerk+ (12 Monate) |
-| matchwerk_boost_1 | In-App-Produkt (verbrauchbar) | 2,99 € | 1 Boost |
-| matchwerk_boost_5 | In-App-Produkt (verbrauchbar) | 9,99 € | 5 Boosts |
+| matchwerk_plus_1m | Abo, monatlich | 9,99 € | Matchwerk+ (1 Monat) |
+| matchwerk_plus_6m | Abo, alle 6 Monate | 44,99 € | Matchwerk+ (6 Monate) |
+| matchwerk_plus_12m | Abo, jährlich | 69,99 € | Matchwerk+ (12 Monate) |
+| matchwerk_vip_1m | Abo, monatlich | 17,99 € | Matchwerk VIP (1 Monat) |
+| matchwerk_vip_6m | Abo, alle 6 Monate | 79,99 € | Matchwerk VIP (6 Monate) |
+| matchwerk_vip_12m | Abo, jährlich | 119,99 € | Matchwerk VIP (12 Monate) |
+| matchwerk_funken_5 | In-App-Produkt (verbrauchbar) | 4,99 € | 5 Funken |
+| matchwerk_funken_15 | In-App-Produkt (verbrauchbar) | 11,99 € | 15 Funken |
+| matchwerk_funken_30 | In-App-Produkt (verbrauchbar) | 19,99 € | 30 Funken |
+| matchwerk_boost_1 | In-App-Produkt (verbrauchbar) | 3,99 € | 1 Boost |
+| matchwerk_boost_5 | In-App-Produkt (verbrauchbar) | 14,99 € | 5 Boosts |
+
+RevenueCat: Entitlements `plus` (die drei Plus-Abos) und `vip` (die drei VIP-Abos), Offering `default` mit allen 11 Produkten.
 
 ## Später: iOS / App Store
 Der Code unterstützt iOS bereits (inkl. „Mit Apple anmelden“, das Apple bei Google-Login verlangt).

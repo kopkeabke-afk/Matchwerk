@@ -148,18 +148,24 @@ export const REPORT_REASONS = [
 ];
 
 export interface Limits {
+  tier: 'free' | 'plus' | 'vip';
   premium: boolean;
   premiumUntil?: string;
   /** null = unlimited */
+  swipesLeft: number | null;
+  /** null = unlimited */
   likesLeft: number | null;
+  /** daily free Funken (super-likes) left */
   superlikesLeft: number;
+  /** purchased Funken, used after the daily ones */
+  funkenCredits: number;
   boostActiveUntil?: string;
   freeBoostAvailable: boolean;
   boostCredits: number;
 }
 
 /** Error codes the backend throws when a plan limit is hit (message starts with "LIMIT:"). */
-export type LimitReason = 'likes' | 'superlikes' | 'boost' | 'extend' | 'daily';
+export type LimitReason = 'swipes' | 'likes' | 'superlikes' | 'boost' | 'extend' | 'daily';
 export function limitReason(e: unknown): LimitReason | null {
   const m = (e as Error)?.message ?? '';
   const hit = /LIMIT:(\w+)/.exec(m);

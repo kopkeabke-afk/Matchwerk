@@ -67,43 +67,71 @@ select delete_account();
 reset role;
 select tst.check(not exists (select 1 from profiles where name = 'Alex'), 'account deletion removes profile');
 
--- ───────── premium, limits, boosts ─────────
+-- ───────── tiers, limits, Funken, boosts ─────────
 reset role;
-insert into auth.users (id) select ('f0000000-0000-0000-0000-' || lpad(i::text, 12, '0'))::uuid from generate_series(1, 52) i;
+insert into auth.users (id) select ('f0000000-0000-0000-0000-' || lpad(i::text, 12, '0'))::uuid from generate_series(1, 70) i;
 insert into profiles (id, name, birthdate, gender, interested_in)
   select id, 'T', '1990-01-01', 'woman', 'men' from auth.users where id::text like 'f0000000%';
 insert into profiles (id, name, birthdate, gender, interested_in) values ('eeeeeeee-0000-0000-0000-000000000005', 'Eli', '1992-02-02', 'man', 'women');
+-- 25 likes + 34 passes already today
 insert into swipes (swiper, target, action)
-  select 'eeeeeeee-0000-0000-0000-000000000005', id, 'like' from auth.users where id::text like 'f0000000%' order by id limit 50;
+  select 'eeeeeeee-0000-0000-0000-000000000005', id, case when rn <= 25 then 'like' else 'pass' end
+  from (select id, row_number() over (order by id) rn from auth.users where id::text like 'f0000000%') x where rn <= 59;
 
 set role authenticated;
 set request.jwt.claim.sub = 'eeeeeeee-0000-0000-0000-000000000005';
-select tst.check((my_limits()->>'likes_left')::int = 0, 'free plan: 50 likes per day counted');
-select tst.fails($$select swipe('f0000000-0000-0000-0000-000000000052', 'like')$$, 'free plan: 51st like blocked');
-select tst.check(swipe('f0000000-0000-0000-0000-000000000052', 'pass') is null, 'free plan: passing still allowed');
-select tst.fails($$select activate_boost()$$, 'free plan: no boost without credits');
-update profiles set premium_until = now() + interval '1 year', boost_credits = 99 where id = auth.uid();
-select tst.check(not (my_limits()->>'premium')::boolean, 'users cannot grant themselves premium');
-select tst.fails($$select billing_apply('x', auth.uid(), 'INITIAL_PURCHASE', 'plus_monthly', 'app_store', 7.99, now() + interval '1 month')$$, 'users cannot call billing');
+select tst.check(my_limits()->>'tier' = 'free', 'new users are on the free tier');
+select tst.check((my_limits()->>'likes_left')::int = 0, 'free: 25 likes per day counted');
+select tst.check((my_limits()->>'swipes_left')::int = 1, 'free: 60 profiles per day counted');
+select tst.fails($$select swipe('f0000000-0000-0000-0000-000000000060', 'like')$$, 'free: 26th like blocked');
+select tst.check(swipe('f0000000-0000-0000-0000-000000000060', 'pass') is null, 'free: passing allowed until profile limit');
+select tst.fails($$select swipe('f0000000-0000-0000-0000-000000000061', 'pass')$$, 'free: 61st profile blocked');
+select tst.fails($$select activate_boost()$$, 'free: no boost without credits');
+update profiles set premium_until = now() + interval '1 year', vip_until = now() + interval '1 year', boost_credits = 99, funken_credits = 99 where id = auth.uid();
+select tst.check(my_limits()->>'tier' = 'free' and (my_limits()->>'funken_credits')::int = 0, 'users cannot grant themselves a tier or credits');
+select tst.fails($$select billing_apply('x', auth.uid(), 'INITIAL_PURCHASE', 'matchwerk_vip_1m', 'PLAY_STORE', 17.99, now() + interval '1 month')$$, 'users cannot call billing');
 
 reset role;
-select billing_apply('evt1', 'eeeeeeee-0000-0000-0000-000000000005', 'INITIAL_PURCHASE', 'matchwerk_plus_1m', 'APP_STORE', 7.99, now() + interval '1 month');
-select billing_apply('evt1', 'eeeeeeee-0000-0000-0000-000000000005', 'INITIAL_PURCHASE', 'matchwerk_plus_1m', 'APP_STORE', 7.99, now() + interval '1 month');
+select billing_apply('evt1', 'eeeeeeee-0000-0000-0000-000000000005', 'INITIAL_PURCHASE', 'matchwerk_plus_1m', 'PLAY_STORE', 9.99, now() + interval '1 month');
+select billing_apply('evt1', 'eeeeeeee-0000-0000-0000-000000000005', 'INITIAL_PURCHASE', 'matchwerk_plus_1m', 'PLAY_STORE', 9.99, now() + interval '1 month');
 select tst.check((select count(*) from purchases) = 1, 'webhook events are idempotent');
 set role authenticated;
 set request.jwt.claim.sub = 'eeeeeeee-0000-0000-0000-000000000005';
-select tst.check((my_limits()->>'premium')::boolean, 'purchase unlocks matchwerk+');
-select tst.check(my_limits()->>'likes_left' is null, 'matchwerk+: unlimited likes');
-select swipe('f0000000-0000-0000-0000-000000000051', 'like');
-select tst.check((my_limits()->>'free_boost_available')::boolean, 'matchwerk+: weekly boost available');
+select tst.check(my_limits()->>'tier' = 'plus', 'purchase unlocks Matchwerk+');
+select tst.check(my_limits()->>'likes_left' is null and (my_limits()->>'swipes_left')::int = 190, 'Plus: unlimited likes, 250 profiles');
+select tst.check((my_limits()->>'superlikes_left')::int = 3, 'Plus: 3 Funken per day');
+select swipe('f0000000-0000-0000-0000-000000000061', 'like');
+select tst.check((my_limits()->>'free_boost_available')::boolean, 'Plus: monthly boost available');
 select tst.check(activate_boost() > now(), 'boost activates');
-select tst.check(not (my_limits()->>'free_boost_available')::boolean, 'weekly boost used up');
-set request.jwt.claim.sub = 'f0000000-0000-0000-0000-000000000001';
-select tst.check(not (d ? 'premium_until') and not (d ? 'boost_credits'), 'billing fields stay private') from get_deck(18, 99, 500, '{}', false) d;
+select tst.check(not (my_limits()->>'free_boost_available')::boolean, 'monthly boost used up');
+select swipe('f0000000-0000-0000-0000-000000000062', 'superlike');
+select swipe('f0000000-0000-0000-0000-000000000063', 'superlike');
+select swipe('f0000000-0000-0000-0000-000000000064', 'superlike');
+select tst.fails($$select swipe('f0000000-0000-0000-0000-000000000065', 'superlike')$$, 'Plus: 4th Funke blocked without credits');
+
 reset role;
-select billing_apply('evt2', 'eeeeeeee-0000-0000-0000-000000000005', 'EXPIRATION', 'matchwerk_plus_1m', 'APP_STORE', null, now());
-select tst.check(not is_premium('eeeeeeee-0000-0000-0000-000000000005'), 'expiration ends matchwerk+');
-select billing_apply('evt3', 'eeeeeeee-0000-0000-0000-000000000005', 'NON_RENEWING_PURCHASE', 'matchwerk_boost_5', 'PLAY_STORE', 9.99, null);
+select billing_apply('evt2', 'eeeeeeee-0000-0000-0000-000000000005', 'NON_RENEWING_PURCHASE', 'matchwerk_funken_5', 'PLAY_STORE', 4.99, null);
+set role authenticated;
+set request.jwt.claim.sub = 'eeeeeeee-0000-0000-0000-000000000005';
+select tst.check((my_limits()->>'funken_credits')::int = 5, 'Funken pack adds 5 credits');
+select swipe('f0000000-0000-0000-0000-000000000065', 'superlike');
+select tst.check((my_limits()->>'funken_credits')::int = 4, 'extra Funke spends a purchased credit');
+set request.jwt.claim.sub = 'f0000000-0000-0000-0000-000000000065';
+select tst.check((select note is null or not (note ? 'paid') from incoming_likes() limit 1), 'billing flag hidden from receiver');
+select tst.check(not (d ? 'premium_until') and not (d ? 'vip_until') and not (d ? 'funken_credits'), 'billing fields stay private') from get_deck(18, 99, 500, '{}', false) d;
+
+reset role;
+select billing_apply('evt3', 'eeeeeeee-0000-0000-0000-000000000005', 'INITIAL_PURCHASE', 'matchwerk_vip_1m', 'PLAY_STORE', 17.99, now() + interval '1 month');
+set role authenticated;
+set request.jwt.claim.sub = 'eeeeeeee-0000-0000-0000-000000000005';
+select tst.check(my_limits()->>'tier' = 'vip' and my_limits()->>'swipes_left' is null, 'VIP: unlimited profiles');
+select tst.check((my_limits()->>'superlikes_left')::int = 4, 'VIP: 7 Funken per day (3 used)');
+reset role;
+select billing_apply('evt4', 'eeeeeeee-0000-0000-0000-000000000005', 'EXPIRATION', 'matchwerk_vip_1m', 'PLAY_STORE', null, now());
+select tst.check(user_tier('eeeeeeee-0000-0000-0000-000000000005') = 'plus', 'VIP expiry falls back to Plus');
+select billing_apply('evt5', 'eeeeeeee-0000-0000-0000-000000000005', 'EXPIRATION', 'matchwerk_plus_1m', 'PLAY_STORE', null, now());
+select tst.check(user_tier('eeeeeeee-0000-0000-0000-000000000005') = 'free', 'Plus expiry ends premium');
+select billing_apply('evt6', 'eeeeeeee-0000-0000-0000-000000000005', 'NON_RENEWING_PURCHASE', 'matchwerk_boost_5', 'PLAY_STORE', 14.99, null);
 select tst.check((select boost_credits from profiles where name = 'Eli') = 5, 'boost pack adds credits');
 select tst.check((select count(*) from revenue_daily) = 1, 'revenue view works');
 \echo ALL DATABASE CHECKS PASSED

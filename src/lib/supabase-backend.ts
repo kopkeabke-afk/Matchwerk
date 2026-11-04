@@ -249,10 +249,13 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     async getLimits(): Promise<Limits> {
       const r = check(await sb.rpc('my_limits')) as Row;
       return {
+        tier: r.tier ?? (r.premium ? 'plus' : 'free'),
         premium: !!r.premium,
         premiumUntil: r.premium_until ?? undefined,
+        swipesLeft: r.swipes_left ?? null,
         likesLeft: r.likes_left ?? null,
         superlikesLeft: r.superlikes_left ?? 0,
+        funkenCredits: r.funken_credits ?? 0,
         boostActiveUntil: r.boost_active_until ?? undefined,
         freeBoostAvailable: !!r.free_boost_available,
         boostCredits: r.boost_credits ?? 0,

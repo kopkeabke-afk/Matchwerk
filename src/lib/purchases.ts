@@ -76,7 +76,10 @@ export async function loadPlans(): Promise<StorePlan[]> {
 /** Returns false if the user cancelled. */
 export async function buy(plan: StorePlan): Promise<boolean> {
   if (!storeEnabled) {
-    await backend.simulatePurchase?.(plan.id);
+    if (!backend.simulatePurchase) {
+      throw new Error('Käufe sind in dieser Version noch nicht freigeschaltet. Bitte versuche es später noch einmal.');
+    }
+    await backend.simulatePurchase(plan.id);
     return true;
   }
   const Purchases = await rc();
@@ -89,7 +92,10 @@ export async function buy(plan: StorePlan): Promise<boolean> {
   // The webhook updates Supabase within seconds; poll briefly so the UI reflects it.
   for (let i = 0; i < 8; i++) {
     const l = await backend.getLimits().catch(() => null);
-    if (plan.kind === 'subscription' ? l?.premium : (l?.boostCredits ?? 0) > 0) break;
+    const done = plan.kind === 'subscription' ? l?.tier === plan.tier || l?.tier === 'vip'
+      : plan.kind === 'funken' ? (l?.funkenCredits ?? 0) > 0
+      : (l?.boostCredits ?? 0) > 0;
+    if (done) break;
     await new Promise((r) => setTimeout(r, 1500));
   }
   return true;

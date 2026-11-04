@@ -78,22 +78,21 @@ SMS-Login später einschalten: SMS-Anbieter in Supabase unter Providers → Phon
 `EXPO_PUBLIC_ENABLE_PHONE_LOGIN=true` setzen.
 
 ### 3. Bezahlsystem (Matchwerk+)
-1. **Play Console** → deine App → Monetarisierung:
-   - Abos: `matchwerk_plus_1m`, `matchwerk_plus_6m`, `matchwerk_plus_12m`
-   - In-App-Produkte: `matchwerk_boost_1`, `matchwerk_boost_5`
-   - Preisvorschlag: 7,99 € / 29,99 € / 44,99 € und 2,99 € / 9,99 €
+1. **Play Console** → deine App → Monetarisierung: alle 11 Produkte aus **STORE.md** anlegen
+   (Matchwerk+ 9,99 / 44,99 / 69,99 €, VIP 17,99 / 79,99 / 119,99 €, Funken-Pakete, Boost-Pakete).
 2. **Zahlungsprofil** in der Play Console anlegen (Bankkonto, Steuerdaten) – sonst keine Auszahlungen.
 3. **RevenueCat** (<https://www.revenuecat.com>): Projekt anlegen, Google-Play-App verbinden (Service-Account-JSON),
-   Entitlement `plus` mit den drei Abos, Offering `default` mit allen fünf Produkten.
+   Entitlements `plus` und `vip`, Offering `default` mit allen 11 Produkten.
    Den öffentlichen Android-Key in `.env` als `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` eintragen.
 4. **Webhook:** `supabase functions deploy revenuecat --no-verify-jwt`,
    `supabase secrets set REVENUECAT_WEBHOOK_SECRET=…`, dann in RevenueCat → Integrations → Webhooks die URL
    `https://<projekt>.supabase.co/functions/v1/revenuecat` und Header `Authorization: Bearer <secret>`.
 5. Mit **Lizenztestern** (Play Console → Einstellungen → Lizenztests) kaufen, kündigen und wiederherstellen testen.
 
-Google behält bei Abos **15 %**. Beispiel 6-Monats-Abo 29,99 €: − 19 % USt. = 25,20 € − 15 % = **≈ 21,42 €** für dich.
-Was Gratis-Nutzer bekommen, steht in `src/lib/plans.ts` und serverseitig verbindlich in `plan_limits()`
-(`supabase/migrations/0003_premium.sql`). Umsätze: RevenueCat-Dashboard oder Ansicht `revenue_daily`.
+Google behält bei Abos **15 %**. Beispiel VIP 1 Monat 17,99 €: − 19 % USt. = 15,12 € − 15 % = **≈ 12,85 €** für dich;
+Matchwerk+ 1 Monat 9,99 € → **≈ 7,14 €**.
+Was Gratis-Nutzer bekommen, steht in `src/lib/plans.ts` und serverseitig verbindlich in `tier_limits()`
+(`supabase/migrations/0005_tiers.sql`). Umsätze: RevenueCat-Dashboard oder Ansicht `revenue_daily`.
 
 ### 4. Push-Benachrichtigungen (kostenlos)
 ```bash

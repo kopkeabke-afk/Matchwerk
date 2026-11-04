@@ -1,37 +1,55 @@
 /**
- * matchwerk+ – one premium tier, deliberately cheaper than the big apps.
- * Real prices are set in App Store Connect / Google Play and fetched through RevenueCat;
- * the values here are only used in demo mode and as fallback copy.
- * Keep the limits in sync with plan_limits() in supabase/migrations/0003_premium.sql.
+ * Matchwerk tiers. Real prices are set in the Play Console and fetched through RevenueCat;
+ * the prices here are only used in demo mode and as fallback copy.
+ * Keep the limits in sync with tier_limits() in supabase/migrations/0005_tiers.sql.
  */
-export const FREE_LIMITS = { likesPerDay: 50, superlikesPerDay: 1, matchExtensions: 1 };
-export const PLUS_LIMITS = { likesPerDay: Infinity, superlikesPerDay: 5, boostsPerWeek: 1 };
+export type Tier = 'free' | 'plus' | 'vip';
+
+export const TIER_LIMITS: Record<Tier, { swipesPerDay: number; likesPerDay: number; funkenPerDay: number; boostEveryDays: number | null }> = {
+  free: { swipesPerDay: 60, likesPerDay: 25, funkenPerDay: 1, boostEveryDays: null },
+  plus: { swipesPerDay: 250, likesPerDay: Infinity, funkenPerDay: 3, boostEveryDays: 30 },
+  vip: { swipesPerDay: Infinity, likesPerDay: Infinity, funkenPerDay: 7, boostEveryDays: 7 },
+};
+/** @deprecated kept for older imports */
+export const FREE_LIMITS = { likesPerDay: TIER_LIMITS.free.likesPerDay, superlikesPerDay: TIER_LIMITS.free.funkenPerDay };
+
+export const TIER_NAMES: Record<Tier, string> = { free: 'Gratis', plus: 'Matchwerk+', vip: 'Matchwerk VIP' };
 
 export interface Plan {
-  id: string;            // store product id
-  kind: 'subscription' | 'boost';
+  id: string; // store product id
+  kind: 'subscription' | 'funken' | 'boost';
+  tier?: Exclude<Tier, 'free'>;
   title: string;
   months?: number;
-  boosts?: number;
-  price: number;         // EUR, demo/fallback only
+  amount?: number; // Funken or boosts in a pack
+  price: number; // EUR, demo/fallback only
   badge?: string;
 }
 
 export const DEMO_PLANS: Plan[] = [
-  { id: 'matchwerk_plus_1m', kind: 'subscription', title: '1 Monat', months: 1, price: 7.99 },
-  { id: 'matchwerk_plus_6m', kind: 'subscription', title: '6 Monate', months: 6, price: 29.99, badge: 'Beliebt' },
-  { id: 'matchwerk_plus_12m', kind: 'subscription', title: '12 Monate', months: 12, price: 44.99, badge: 'Bester Preis' },
-  { id: 'matchwerk_boost_1', kind: 'boost', title: '1 Boost', boosts: 1, price: 2.99 },
-  { id: 'matchwerk_boost_5', kind: 'boost', title: '5 Boosts', boosts: 5, price: 9.99, badge: '−33 %' },
+  { id: 'matchwerk_plus_1m', kind: 'subscription', tier: 'plus', title: '1 Monat', months: 1, price: 9.99 },
+  { id: 'matchwerk_plus_6m', kind: 'subscription', tier: 'plus', title: '6 Monate', months: 6, price: 44.99, badge: 'Beliebt' },
+  { id: 'matchwerk_plus_12m', kind: 'subscription', tier: 'plus', title: '12 Monate', months: 12, price: 69.99 },
+  { id: 'matchwerk_vip_1m', kind: 'subscription', tier: 'vip', title: '1 Monat', months: 1, price: 17.99 },
+  { id: 'matchwerk_vip_6m', kind: 'subscription', tier: 'vip', title: '6 Monate', months: 6, price: 79.99, badge: 'Beliebt' },
+  { id: 'matchwerk_vip_12m', kind: 'subscription', tier: 'vip', title: '12 Monate', months: 12, price: 119.99 },
+  { id: 'matchwerk_funken_5', kind: 'funken', title: '5 Funken', amount: 5, price: 4.99 },
+  { id: 'matchwerk_funken_15', kind: 'funken', title: '15 Funken', amount: 15, price: 11.99 },
+  { id: 'matchwerk_funken_30', kind: 'funken', title: '30 Funken', amount: 30, price: 19.99 },
+  { id: 'matchwerk_boost_1', kind: 'boost', title: '1 Boost', amount: 1, price: 3.99 },
+  { id: 'matchwerk_boost_5', kind: 'boost', title: '5 Boosts', amount: 5, price: 14.99 },
 ];
 
-export const PLUS_FEATURES: { icon: string; title: string; text: string; free: string; plus: string }[] = [
-  { icon: 'heart', title: 'Unbegrenzt liken', text: 'Kein Tageslimit mehr', free: '50 / Tag', plus: '∞' },
-  { icon: 'star', title: '5 Super-Likes täglich', text: 'Fall sofort auf', free: '1 / Tag', plus: '5 / Tag' },
-  { icon: 'flash', title: 'Wöchentlicher Boost', text: '30 Minuten ganz oben im Stapel', free: '–', plus: '1 / Woche' },
-  { icon: 'time', title: 'Matches unbegrenzt verlängern', text: 'Kein Match läuft dir mehr davon', free: '1×', plus: '∞' },
-  { icon: 'eye', title: 'Sehen, wer dich mag', text: 'Bei uns immer kostenlos', free: '✓', plus: '✓' },
-  { icon: 'arrow-undo', title: 'Rückgängig', text: 'Bei uns immer kostenlos', free: '✓', plus: '✓' },
+export interface FeatureRow { icon: string; title: string; free: string; plus: string; vip: string }
+export const FEATURES: FeatureRow[] = [
+  { icon: 'images', title: 'Profile pro Tag', free: '60', plus: '250', vip: '∞' },
+  { icon: 'heart', title: 'Likes pro Tag', free: '25', plus: '∞', vip: '∞' },
+  { icon: 'flame', title: 'Funken pro Tag', free: '1', plus: '3', vip: '7' },
+  { icon: 'flash', title: 'Boost (30 Min. ganz oben)', free: '–', plus: '1 / Monat', vip: '1 / Woche' },
+  { icon: 'time', title: 'Matches verlängern', free: '1×', plus: '∞', vip: '∞' },
+  { icon: 'trending-up', title: 'Bevorzugt angezeigt', free: '–', plus: '–', vip: '✓' },
+  { icon: 'eye', title: 'Sehen, wer dich mag', free: '✓', plus: '✓', vip: '✓' },
+  { icon: 'arrow-undo', title: 'Rückgängig', free: '✓', plus: '✓', vip: '✓' },
 ];
 
 export const euro = (n: number) => n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });

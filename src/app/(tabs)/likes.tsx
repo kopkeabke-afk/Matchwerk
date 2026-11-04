@@ -55,7 +55,7 @@ export default function Likes() {
               onPress={() => router.push({ pathname: '/profile/[id]', params: { id: item.profile.id, from: 'likes' } })}>
               <Image source={item.profile.photos[0]} style={StyleSheet.absoluteFill} contentFit="cover" />
               {item.action === 'superlike' && (
-                <View style={[styles.tag, { backgroundColor: Brand.super }]}><Ionicons name="star" size={12} color="#fff" /></View>
+                <View style={[styles.tag, { backgroundColor: Brand.accent }]}><Ionicons name="flame" size={13} color="#fff" /></View>
               )}
               <LinearGradient colors={['transparent', 'rgba(0,0,0,0.85)']} style={styles.tileBottom}>
                 {item.note?.comment && (
