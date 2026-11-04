@@ -1,7 +1,7 @@
 -- ============================================================
 -- Matchwerk – komplettes Datenbank-Setup für Supabase
 -- Einmal komplett in Supabase → SQL Editor einfügen und auf RUN klicken.
--- Enthält: 0001_init.sql 0002_safety.sql 0003_premium.sql 
+-- Enthält: 0001_init.sql 0002_safety.sql 0003_premium.sql 0004_storage_own_files.sql 
 -- ============================================================
 
 -- >>> supabase/migrations/0001_init.sql
@@ -654,5 +654,13 @@ revoke execute on all functions in schema public from public, anon;
 grant execute on all functions in schema public to authenticated;
 revoke execute on function public.moderate(uuid, text) from authenticated;
 revoke execute on function public.billing_apply(text, uuid, text, text, text, numeric, timestamptz) from authenticated;
+
+-- >>> supabase/migrations/0004_storage_own_files.sql
+-- Matchwerk – users may list/read their own photo folder through the Storage API.
+-- Needed so "Konto löschen" can find and remove all of a user's photos (GDPR).
+-- Public display of photos is unaffected: the bucket is public and served via public URLs.
+drop policy if exists "read own photos" on storage.objects;
+create policy "read own photos" on storage.objects for select to authenticated
+  using (bucket_id = 'photos' and (storage.foldername(name))[1] = auth.uid()::text);
 
 select 'Matchwerk-Datenbank ist eingerichtet' as fertig;

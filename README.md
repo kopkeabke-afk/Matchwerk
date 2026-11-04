@@ -155,7 +155,12 @@ supabase/           SQL-Schema mit RLS & RPCs, Push-Edge-Function
 ```bash
 npx tsc --noEmit && npx expo lint && npx jest && npx expo-doctor
 ```
-Datenbank-Regeln (35 Prüfungen, braucht ein lokales Postgres):
+Live-Prüfung gegen dein echtes Supabase-Projekt (mit einem Test-Konto):
+```bash
+node scripts/check-supabase.cjs <test-email> <test-passwort>
+```
+
+Datenbank-Regeln lokal (35 Prüfungen, braucht ein lokales Postgres):
 ```bash
 psql -f supabase/tests/stub.sql && for f in supabase/migrations/*.sql; do psql -f "$f"; done && psql -f supabase/tests/rules.sql
 ```
