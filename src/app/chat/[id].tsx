@@ -108,7 +108,7 @@ export default function Chat() {
             )}
             {first && left < 24 && (
               <Button
-                title={match.extended ? 'Erneut verlängern (funke+)' : 'Um 24 h verlängern'}
+                title={match.extended ? 'Erneut verlängern (matchwerk+)' : 'Um 24 h verlängern'}
                 icon="time-outline"
                 variant="secondary"
                 onPress={async () => {

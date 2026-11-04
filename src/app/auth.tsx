@@ -12,7 +12,7 @@ export default function Welcome() {
       <SafeAreaView style={styles.wrap}>
         <View style={styles.hero}>
           <Text style={styles.logo}>🔥</Text>
-          <Text style={styles.brand}>funke</Text>
+          <Text style={styles.brand}>matchwerk</Text>
           <Text style={styles.tagline}>Weniger swipen.{'\n'}Mehr echte Verbindungen.</Text>
         </View>
         <View style={{ gap: 14 }}>

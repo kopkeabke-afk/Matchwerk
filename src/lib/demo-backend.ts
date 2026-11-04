@@ -6,7 +6,7 @@ import { FREE_LIMITS, PLUS_LIMITS } from './plans';
 import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Profile, SwipeAction } from './types';
 import { MATCH_TTL_HOURS, mutuallyCompatible, passesFilters, resolveOpener, uid } from './utils';
 
-const KEY = 'funke.demo.v1';
+const KEY = 'matchwerk.demo.v1';
 const ME = 'me';
 
 interface State {

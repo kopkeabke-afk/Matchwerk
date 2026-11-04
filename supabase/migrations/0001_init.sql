@@ -1,4 +1,4 @@
--- Funke – complete database schema for Supabase (Postgres 15+)
+-- Matchwerk – complete database schema for Supabase (Postgres 15+)
 -- Apply with: supabase db push   (or paste into the SQL editor)
 
 create extension if not exists pgcrypto;

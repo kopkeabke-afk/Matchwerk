@@ -1,4 +1,4 @@
--- Funke – safety & anti-abuse layer
+-- Matchwerk – safety & anti-abuse layer
 
 -- ───────── auto-hide profiles that several people reported ─────────
 alter table public.profiles add column if not exists hidden boolean not null default false;

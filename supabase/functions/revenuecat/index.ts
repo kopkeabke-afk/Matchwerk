@@ -1,4 +1,4 @@
-// Supabase Edge Function: receives RevenueCat webhooks and updates funke+ status.
+// Supabase Edge Function: receives RevenueCat webhooks and updates matchwerk+ status.
 // RevenueCat → Project settings → Integrations → Webhooks:
 //   URL:    https://<project>.supabase.co/functions/v1/revenuecat
 //   Header: Authorization: Bearer <REVENUECAT_WEBHOOK_SECRET>

@@ -1,5 +1,5 @@
 /**
- * funke+ – one premium tier, deliberately cheaper than the big apps.
+ * matchwerk+ – one premium tier, deliberately cheaper than the big apps.
  * Real prices are set in App Store Connect / Google Play and fetched through RevenueCat;
  * the values here are only used in demo mode and as fallback copy.
  * Keep the limits in sync with plan_limits() in supabase/migrations/0003_premium.sql.
@@ -18,11 +18,11 @@ export interface Plan {
 }
 
 export const DEMO_PLANS: Plan[] = [
-  { id: 'funke_plus_1m', kind: 'subscription', title: '1 Monat', months: 1, price: 7.99 },
-  { id: 'funke_plus_6m', kind: 'subscription', title: '6 Monate', months: 6, price: 29.99, badge: 'Beliebt' },
-  { id: 'funke_plus_12m', kind: 'subscription', title: '12 Monate', months: 12, price: 44.99, badge: 'Bester Preis' },
-  { id: 'funke_boost_1', kind: 'boost', title: '1 Boost', boosts: 1, price: 2.99 },
-  { id: 'funke_boost_5', kind: 'boost', title: '5 Boosts', boosts: 5, price: 9.99, badge: '−33 %' },
+  { id: 'matchwerk_plus_1m', kind: 'subscription', title: '1 Monat', months: 1, price: 7.99 },
+  { id: 'matchwerk_plus_6m', kind: 'subscription', title: '6 Monate', months: 6, price: 29.99, badge: 'Beliebt' },
+  { id: 'matchwerk_plus_12m', kind: 'subscription', title: '12 Monate', months: 12, price: 44.99, badge: 'Bester Preis' },
+  { id: 'matchwerk_boost_1', kind: 'boost', title: '1 Boost', boosts: 1, price: 2.99 },
+  { id: 'matchwerk_boost_5', kind: 'boost', title: '5 Boosts', boosts: 5, price: 9.99, badge: '−33 %' },
 ];
 
 export const PLUS_FEATURES: { icon: string; title: string; text: string; free: string; plus: string }[] = [

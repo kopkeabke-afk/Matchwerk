@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "funke",
-    "slug": "funke",
+    "name": "matchwerk",
+    "slug": "matchwerk",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "funke",
+    "scheme": "matchwerk",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "app.funke.dating",
+      "bundleIdentifier": "app.matchwerk.dating",
       "buildNumber": "1",
       "supportsTablet": false,
       "config": {
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "funke benötigt Zugriff auf deine Fotos, damit du Bilder zu deinem Dating-Profil hinzufügen kannst.",
-        "NSCameraUsageDescription": "funke benötigt Zugriff auf deine Kamera, damit du Fotos für dein Profil aufnehmen kannst.",
-        "NSLocationWhenInUseUsageDescription": "funke nutzt deinen ungefähren Standort, um dir Menschen in deiner Nähe zu zeigen. Dein genauer Standort wird niemals angezeigt."
+        "NSPhotoLibraryUsageDescription": "matchwerk benötigt Zugriff auf deine Fotos, damit du Bilder zu deinem Dating-Profil hinzufügen kannst.",
+        "NSCameraUsageDescription": "matchwerk benötigt Zugriff auf deine Kamera, damit du Fotos für dein Profil aufnehmen kannst.",
+        "NSLocationWhenInUseUsageDescription": "matchwerk nutzt deinen ungefähren Standort, um dir Menschen in deiner Nähe zu zeigen. Dein genauer Standort wird niemals angezeigt."
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
@@ -75,7 +75,7 @@
       "usesAppleSignIn": true
     },
     "android": {
-      "package": "app.funke.dating",
+      "package": "app.matchwerk.dating",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#FF4D6D",
@@ -111,15 +111,15 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "funke benötigt Zugriff auf deine Fotos, damit du Bilder zu deinem Dating-Profil hinzufügen kannst.",
-          "cameraPermission": "funke benötigt Zugriff auf deine Kamera, damit du Fotos für dein Profil aufnehmen kannst.",
+          "photosPermission": "matchwerk benötigt Zugriff auf deine Fotos, damit du Bilder zu deinem Dating-Profil hinzufügen kannst.",
+          "cameraPermission": "matchwerk benötigt Zugriff auf deine Kamera, damit du Fotos für dein Profil aufnehmen kannst.",
           "microphonePermission": false
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "funke nutzt deinen ungefähren Standort, um dir Menschen in deiner Nähe zu zeigen. Dein genauer Standort wird niemals angezeigt."
+          "locationWhenInUsePermission": "matchwerk nutzt deinen ungefähren Standort, um dir Menschen in deiner Nähe zu zeigen. Dein genauer Standort wird niemals angezeigt."
         }
       ],
       [

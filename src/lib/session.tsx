@@ -17,7 +17,7 @@ interface SessionValue {
 }
 
 const Ctx = createContext<SessionValue | null>(null);
-const FILTER_KEY = 'funke.filters';
+const FILTER_KEY = 'matchwerk.filters';
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);

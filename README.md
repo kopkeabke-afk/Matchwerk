@@ -1,11 +1,11 @@
-# funke 🔥 – Dating-App (iOS · Android · Web)
+# matchwerk 🔥 – Dating-App (iOS · Android · Web)
 
 Eine vollständige Dating-App auf Basis von **Expo SDK 58 / React Native**, mit **Supabase** als Backend
 (Auth, Postgres, Realtime-Chat, Storage, Push) – und einem **Offline-Demo-Modus**, der ohne Server sofort läuft.
 
-## Was funke besser macht als Tinder, Hinge & Bumble
+## Was matchwerk besser macht als Tinder, Hinge & Bumble
 
-| Feature | Tinder | Hinge | Bumble | **funke** |
+| Feature | Tinder | Hinge | Bumble | **matchwerk** |
 |---|---|---|---|---|
 | Swipen mit Gesten, Undo, Super-Like | ✅ | – | ✅ | ✅ (Undo kostenlos) |
 | Like auf ein Foto/eine Antwort + Kommentar | – | ✅ | – | ✅ |
@@ -19,7 +19,7 @@ Eine vollständige Dating-App auf Basis von **Expo SDK 58 / React Native**, mit 
 | Absichten als Dealbreaker-Filter | – | ✅ | ✅ | ✅ |
 | Kein Werbe-Tracking | – | – | – | ✅ |
 
-Dazu: Anmeldung mit Apple, Google, Telefonnummer (SMS) oder E-Mail, Premium-Abo funke+ mit Boosts, 8-stufiges Onboarding mit 18+-Prüfung, Profil-Vollständigkeit mit Tipps,
+Dazu: Anmeldung mit Apple, Google, Telefonnummer (SMS) oder E-Mail, Premium-Abo matchwerk+ mit Boosts, 8-stufiges Onboarding mit 18+-Prüfung, Profil-Vollständigkeit mit Tipps,
 Profil pausieren, Melden & Blockieren überall, Sicherheits-Center, In-App-Kontolöschung, Dark Mode, Haptik.
 
 *Konkurrenzpreise schwanken je nach Land, Alter und Laufzeit – vor jeder Werbeaussage aktuell prüfen.
@@ -47,19 +47,19 @@ Der Demo-Modus enthält 28 Beispielprofile in Berlin, simulierte Likes, Matches 
 |---|---|---|
 | **Telefonnummer** | Supabase → Auth → Providers → **Phone** aktivieren, SMS-Anbieter eintragen (Twilio, MessageBird oder Vonage) | ca. 0,05–0,10 € pro SMS |
 | **Google** | Google Cloud Console → Credentials: OAuth-Client-IDs für **Web**, **iOS** und **Android** (SHA-1 aus `eas credentials`). Web-Client-ID + Secret in Supabase → Providers → Google eintragen. In `.env` beide Client-IDs, in `app.json` bei `@react-native-google-signin/google-signin` die `iosUrlScheme` (umgedrehte iOS-Client-ID) | kostenlos |
-| **Apple** | Apple Developer → Identifiers → deine App-ID → „Sign in with Apple“ aktivieren. Supabase → Providers → Apple: Bundle-ID `app.funke.dating` als Client-ID eintragen | kostenlos |
+| **Apple** | Apple Developer → Identifiers → deine App-ID → „Sign in with Apple“ aktivieren. Supabase → Providers → Apple: Bundle-ID `app.matchwerk.dating` als Client-ID eintragen | kostenlos |
 | **E-Mail** | SMTP wie oben | je nach Anbieter |
 
 Apple-Regel 4.8: Wer Google-Login anbietet, muss auf dem iPhone auch „Mit Apple anmelden“ anbieten – ist eingebaut.
 Hinweis: Apple verlangt beim Löschen eines Kontos, das per Apple angemeldet wurde, dass das Apple-Token widerrufen wird.
 Supabase erledigt das, wenn unter Providers → Apple der Secret Key (.p8) hinterlegt ist.
 
-### 1c. Bezahlsystem (funke+) einrichten
-Digitale Abos müssen in iOS/Android-Apps über Apple bzw. Google abgerechnet werden. funke nutzt dafür **RevenueCat**
+### 1c. Bezahlsystem (matchwerk+) einrichten
+Digitale Abos müssen in iOS/Android-Apps über Apple bzw. Google abgerechnet werden. matchwerk nutzt dafür **RevenueCat**
 (kostenlos bis 2.500 $ Monatsumsatz, danach 1 %).
 
-1. **App Store Connect** → deine App → Abonnements: Gruppe „funke+“ mit den Produkten `funke_plus_1m`, `funke_plus_6m`, `funke_plus_12m`.
-   Unter In-App-Käufe (Verbrauchsartikel): `funke_boost_1`, `funke_boost_5`. Preise frei wählbar, Vorschlag: 7,99 € / 29,99 € / 44,99 € und 2,99 € / 9,99 €.
+1. **App Store Connect** → deine App → Abonnements: Gruppe „matchwerk+“ mit den Produkten `matchwerk_plus_1m`, `matchwerk_plus_6m`, `matchwerk_plus_12m`.
+   Unter In-App-Käufe (Verbrauchsartikel): `matchwerk_boost_1`, `matchwerk_boost_5`. Preise frei wählbar, Vorschlag: 7,99 € / 29,99 € / 44,99 € und 2,99 € / 9,99 €.
 2. **Google Play Console** → Monetarisierung: dieselben Produkt-IDs anlegen.
 3. **Apple Small Business Program** beantragen → Apple nimmt dann 15 % statt 30 %. Google nimmt bei Abos ohnehin 15 %.
 4. **RevenueCat**: Projekt anlegen, beide Stores verbinden, Entitlement `plus` mit den drei Abo-Produkten,
@@ -69,7 +69,7 @@ Digitale Abos müssen in iOS/Android-Apps über Apple bzw. Google abgerechnet we
    Header `Authorization: Bearer <secret>` eintragen.
 6. Testen mit Sandbox-Konten (Apple) bzw. Lizenztestern (Google).
 
-Was Gratis-Nutzer bekommen und was funke+ freischaltet, steht in `src/lib/plans.ts` und (serverseitig verbindlich) in
+Was Gratis-Nutzer bekommen und was matchwerk+ freischaltet, steht in `src/lib/plans.ts` und (serverseitig verbindlich) in
 `plan_limits()` in `supabase/migrations/0003_premium.sql`. Umsätze siehst du in der Ansicht `revenue_daily`
 und im RevenueCat-Dashboard.
 

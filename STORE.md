@@ -2,7 +2,7 @@
 
 ## App Store / Google Play – Texte (DE)
 
-**Name:** funke – Dating & echte Matches
+**Name:** matchwerk – Dating & echte Matches
 **Untertitel (30):** Weniger swipen, mehr verbinden
 **Kategorie:** Lifestyle (Sekundär: Soziale Netze) · **Altersfreigabe:** 17+ (Apple) / USK 18 (Google)
 
@@ -10,7 +10,7 @@
 Sieh kostenlos, wer dich mag – und erfahre, warum ihr zusammenpasst.
 
 **Beschreibung:**
-funke ist die Dating-App für Menschen, die mehr wollen als endloses Swipen.
+matchwerk ist die Dating-App für Menschen, die mehr wollen als endloses Swipen.
 
 • Transparenter Match-Score: Du siehst, was ihr gemeinsam habt – Interessen, Absichten, Nähe.
 • Like, was dich wirklich anspricht: ein bestimmtes Foto oder eine Antwort, gern mit Kommentar.
@@ -22,7 +22,7 @@ funke ist die Dating-App für Menschen, die mehr wollen als endloses Swipen.
 • Sicherheit zuerst: verifizierte Profile, Melden & Blockieren in jedem Chat, Sicherheits-Center.
 • Kein Werbe-Tracking. Deine Daten gehören dir.
 
-funke ist kostenlos. Optional: funke+ für unbegrenzte Likes, 5 Super-Likes am Tag, einen wöchentlichen Boost und unbegrenzte Match-Verlängerungen. Das Abo verlängert sich automatisch, wenn es nicht 24 Stunden vor Ablauf gekündigt wird. Nutzungsbedingungen: [URL] · Datenschutz: [URL]
+matchwerk ist kostenlos. Optional: matchwerk+ für unbegrenzte Likes, 5 Super-Likes am Tag, einen wöchentlichen Boost und unbegrenzte Match-Verlängerungen. Das Abo verlängert sich automatisch, wenn es nicht 24 Stunden vor Ablauf gekündigt wird. Nutzungsbedingungen: [URL] · Datenschutz: [URL]
 
 **Keywords (100):** dating,partnersuche,singles,kennenlernen,flirt,beziehung,match,chat,liebe,date
 
@@ -52,10 +52,10 @@ Gleiche Angaben; Daten verschlüsselt übertragen; Löschung in der App möglich
 ## In-App-Käufe (App Store Connect)
 | Produkt-ID | Typ | Vorschlag | Anzeigename |
 |---|---|---|---|
-| funke_plus_1m | Auto-Abo, 1 Monat | 7,99 € | funke+ (1 Monat) |
-| funke_plus_6m | Auto-Abo, 6 Monate | 29,99 € | funke+ (6 Monate) |
-| funke_plus_12m | Auto-Abo, 1 Jahr | 44,99 € | funke+ (12 Monate) |
-| funke_boost_1 | Verbrauchsartikel | 2,99 € | 1 Boost |
-| funke_boost_5 | Verbrauchsartikel | 9,99 € | 5 Boosts |
+| matchwerk_plus_1m | Auto-Abo, 1 Monat | 7,99 € | matchwerk+ (1 Monat) |
+| matchwerk_plus_6m | Auto-Abo, 6 Monate | 29,99 € | matchwerk+ (6 Monate) |
+| matchwerk_plus_12m | Auto-Abo, 1 Jahr | 44,99 € | matchwerk+ (12 Monate) |
+| matchwerk_boost_1 | Verbrauchsartikel | 2,99 € | 1 Boost |
+| matchwerk_boost_5 | Verbrauchsartikel | 9,99 € | 5 Boosts |
 
-Für die Prüfung braucht jedes Produkt einen Screenshot der Paywall (Profil → funke+).
+Für die Prüfung braucht jedes Produkt einen Screenshot der Paywall (Profil → matchwerk+).

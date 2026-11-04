@@ -1,4 +1,4 @@
--- Funke – premium (funke+), daily limits and boosts
+-- Matchwerk – premium (matchwerk+), daily limits and boosts
 -- Entitlements are written only by the RevenueCat webhook (service role), never by the app.
 
 alter table public.profiles
@@ -78,7 +78,7 @@ begin
   if not found then raise exception 'LIMIT:extend'; end if;
 end $$;
 
--- Boost: profile is shown first for 30 minutes. funke+ includes one per week; extra boosts are credits.
+-- Boost: profile is shown first for 30 minutes. matchwerk+ includes one per week; extra boosts are credits.
 create or replace function public.activate_boost()
 returns timestamptz language plpgsql security definer set search_path = public as $$
 declare me profiles; until timestamptz := now() + interval '30 minutes';

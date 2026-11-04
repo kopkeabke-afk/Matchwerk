@@ -60,7 +60,7 @@ export default function Discover() {
     } catch (e) {
       const reason = limitReason(e);
       if (reason) {
-        // put the card back and offer funke+
+        // put the card back and offer matchwerk+
         setDeck((d) => [p, ...(d ?? []).filter((x) => x.id !== p.id)]);
         setLast(null);
         router.push({ pathname: '/premium', params: { reason } });
@@ -99,7 +99,7 @@ export default function Discover() {
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <View style={{ height: WebTabTop }} />
       <View style={styles.header}>
-        <Text style={styles.logo}>funke{limits?.premium ? <Text style={{ color: Brand.gold }}>+</Text> : null}</Text>
+        <Text style={styles.logo}>matchwerk{limits?.premium ? <Text style={{ color: Brand.gold }}>+</Text> : null}</Text>
         <View style={{ flex: 1 }} />
         {limits && !limits.premium && limits.likesLeft !== null && limits.likesLeft <= 10 && (
           <Pressable onPress={() => router.push({ pathname: '/premium', params: { reason: 'likes' } })} style={[styles.pill, { backgroundColor: c.surface }]}>

@@ -35,7 +35,7 @@ export default function Likes() {
       <View style={{ height: WebTabTop }} />
       <View style={styles.header}>
         <T variant="title">Likes</T>
-        <T muted>Bei funke siehst du kostenlos, wer dich mag. Like zurück – und es ist ein Match.</T>
+        <T muted>Bei matchwerk siehst du kostenlos, wer dich mag. Like zurück – und es ist ein Match.</T>
       </View>
       <FlatList
         data={likes ?? []}

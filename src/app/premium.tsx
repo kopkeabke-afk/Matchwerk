@@ -13,10 +13,10 @@ import { buy, loadPlans, manageSubscriptionsUrl, restore, storeEnabled, type Sto
 import type { LimitReason, Limits } from '@/lib/types';
 
 const REASON_TEXT: Partial<Record<LimitReason, string>> = {
-  likes: 'Du hast heute alle 50 Gratis-Likes vergeben. Mit funke+ likest du unbegrenzt.',
-  superlikes: 'Dein Super-Like für heute ist vergeben. Mit funke+ hast du 5 pro Tag.',
+  likes: 'Du hast heute alle 50 Gratis-Likes vergeben. Mit matchwerk+ likest du unbegrenzt.',
+  superlikes: 'Dein Super-Like für heute ist vergeben. Mit matchwerk+ hast du 5 pro Tag.',
   boost: 'Mit einem Boost stehst du 30 Minuten ganz oben in den Stapeln in deiner Nähe.',
-  extend: 'Mit funke+ kannst du Matches so oft verlängern, wie du willst.',
+  extend: 'Mit matchwerk+ kannst du Matches so oft verlängern, wie du willst.',
 };
 
 export default function Premium() {
@@ -25,7 +25,7 @@ export default function Premium() {
   const insets = useSafeAreaInsets();
   const [plans, setPlans] = useState<StorePlan[] | null>(null);
   const [limits, setLimits] = useState<Limits | null>(null);
-  const [selected, setSelected] = useState<string>('funke_plus_6m');
+  const [selected, setSelected] = useState<string>('matchwerk_plus_6m');
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function Premium() {
       if (!ok) return;
       setLimits(await backend.getLimits());
       Alert.alert(
-        plan.kind === 'subscription' ? 'Willkommen bei funke+ 🔥' : 'Boost gekauft ⚡',
+        plan.kind === 'subscription' ? 'Willkommen bei matchwerk+ 🔥' : 'Boost gekauft ⚡',
         plan.kind === 'subscription' ? 'Alle Vorteile sind ab sofort freigeschaltet.' : 'Du findest ihn oben auf dem Entdecken-Bildschirm.',
         [{ text: 'Los geht’s', onPress: () => router.back() }],
       );
@@ -62,7 +62,7 @@ export default function Premium() {
       await restore();
       const l = await backend.getLimits();
       setLimits(l);
-      Alert.alert(l.premium ? 'funke+ wiederhergestellt' : 'Kein aktives Abo gefunden');
+      Alert.alert(l.premium ? 'matchwerk+ wiederhergestellt' : 'Kein aktives Abo gefunden');
     } catch (e) {
       Alert.alert('Wiederherstellen fehlgeschlagen', (e as Error).message);
     } finally {
@@ -80,14 +80,14 @@ export default function Premium() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.close} accessibilityLabel="Schließen">
             <Ionicons name="close" size={24} color="#fff" />
           </Pressable>
-          <Text style={styles.logo}>funke<Text style={{ color: '#FFE3A3' }}>+</Text></Text>
+          <Text style={styles.logo}>matchwerk<Text style={{ color: '#FFE3A3' }}>+</Text></Text>
           <Text style={styles.heroText}>{(reason && REASON_TEXT[reason]) || 'Mehr Matches. Weniger warten. Schon ab 3,75 € im Monat.'}</Text>
         </LinearGradient>
 
         <View style={{ padding: Space.lg, gap: Space.xl }}>
           {limits?.premium ? (
             <View style={[styles.active, { borderColor: Brand.like }]}>
-              <T variant="h3">✓ funke+ ist aktiv</T>
+              <T variant="h3">✓ matchwerk+ ist aktiv</T>
               {limits.premiumUntil && <T muted>Verlängert bzw. endet am {new Date(limits.premiumUntil).toLocaleDateString('de-DE')}</T>}
               <Button title="Abo verwalten" variant="secondary" onPress={() => Linking.openURL(manageSubscriptionsUrl)} />
             </View>
@@ -97,7 +97,7 @@ export default function Premium() {
             <View style={[styles.tr, { borderBottomColor: c.border }]}>
               <View style={{ flex: 1 }} />
               <T variant="small" muted style={styles.col}>Gratis</T>
-              <T variant="small" style={[styles.col, { color: Brand.primary, fontWeight: '800' }]}>funke+</T>
+              <T variant="small" style={[styles.col, { color: Brand.primary, fontWeight: '800' }]}>matchwerk+</T>
             </View>
             {PLUS_FEATURES.map((f) => (
               <View key={f.title} style={[styles.tr, { borderBottomColor: c.border }]}>

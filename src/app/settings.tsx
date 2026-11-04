@@ -72,8 +72,8 @@ export default function Settings() {
       </View>
 
       <View>
-        <T variant="h3">funke+</T>
-        <Row icon="sparkles-outline" label="funke+ & Boosts" onPress={() => router.push('/premium')} />
+        <T variant="h3">matchwerk+</T>
+        <Row icon="sparkles-outline" label="matchwerk+ & Boosts" onPress={() => router.push('/premium')} />
         <Row icon="card-outline" label="Abo verwalten oder kündigen" onPress={() => Linking.openURL(manageSubscriptionsUrl)} />
       </View>
 
@@ -92,7 +92,7 @@ export default function Settings() {
       </View>
 
       <T muted variant="small" style={{ textAlign: 'center' }}>
-        funke v{Constants.expoConfig?.version ?? '1.0.0'}
+        matchwerk v{Constants.expoConfig?.version ?? '1.0.0'}
       </T>
     </ScrollView>
   );

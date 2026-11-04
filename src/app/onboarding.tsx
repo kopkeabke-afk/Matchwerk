@@ -44,7 +44,7 @@ export default function Onboarding() {
 
   async function next() {
     if (step === 1 && dateValid && !isAdult(birthdate)) {
-      Alert.alert('Leider nein', 'funke ist nur für Personen ab 18 Jahren.');
+      Alert.alert('Leider nein', 'matchwerk ist nur für Personen ab 18 Jahren.');
       return;
     }
     if (step === 1) set({ birthdate });
@@ -67,7 +67,7 @@ export default function Onboarding() {
     'Zeig dich', 'Was begeistert dich?', 'Gib Gesprächsstoff', 'Fast fertig!',
   ];
   const subtitles = [
-    'So wird dein Name auf funke angezeigt.', 'Dein Alter wird angezeigt, dein Geburtsdatum nicht.', '',
+    'So wird dein Name auf matchwerk angezeigt.', 'Dein Alter wird angezeigt, dein Geburtsdatum nicht.', '',
     'Ehrlichkeit von Anfang an – wir zeigen dir Menschen mit ähnlichen Zielen.',
     'Mindestens 2 Fotos. Tipp: Gesicht gut sichtbar, natürliches Licht.',
     'Wähle 3–10 Interessen. Gemeinsamkeiten erhöhen deinen Match-Score.',

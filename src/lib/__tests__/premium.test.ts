@@ -22,7 +22,7 @@ async function fresh() {
   return b;
 }
 
-describe('free plan limits and funke+', () => {
+describe('free plan limits and matchwerk+', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
   it('blocks the second super-like and the 51st like for free users', async () => {
@@ -42,7 +42,7 @@ describe('free plan limits and funke+', () => {
     const b = await fresh();
     for (let i = 0; i < FREE_LIMITS.likesPerDay; i++) await b.swipe(`y-${i}`, 'like');
     await expect(b.activateBoost()).rejects.toThrow('LIMIT:boost');
-    await b.simulatePurchase!('funke_plus_6m');
+    await b.simulatePurchase!('matchwerk_plus_6m');
     const l = await b.getLimits();
     expect(l.premium).toBe(true);
     expect(l.likesLeft).toBeNull();
@@ -56,7 +56,7 @@ describe('free plan limits and funke+', () => {
 
   it('boost packs add credits', async () => {
     const b = await fresh();
-    await b.simulatePurchase!('funke_boost_5');
+    await b.simulatePurchase!('matchwerk_boost_5');
     expect((await b.getLimits()).boostCredits).toBe(5);
     await b.activateBoost();
     expect((await b.getLimits()).boostCredits).toBe(4);

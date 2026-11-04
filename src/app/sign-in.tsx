@@ -56,7 +56,7 @@ export default function SignIn() {
   }
 
   const titles: Record<Stage, string> = {
-    choose: 'Willkommen bei funke',
+    choose: 'Willkommen bei matchwerk',
     phone: 'Deine Handynummer',
     'phone-code': 'Code eingeben',
     email: 'Deine E-Mail',

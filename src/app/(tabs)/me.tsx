@@ -68,7 +68,7 @@ export default function Me() {
           <Pressable onPress={() => router.push('/premium')} accessibilityRole="button">
             <LinearGradient colors={Brand.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.plus}>
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={styles.plusTitle}>{limits?.premium ? 'funke+ ist aktiv' : 'funke+ holen'}</Text>
+                <Text style={styles.plusTitle}>{limits?.premium ? 'matchwerk+ ist aktiv' : 'matchwerk+ holen'}</Text>
                 <Text style={styles.plusText}>
                   {limits?.premium
                     ? `${limits.freeBoostAvailable ? '1 Gratis-Boost verfügbar · ' : ''}${limits.superlikesLeft} Super-Likes heute`
