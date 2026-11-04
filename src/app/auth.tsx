@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
@@ -25,7 +26,7 @@ export default function Welcome() {
       </View>
       <SafeAreaView style={styles.wrap}>
         <Animated.View entering={FadeIn.duration(600)} style={styles.hero}>
-          <Text style={styles.flame}>🔥</Text>
+          <Image source={require('@/assets/brand/logo-mark.png')} style={styles.mark} contentFit="contain" accessibilityLabel="Matchwerk-Logo" />
           <Text style={styles.brand} accessibilityRole="header">
             Match<Text style={{ color: Brand.accent }}>werk</Text>
           </Text>
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   glowWrap: { position: 'absolute', top: '8%', left: 0, right: 0, height: 420, alignItems: 'center', justifyContent: 'center' },
   wrap: { flex: 1, padding: 24, justifyContent: 'space-between' },
   hero: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 6 },
-  flame: { fontSize: 76, marginBottom: 6 },
+  mark: { width: 190, height: 190, marginBottom: -6 },
   brand: { color: Brand.cream, fontSize: 52, fontWeight: '900', letterSpacing: -1.5 },
   tagline: { color: '#E9D5F5', fontSize: 19, fontWeight: '600', textAlign: 'center', marginTop: 4 },
   usps: { backgroundColor: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderRadius: 22, padding: 16, gap: 12 },

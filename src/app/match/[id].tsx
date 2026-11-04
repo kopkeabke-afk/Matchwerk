@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui';
+import { Brand } from '@/constants/theme';
 import { backend } from '@/lib';
 import { useSession } from '@/lib/session';
 import type { Match } from '@/lib/types';
@@ -20,7 +21,12 @@ export default function MatchCelebration() {
   }, [id]);
 
   return (
-    <LinearGradient colors={['rgba(255,77,109,0.97)', 'rgba(255,138,61,0.97)']} style={styles.wrap}>
+    <LinearGradient colors={['rgba(58,19,86,0.98)', 'rgba(22,6,32,0.98)']} style={styles.wrap}>
+      <View pointerEvents="none" style={styles.glowWrap}>
+        {[460, 360, 270, 190].map((d, i) => (
+          <View key={d} style={{ position: 'absolute', width: d, height: d, borderRadius: d / 2, backgroundColor: i < 2 ? Brand.primary : Brand.accent, opacity: 0.06 + i * 0.015 }} />
+        ))}
+      </View>
       <Animated.Text entering={ZoomIn.springify()} style={styles.title}>{m?.mode === 'friends' ? 'Neue Verbindung!' : 'Es ist ein Match!'}</Animated.Text>
       <Animated.Text entering={FadeInDown.delay(150)} style={styles.sub}>
         {m?.mode === 'friends'
@@ -45,7 +51,7 @@ export default function MatchCelebration() {
           icon="chatbubble-ellipses"
           onPress={() => { router.back(); router.push(`/chat/${id}`); }}
         />
-        <Button title="Weiter entdecken" variant="ghost" onPress={() => router.back()} />
+        <Text style={styles.later} onPress={() => router.back()} accessibilityRole="button">Weiter entdecken</Text>
       </View>
     </LinearGradient>
   );
@@ -53,9 +59,11 @@ export default function MatchCelebration() {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 },
-  title: { color: '#fff', fontSize: 44, fontWeight: '900', textAlign: 'center', fontStyle: 'italic' },
+  glowWrap: { position: 'absolute', top: '22%', left: 0, right: 0, height: 460, alignItems: 'center', justifyContent: 'center' },
+  title: { color: '#FFF1DC', fontSize: 44, fontWeight: '900', textAlign: 'center', fontStyle: 'italic' },
   sub: { color: '#fff', fontSize: 17, textAlign: 'center' },
   pics: { flexDirection: 'row', marginVertical: 32 },
-  pic: { width: 140, height: 190, borderRadius: 20, overflow: 'hidden', borderWidth: 4, borderColor: '#fff', backgroundColor: '#333' },
+  pic: { width: 140, height: 190, borderRadius: 20, overflow: 'hidden', borderWidth: 4, borderColor: '#FFF1DC', backgroundColor: '#333' },
+  later: { color: '#FFF1DC', fontSize: 16, fontWeight: '700', textAlign: 'center', paddingVertical: 12 },
   hint: { color: '#fff', textAlign: 'center', fontWeight: '600' },
 });

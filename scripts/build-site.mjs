@@ -1,7 +1,7 @@
 // Builds the public website (privacy policy, terms, safety, account deletion) for GitHub Pages
 // from the same texts the app shows (src/constants/legal.ts + app.ts).
 // Usage: node --experimental-strip-types scripts/build-site.mjs  → writes ./site
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -21,6 +21,8 @@ const NAV = [['index.html', 'Start'], ['datenschutz.html', 'Datenschutz'], ['agb
 const page = (file, title, body) => `<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)} · ${esc(APP.name)}</title>
+<link rel="icon" href="logo.png">
+<meta property="og:image" content="${esc(APP.site)}/feature.png">
 <meta name="description" content="${esc(APP.name)} – die Dating-App, bei der du siehst, warum ihr zusammenpasst.">
 <style>
 :root{--bg:#fffaf8;--fg:#22171a;--muted:#6f5e64;--line:#ecdcd5;--accent:#e8385c;--card:#fff}
@@ -36,7 +38,7 @@ p{margin:0 0 12px;color:var(--muted)}a{color:var(--accent)}
 footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
 ol li{margin-bottom:8px;color:var(--muted)}
 </style></head><body><div class="wrap">
-<header><a class="logo" href="index.html">matchwerk</a><nav>${NAV.map(([f, l]) => `<a href="${f}"${f === file ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav></header>
+<header><a class="logo" href="index.html"><img src="logo.png" alt="" width="40" height="40" style="vertical-align:middle;border-radius:10px;margin-right:8px">Matchwerk</a><nav>${NAV.map(([f, l]) => `<a href="${f}"${f === file ? ' aria-current="page"' : ''}>${l}</a>`).join('')}</nav></header>
 <main>${body}</main>
 <footer>${esc(APP.company)} · ${esc(APP.address)} · <a href="mailto:${esc(APP.supportEmail)}">${esc(APP.supportEmail)}</a></footer>
 </div></body></html>
@@ -52,7 +54,7 @@ const out = join(root, 'site');
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 const pages = {
-  'index.html': ['Dating und neue Freunde', `<h1>${esc(APP.slogan)}</h1>
+  'index.html': ['Dating und neue Freunde', `<img src="feature.png" alt="Matchwerk – ${esc(APP.slogan)}" style="width:100%;border-radius:16px;margin-bottom:20px"><h1>${esc(APP.slogan)}</h1>
 <p>${esc(APP.name)} zeigt dir, warum ihr zusammenpasst: transparenter Match-Score, Reaktionen auf einzelne Fotos und Antworten, Dating oder neue Freunde – und sehen, wer dich mag, ist kostenlos.</p>
 <div class="card"><h2 style="margin-top:0">Bald bei Google Play</h2><p><a href="${esc(APP.playStoreUrl)}">${esc(APP.name)} bei Google Play ansehen</a></p></div>
 <h2>Sicherheit zuerst</h2><p>Verifizierte Profile, Melden und Blockieren in jedem Chat, Moderation innerhalb von 24 Stunden. Kein Werbe-Tracking.</p>`],
@@ -67,4 +69,6 @@ const pages = {
 };
 for (const [file, [title, body]] of Object.entries(pages)) writeFileSync(join(out, file), page(file, title, body));
 writeFileSync(join(out, '.nojekyll'), '');
+copyFileSync(join(root, 'assets/brand/play-icon-512.png'), join(out, 'logo.png'));
+copyFileSync(join(root, 'assets/brand/feature-graphic-1024x500.png'), join(out, 'feature.png'));
 console.log(`site/: ${Object.keys(pages).join(', ')}`);

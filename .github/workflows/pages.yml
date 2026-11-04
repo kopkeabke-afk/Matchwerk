@@ -2,7 +2,7 @@ name: Website (Datenschutz, AGB, Konto löschen)
 on:
   push:
     branches: [main]
-    paths: ['src/constants/legal.ts', 'src/constants/app.ts', 'scripts/build-site.mjs', '.github/workflows/pages.yml']
+    paths: ['src/constants/legal.ts', 'src/constants/app.ts', 'scripts/build-site.mjs', 'assets/brand/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
