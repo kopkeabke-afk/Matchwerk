@@ -1,50 +1,74 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/ui';
-import { Brand } from '@/constants/theme';
+import { Brand, Radius } from '@/constants/theme';
+import { APP } from '@/constants/app';
+
+const USPS: [string, string][] = [
+  ['🔥', 'Sieh kostenlos, wer dich mag – und warum ihr passt'],
+  ['💬', 'Like ein Foto oder eine Antwort – mit Kommentar'],
+  ['👋', 'Dating oder neue Freunde – oder beides'],
+  ['🛡️', 'Verifizierte Profile und Melden in jedem Chat'],
+];
 
 export default function Welcome() {
   return (
-    <LinearGradient colors={[Brand.primary, Brand.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
+    <LinearGradient colors={[Brand.night, Brand.nightDeep]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={{ flex: 1 }}>
+      {/* soft warm glow behind the flame, like in the logo (stacked rings instead of a blur) */}
+      <View pointerEvents="none" style={styles.glowWrap}>
+        {[420, 330, 250, 180, 120].map((d, i) => (
+          <View key={d} style={{ position: 'absolute', width: d, height: d, borderRadius: d / 2, backgroundColor: i < 2 ? Brand.primary : Brand.accent, opacity: 0.05 + i * 0.012 }} />
+        ))}
+      </View>
       <SafeAreaView style={styles.wrap}>
-        <View style={styles.hero}>
-          <Text style={styles.logo}>🔥</Text>
-          <Text style={styles.brand}>matchwerk</Text>
-          <Text style={styles.tagline}>Weniger swipen.{'\n'}Mehr echte Verbindungen.</Text>
-        </View>
-        <View style={{ gap: 14 }}>
+        <Animated.View entering={FadeIn.duration(600)} style={styles.hero}>
+          <Text style={styles.flame}>🔥</Text>
+          <Text style={styles.brand} accessibilityRole="header">
+            Match<Text style={{ color: Brand.accent }}>werk</Text>
+          </Text>
+          <Text style={styles.tagline}>{APP.slogan}</Text>
+        </Animated.View>
+        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={{ gap: 16 }}>
           <View style={styles.usps}>
-            {['Transparenter Match-Score – du siehst, warum ihr passt', 'Like ein Foto oder eine Antwort – mit Kommentar', 'Du entscheidest, wer zuerst schreibt', 'Verifizierte Profile & Sicherheits-Tools'].map((t) => (
-              <Text key={t} style={styles.usp}>✓  {t}</Text>
+            {USPS.map(([icon, t]) => (
+              <View key={t} style={styles.uspRow}>
+                <Text style={styles.uspIcon}>{icon}</Text>
+                <Text style={styles.usp}>{t}</Text>
+              </View>
             ))}
           </View>
-          <Button
-            title="Los geht's"
-            variant="secondary"
-            onPress={() => router.push('/sign-in')}
-          />
+          <LinearGradient colors={Brand.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.cta}>
+            <Text style={styles.ctaText} onPress={() => router.push('/sign-in')} accessibilityRole="button">
+              {'Los geht\u2019s'}
+            </Text>
+          </LinearGradient>
           <Text style={styles.legal}>
             Mit dem Fortfahren akzeptierst du unsere{' '}
             <Link href="/legal/terms" style={styles.link}>Nutzungsbedingungen</Link> und die{' '}
-            <Link href="/legal/privacy" style={styles.link}>Datenschutzerklärung</Link>. Mindestalter: 18 Jahre.
+            <Link href="/legal/privacy" style={styles.link}>Datenschutzerklärung</Link>. Ab 18 Jahren.
           </Text>
-        </View>
+        </Animated.View>
       </SafeAreaView>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  glowWrap: { position: 'absolute', top: '8%', left: 0, right: 0, height: 420, alignItems: 'center', justifyContent: 'center' },
   wrap: { flex: 1, padding: 24, justifyContent: 'space-between' },
-  hero: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 8 },
-  logo: { fontSize: 72 },
-  brand: { color: '#fff', fontSize: 56, fontWeight: '900', letterSpacing: -2 },
-  tagline: { color: '#fff', fontSize: 22, fontWeight: '600', textAlign: 'center', marginTop: 8, lineHeight: 30 },
-  usps: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, padding: 16, gap: 8 },
-  usp: { color: '#fff', fontSize: 15, fontWeight: '500' },
-  legal: { color: 'rgba(255,255,255,0.9)', fontSize: 12, textAlign: 'center', lineHeight: 18 },
-  link: { textDecorationLine: 'underline', fontWeight: '700', color: '#fff' },
+  hero: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 6 },
+  flame: { fontSize: 76, marginBottom: 6 },
+  brand: { color: Brand.cream, fontSize: 52, fontWeight: '900', letterSpacing: -1.5 },
+  tagline: { color: '#E9D5F5', fontSize: 19, fontWeight: '600', textAlign: 'center', marginTop: 4 },
+  usps: { backgroundColor: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderRadius: 22, padding: 16, gap: 12 },
+  uspRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  uspIcon: { fontSize: 18 },
+  usp: { color: Brand.cream, fontSize: 15, fontWeight: '500', flex: 1 },
+  cta: { borderRadius: Radius.pill, overflow: 'hidden' },
+  ctaText: { color: '#fff', fontSize: 17, fontWeight: '800', textAlign: 'center', paddingVertical: 16 },
+  legal: { color: 'rgba(255,241,220,0.75)', fontSize: 12, textAlign: 'center', lineHeight: 18 },
+  link: { textDecorationLine: 'underline', fontWeight: '700', color: Brand.cream },
 });

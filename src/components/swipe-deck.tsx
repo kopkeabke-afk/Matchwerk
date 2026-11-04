@@ -101,13 +101,13 @@ export const SwipeDeck = forwardRef<SwipeDeckHandle, Props>(function SwipeDeck({
     <View style={{ flex: 1 }}>
       {next && (
         <Animated.View key={next.id} style={[StyleSheet.absoluteFill, nextStyle]} pointerEvents="none">
-          <ProfileCard profile={next} compat={compat(next)} spark={next.id === sparkId} />
+          <ProfileCard profile={next} compat={compat(next)} spark={next.id === sparkId} mode={mode} />
         </Animated.View>
       )}
       {top && (
         <GestureDetector gesture={pan}>
           <Animated.View key={top.id} style={[StyleSheet.absoluteFill, topStyle]}>
-            <ProfileCard profile={top} compat={compat(top)} spark={top.id === sparkId} onInfo={() => onInfo(top)} />
+            <ProfileCard profile={top} compat={compat(top)} spark={top.id === sparkId} onInfo={() => onInfo(top)} mode={mode} />
             <Animated.View style={[styles.stamp, styles.like, likeStyle]} pointerEvents="none">
               <Text style={[styles.stampText, { color: Brand.like }]}>{mode === 'friends' ? 'HALLO' : 'LIKE'}</Text>
             </Animated.View>

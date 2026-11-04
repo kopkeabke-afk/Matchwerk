@@ -9,8 +9,8 @@ import { INTENTION_EMOJI, INTENTION_LABELS, type Profile } from '@/lib/types';
 import { ageFrom, type Compatibility } from '@/lib/utils';
 
 /** The visual swipe card: tap left/right edges to browse photos, tap ⓘ for the full profile. */
-export function ProfileCard({ profile, compat, onInfo, spark }: {
-  profile: Profile; compat?: Compatibility; onInfo?: () => void; spark?: boolean;
+export function ProfileCard({ profile, compat, onInfo, spark, mode = 'dating' }: {
+  profile: Profile; compat?: Compatibility; onInfo?: () => void; spark?: boolean; mode?: 'dating' | 'friends';
 }) {
   const [idx, setIdx] = useState(0);
   const photos = profile.photos.length ? profile.photos : [undefined];
@@ -56,7 +56,9 @@ export function ProfileCard({ profile, compat, onInfo, spark }: {
                 <Text style={styles.meta}>
                   📍 {profile.distanceKm != null ? `${profile.distanceKm} km entfernt` : profile.city}
                 </Text>
-                <Text style={styles.meta}>{INTENTION_EMOJI[profile.intention]} {INTENTION_LABELS[profile.intention]}</Text>
+                {mode === 'friends'
+                  ? <Text style={styles.meta}>👋 Offen für neue Freundschaften</Text>
+                  : <Text style={styles.meta}>{INTENTION_EMOJI[profile.intention]} {INTENTION_LABELS[profile.intention]}</Text>}
               </>
             ) : idx === 1 && profile.prompts[0] ? (
               <>

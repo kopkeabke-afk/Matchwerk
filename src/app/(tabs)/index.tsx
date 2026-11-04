@@ -100,8 +100,12 @@ export default function Discover() {
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
       <View style={{ height: WebTabTop }} />
       <View style={styles.header}>
-        <Text style={styles.logo}>matchwerk{limits?.tier === 'vip' ? <Text style={{ color: Brand.gold }}> VIP</Text> : limits?.premium ? <Text style={{ color: Brand.gold }}>+</Text> : null}</Text>
-        <View style={{ flex: 1, alignItems: 'center' }}><ModeSwitch /></View>
+        {(me.modes?.length ?? 1) > 1 ? (
+          <ModeSwitch />
+        ) : (
+          <Text style={styles.logo}>matchwerk{limits?.tier === 'vip' ? <Text style={{ color: Brand.gold }}> VIP</Text> : limits?.premium ? <Text style={{ color: Brand.gold }}>+</Text> : null}</Text>
+        )}
+        <View style={{ flex: 1 }} />
         {limits && limits.swipesLeft !== null && limits.swipesLeft <= 10 ? (
           <Pressable onPress={() => router.push({ pathname: '/premium', params: { reason: 'swipes' } })} style={[styles.pill, { backgroundColor: c.surface }]}>
             <Text style={{ color: c.text, fontWeight: '700', fontSize: 13 }}>{limits.swipesLeft} Profile übrig</Text>
@@ -164,7 +168,7 @@ export default function Discover() {
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, paddingHorizontal: Space.lg, paddingVertical: Space.sm },
   pill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
-  logo: { fontSize: 30, fontWeight: '900', color: Brand.primary, letterSpacing: -1 },
+  logo: { fontSize: 26, fontWeight: '900', color: Brand.primary, letterSpacing: -1 },
   headerBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   deck: { flex: 1, marginHorizontal: Space.md, marginTop: Space.xs },
   actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingTop: Space.lg, paddingBottom: TabInset + Space.md },

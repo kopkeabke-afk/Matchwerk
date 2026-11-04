@@ -1,14 +1,19 @@
 import { Platform, useColorScheme } from 'react-native';
 
+/** Colours taken from the Matchwerk logo: night plum, match-flame orange → pink, warm cream. */
 export const Brand = {
-  primary: '#FF4D6D',
-  primaryDark: '#E03157',
+  primary: '#EE3A6A',
+  primaryDark: '#D02A58',
   accent: '#FF8A3D',
-  gradient: ['#FF4D6D', '#FF8A3D'] as const,
+  gradient: ['#FF8A3D', '#EE3A6A'] as const,
+  /** logo background */
+  night: '#2A0E3F',
+  nightDeep: '#160620',
+  cream: '#FFF1DC',
   like: '#22C55E',
   pass: '#EF4444',
   super: '#3B82F6',
-  gold: '#F5B301',
+  gold: '#FFB938',
 };
 
 export const Colors = {

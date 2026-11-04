@@ -3,6 +3,8 @@ const SITE = 'https://kopkeabke-afk.github.io/Matchwerk';
 
 export const APP = {
   name: 'Matchwerk',
+  /** shown on the welcome screen, website and store listing */
+  slogan: 'Dating, bei dem es funkt.',
   // TODO: eine Adresse, die du wirklich liest (kostenlos z. B. ein eigenes Gmail-Postfach nur für Matchwerk)
   supportEmail: 'support@matchwerk.app',
   company: '[Vor- und Nachname bzw. Firma]',
