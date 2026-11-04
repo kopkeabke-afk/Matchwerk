@@ -55,7 +55,7 @@ Hinweis: Ein Supabase-Gratis-Projekt wird nach 7 Tagen ohne Nutzung pausiert (im
 
 ### 1. Supabase
 1. Projekt auf <https://supabase.com> anlegen (Region **Frankfurt**).
-2. Alle Dateien aus `supabase/migrations/` der Reihe nach im SQL-Editor ausführen (oder `supabase db push`).
+2. Den Inhalt von `supabase/setup.sql` (alle Migrationen in einer Datei) im SQL-Editor einfügen und **Run** klicken (oder `supabase db push`).
 3. **Mailversand (kostenlos):** Konto bei Brevo oder Resend anlegen und die SMTP-Daten unter
    Authentication → SMTP eintragen. In der Mail-Vorlage „Magic Link“ `{{ .Token }}` verwenden (6-stelliger Code).
 4. `.env` anlegen (Vorlage `.env.example`) mit `EXPO_PUBLIC_SUPABASE_URL` und `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
