@@ -29,7 +29,7 @@ logo = Image.open('assets/brand/logo-mark.png').convert('RGBA').resize((150, 150
 for i, (n, head, sub) in enumerate(ITEMS, 1):
     bg = G.copy().convert('RGBA')
     glow = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse((W // 2 - 520, 120, W // 2 + 520, 900), fill=(238, 58, 106, 70))
+    ImageDraw.Draw(glow).ellipse((W // 2 - 520, 120, W // 2 + 520, 900), fill=(131, 56, 208, 80))
     bg.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
     bg.alpha_composite(logo, ((W - 150) // 2, 90))
     d = ImageDraw.Draw(bg)

@@ -25,8 +25,8 @@ const page = (file, title, body) => `<!doctype html>
 <meta property="og:image" content="${esc(APP.site)}/feature.png">
 <meta name="description" content="${esc(APP.name)} – die Dating-App, bei der du siehst, warum ihr zusammenpasst.">
 <style>
-:root{--bg:#fffaf8;--fg:#22171a;--muted:#6f5e64;--line:#ecdcd5;--accent:#e8385c;--card:#fff}
-@media (prefers-color-scheme:dark){:root{--bg:#161013;--fg:#f7ebee;--muted:#b39fa5;--line:#3a2c31;--accent:#ff5c7c;--card:#20171b}}
+:root{--bg:#fbf8ff;--fg:#22171a;--muted:#6f5e64;--line:#e6dcf2;--accent:#7a2bb8;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#161013;--fg:#f7ebee;--muted:#b39fa5;--line:#3a2c31;--accent:#c39bff;--card:#20171b}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
 .wrap{max-width:760px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-left))}
 header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between;margin-bottom:32px}

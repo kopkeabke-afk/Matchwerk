@@ -167,7 +167,7 @@ export default function Discover() {
           <View style={styles.actions} pointerEvents="box-none">
             <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => decide(deck[0], 'pass')} />
             <IconButton icon="flame" color={Brand.accent} size={52} label="Funke senden" onPress={() => decide(deck[0], 'superlike')} />
-            <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={Brand.primary} size={60}
+            <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={mode === 'friends' ? Brand.super : Brand.heart} size={60}
               label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => decide(deck[0], 'like')} />
           </View>
           <LikeSheet profile={deck[0]} item={noteFor ?? null} mode={mode} busy={sending}

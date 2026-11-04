@@ -111,7 +111,7 @@ export default function ProfileScreen() {
           style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
           <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => act('pass')} />
           <IconButton icon="flame" color={Brand.accent} size={48} label="Funke" onPress={() => act('superlike')} />
-          <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={Brand.primary} size={60} label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => act('like')} />
+          <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={mode === 'friends' ? Brand.super : Brand.heart} size={60} label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => act('like')} />
         </LinearGradient>
       )}
 

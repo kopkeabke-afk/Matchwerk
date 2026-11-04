@@ -33,7 +33,7 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
         accessibilityRole="button"
         accessibilityLabel={item.kind === 'photo' ? 'Auf dieses Foto reagieren' : 'Auf diese Antwort reagieren'}
         style={({ pressed }) => [styles.likeBtn, { backgroundColor: onDark ? 'rgba(255,255,255,0.95)' : c.card, transform: [{ scale: pressed ? 0.9 : 1 }] }]}>
-        <Ionicons name={likeIcon} size={24} color={mode === 'friends' ? Brand.super : Brand.primary} />
+        <Ionicons name={likeIcon} size={24} color={mode === 'friends' ? Brand.super : Brand.heart} />
       </Pressable>
     ) : null;
 
@@ -93,7 +93,7 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
   // 2 · why you match (Matchwerk's own feature)
   if (compat) {
     blocks.push(
-      <View key="compat" style={[styles.compat, { backgroundColor: c.dark ? '#2A1220' : '#FFF1EC' }]}>
+      <View key="compat" style={[styles.compat, { backgroundColor: c.dark ? '#24133A' : '#F4ECFB' }]}>
         <View style={styles.score}>
           <Text style={styles.scoreNum}>{compat.score}</Text>
           <Text style={styles.scorePct}>%</Text>

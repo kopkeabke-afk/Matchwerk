@@ -1,11 +1,17 @@
 import { Platform, useColorScheme } from 'react-native';
 
-/** Colours taken from the Matchwerk logo: night plum, match-flame orange → pink, warm cream. */
+/**
+ * Matchwerk's own palette, taken from the logo: night plum + violet as the main colour,
+ * match-flame orange and gold only as accents (hearts, Funken, highlights), warm cream on dark.
+ * Deliberately distinct from the pink/red-orange look of other dating apps.
+ */
 export const Brand = {
-  primary: '#EE3A6A',
-  primaryDark: '#D02A58',
-  accent: '#FF8A3D',
-  gradient: ['#FF8A3D', '#EE3A6A'] as const,
+  primary: '#8338D0',
+  primaryDark: '#5E1E99',
+  accent: '#FF7A3D',
+  gradient: ['#9046DB', '#5E1E99'] as const,
+  /** hearts and likes */
+  heart: '#FF6A3D',
   /** logo background */
   night: '#2A0E3F',
   nightDeep: '#160620',
