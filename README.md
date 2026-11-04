@@ -47,7 +47,7 @@ aber ausgeschaltet bzw. nur auf iPhones aktiv – für eine spätere iOS-Version
 | Expo EAS (Builds) | ca. 30 Builds/Monat | – |
 | Expo Push | unbegrenzt | – |
 | Google-Login | unbegrenzt | – |
-| Mailversand (Login-Codes) | Gratis-Stufe z. B. bei Brevo oder Resend | je nach Anbieter |
+| Mailversand (Login-Codes) | nicht nötig – Login läuft über Google | optional später |
 | Webseite (Datenschutz, AGB) | GitHub Pages, unbegrenzt | – |
 | SMS-Login | **nicht kostenlos** (3–10 Cent/SMS) – darum standardmäßig aus | – |
 
@@ -56,8 +56,10 @@ Hinweis: Ein Supabase-Gratis-Projekt wird nach 7 Tagen ohne Nutzung pausiert (im
 ### 1. Supabase
 1. Projekt auf <https://supabase.com> anlegen (Region **Frankfurt**).
 2. Den Inhalt von `supabase/setup.sql` (alle Migrationen in einer Datei) im SQL-Editor einfügen und **Run** klicken (oder `supabase db push`).
-3. **Mailversand (kostenlos):** Konto bei Brevo oder Resend anlegen und die SMTP-Daten unter
-   Authentication → SMTP eintragen. In der Mail-Vorlage „Magic Link“ `{{ .Token }}` verwenden (6-stelliger Code).
+3. **Kein Mailversand nötig:** Nutzer melden sich mit Google an. Tester (z. B. Googles Prüfer) über
+   „Anmeldung für Tester“ mit einem Passwort-Konto, das du unter Authentication → Users anlegst.
+   Optional später: Login-Codes per E-Mail mit eigenem SMTP-Anbieter (Brevo, Resend) und
+   `EXPO_PUBLIC_ENABLE_EMAIL_LOGIN=true`.
 4. `.env` anlegen (Vorlage `.env.example`) mit `EXPO_PUBLIC_SUPABASE_URL` und `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
 
 ### 2. Google-Login (kostenlos)

@@ -11,6 +11,8 @@ import { appleSignInAvailable, toE164 } from '@/lib/social-auth';
 
 /** SMS costs money per message – off unless explicitly enabled. Apple sign-in only matters for an iOS release. */
 const PHONE_LOGIN = process.env.EXPO_PUBLIC_ENABLE_PHONE_LOGIN === 'true';
+/** Login codes by e-mail need an SMTP provider – off unless enabled. Password login (for testers) always works. */
+const EMAIL_LOGIN = process.env.EXPO_PUBLIC_ENABLE_EMAIL_LOGIN === 'true';
 
 type Stage = 'choose' | 'phone' | 'phone-code' | 'email' | 'email-code' | 'password';
 
@@ -67,12 +69,14 @@ export default function SignIn() {
     password: 'Mit Passwort anmelden',
   };
   const subtitles: Record<Stage, string> = {
-    choose: 'Wähle, wie du dich anmelden möchtest. Neu hier? Dann wird dein Konto automatisch erstellt.',
+    choose: EMAIL_LOGIN || PHONE_LOGIN
+      ? 'Wähle, wie du dich anmelden möchtest. Neu hier? Dann wird dein Konto automatisch erstellt.'
+      : 'Melde dich mit deinem Google-Konto an. Neu hier? Dann wird dein Konto automatisch erstellt.',
     phone: 'Wir schicken dir einen Code per SMS. Deine Nummer ist für andere nie sichtbar.',
     'phone-code': `Wir haben dir einen 6-stelligen Code an ${e164 ?? phone} geschickt.`,
     email: 'Kein Passwort nötig – wir senden dir einen Anmeldecode.',
     'email-code': `Wir haben dir einen 6-stelligen Code an ${email} geschickt.`,
-    password: 'Für Test-Konten (z. B. App-Prüfung).',
+    password: 'Nur für Test-Konten (z. B. die App-Prüfung durch Google). Alle anderen melden sich mit Google an.',
   };
 
   return (
@@ -101,7 +105,12 @@ export default function SignIn() {
               <Provider icon="logo-google" label="Mit Google fortfahren" busy={busy === 'google'}
                 onPress={() => run('google', () => backend.signInWithGoogle())} />
               {PHONE_LOGIN && <Provider icon="call-outline" label="Mit Telefonnummer" onPress={() => setStage('phone')} />}
-              <Provider icon="mail-outline" label="Mit E-Mail" onPress={() => setStage('email')} />
+              {EMAIL_LOGIN && <Provider icon="mail-outline" label="Mit E-Mail" onPress={() => setStage('email')} />}
+              {!EMAIL_LOGIN && (
+                <Pressable onPress={() => setStage('password')} hitSlop={8} accessibilityRole="button" style={{ alignItems: 'center', paddingTop: Space.md }}>
+                  <T variant="small" muted style={{ textDecorationLine: 'underline' }}>Anmeldung für Tester</T>
+                </Pressable>
+              )}
             </View>
           )}
 

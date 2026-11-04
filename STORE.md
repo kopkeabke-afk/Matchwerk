@@ -58,8 +58,8 @@ Erhobene Daten (alle **verschlüsselt übertragen**, **Löschung möglich**, **n
 
 ## Test-Konto für die Google-Prüfung
 In Supabase unter Authentication → Users einen Nutzer **mit Passwort** anlegen (z. B. `review@…`) und
-3–5 Testprofile in der Nähe. In der App: Anmelden → „Mit E-Mail“ → „Mit Passwort anmelden“.
-Zugangsdaten in der Play Console unter „App-Zugriff“ eintragen.
+3–5 Testprofile in der Nähe. In der App: „Los geht's“ → „Anmeldung für Tester“.
+Zugangsdaten in der Play Console unter „App-Zugriff“ eintragen. Anleitung für die Prüfer: Startbildschirm → „Los geht's“ → „Anmeldung für Tester“.
 
 ## Geschlossener Test (Pflicht für neue private Konten)
 Mindestens **12 Tester** müssen die App **14 Tage** lang installiert haben, bevor du die Produktion beantragen kannst.
