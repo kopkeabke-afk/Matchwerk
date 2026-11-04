@@ -12,6 +12,8 @@ export default function SignIn() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
+  const [usePassword, setUsePassword] = useState(false);
+  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const demo = backend.mode === 'demo';
   const validEmail = /^\S+@\S+\.\S+$/.test(email.trim());
@@ -40,11 +42,23 @@ export default function SignIn() {
     }
   }
 
+  async function passwordLogin() {
+    setBusy(true);
+    try {
+      await backend.signInWithPassword(email.trim().toLowerCase(), password);
+      await refresh();
+    } catch (e) {
+      Alert.alert('Anmeldung fehlgeschlagen', (e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: Space.xl, paddingTop: 60, gap: Space.lg }} keyboardShouldPersistTaps="handled">
-          <T variant="title">{sent ? 'Code eingeben' : 'Wie lautet deine E-Mail?'}</T>
+          <T variant="title">{sent ? 'Code eingeben' : usePassword ? 'Anmelden' : 'Wie lautet deine E-Mail?'}</T>
           <T muted>
             {sent
               ? `Wir haben dir einen 6-stelligen Code an ${email} geschickt.`
@@ -62,7 +76,21 @@ export default function SignIn() {
                 keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress"
                 onSubmitEditing={validEmail ? send : undefined} returnKeyType="next"
               />
-              <Button title="Code senden" onPress={send} loading={busy} disabled={!validEmail} />
+              {usePassword ? (
+                <>
+                  <Field value={password} onChangeText={setPassword} placeholder="Passwort" secureTextEntry textContentType="password" autoComplete="password" onSubmitEditing={passwordLogin} />
+                  <Button title="Anmelden" onPress={passwordLogin} loading={busy} disabled={!validEmail || !password} />
+                </>
+              ) : (
+                <Button title="Code senden" onPress={send} loading={busy} disabled={!validEmail} />
+              )}
+              <View style={{ alignItems: 'center' }}>
+                <Button
+                  title={usePassword ? 'Stattdessen Code per E-Mail' : 'Mit Passwort anmelden'}
+                  variant="ghost"
+                  onPress={() => setUsePassword(!usePassword)}
+                />
+              </View>
             </>
           ) : (
             <>

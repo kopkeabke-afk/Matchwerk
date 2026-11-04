@@ -111,6 +111,11 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       const data = check(await sb.auth.verifyOtp({ email, token: code, type: 'email' }));
       return data.user!.id;
     },
+    async signInWithPassword(email, password) {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error || !data.user) throw new Error(error?.message ?? 'Anmeldung fehlgeschlagen');
+      return data.user.id;
+    },
     async signOut() {
       await sb.auth.signOut();
     },
@@ -140,7 +145,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       const id = await myId();
       const res = await fetch(localUri);
       const body = await res.arrayBuffer();
-      const path = `${id}/${Date.now()}.jpg`;
+      const path = `${id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
       check(await sb.storage.from('photos').upload(path, body, { contentType: 'image/jpeg', upsert: false }));
       return sb.storage.from('photos').getPublicUrl(path).data.publicUrl;
     },
@@ -224,7 +229,10 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     },
     async report(userId, reason, details) {
       const id = await myId();
-      check(await sb.from('reports').insert({ reporter: id, reported: userId, reason, details }));
+      check(await sb.from('reports').upsert(
+        { reporter: id, reported: userId, reason, details },
+        { onConflict: 'reporter,reported', ignoreDuplicates: true },
+      ));
       await backend.block(userId);
     },
     async savePushToken(token) {

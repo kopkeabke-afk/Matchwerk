@@ -34,7 +34,7 @@ Der Demo-Modus enthält 28 Beispielprofile in Berlin, simulierte Likes, Matches 
 
 ### 1. Supabase
 1. Projekt auf <https://supabase.com> anlegen (Region **EU / Frankfurt** für DSGVO).
-2. `supabase/migrations/0001_init.sql` im SQL-Editor ausführen (oder `supabase db push`).
+2. Beide Dateien aus `supabase/migrations/` der Reihe nach im SQL-Editor ausführen (oder `supabase db push`).
 3. Auth → Providers → **Email** aktivieren, Template „Magic Link“ so anpassen, dass es `{{ .Token }}` (6-stelliger Code) enthält.
 4. Auth → SMTP: eigenen Mail-Provider eintragen (Supabase-Standard ist stark limitiert).
 5. `.env` anlegen (siehe `.env.example`) mit `EXPO_PUBLIC_SUPABASE_URL` und `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
@@ -48,8 +48,16 @@ Dann unter Database → Webhooks zwei Webhooks (INSERT auf `messages` und `match
 mit Header `x-webhook-secret`.
 
 ### 3. Moderation
-Meldungen landen in der Tabelle `reports`. Profile verifizieren: `update profiles set verified = true where id = '…'`
-(nur mit Service-Role möglich). Apple verlangt, dass Meldungen **innerhalb von 24 h** bearbeitet werden.
+- Meldungen landen in `reports`. Die Ansicht **`moderation_queue`** (nur im Dashboard/mit Service-Role sichtbar)
+  zeigt gemeldete Profile, sortiert nach Anzahl der Meldungen.
+- Ab **3 Meldungen von verschiedenen Personen** wird ein Profil automatisch ausgeblendet, bis du entscheidest.
+- Entscheiden im SQL-Editor: `select moderate('<user-id>', 'ban' | 'dismiss' | 'verify');`
+- Apple verlangt, dass Meldungen **innerhalb von 24 h** bearbeitet werden.
+- Eingebauter Spam-Schutz: max. 500 Swipes und 5 Super-Likes pro Tag, max. 30 Nachrichten pro Minute.
+
+### 3b. Test-Konto für Apples Prüfung
+In Supabase unter Authentication → Users einen Nutzer **mit Passwort** anlegen (z. B. `review@deine-domain.de`).
+In der App: „Mit Passwort anmelden“. Zugangsdaten in App Store Connect unter *App Review Information* eintragen.
 
 ### 4. Builds & Store
 ```bash
@@ -67,6 +75,7 @@ Store-Texte, Screenshots-Liste und App-Review-Hinweise: siehe **STORE.md**.
 - `src/constants/legal.ts` – AGB/Datenschutz sind **Vorlagen** → anwaltlich prüfen lassen
 - `app.json` – `bundleIdentifier` / `package` auf deine Domain ändern
 - `eas.json` – `ascAppId`
+- `store/screenshots/` – nach dem ersten Geräte-Build gegen echte Aufnahmen tauschen
 - Demo-Bilder (`src/lib/demo-data.ts`, pravatar.cc / picsum.photos) sind nur Platzhalter für den Demo-Modus
 
 ## Projektstruktur
@@ -85,5 +94,14 @@ supabase/           SQL-Schema mit RLS & RPCs, Push-Edge-Function
 
 ## Checks
 ```bash
-npx tsc --noEmit && npx expo lint && npx expo-doctor
+npx tsc --noEmit && npx expo lint && npx jest && npx expo-doctor
 ```
+Datenbank-Regeln (19 Prüfungen, braucht ein lokales Postgres):
+```bash
+psql -f supabase/tests/stub.sql && for f in supabase/migrations/*.sql; do psql -f "$f"; done && psql -f supabase/tests/rules.sql
+```
+Beides läuft automatisch in GitHub Actions (`.github/workflows/ci.yml`).
+
+## Store-Screenshots
+`store/screenshots/ios-6.9/` enthält 7 fertige Bilder im Format 1320 × 2868 (iPhone 6,9″, auch für Google Play nutzbar).
+Sie sind aus der Web-Version aufgenommen; nach dem ersten TestFlight-Build am besten durch Aufnahmen vom echten Gerät ersetzen.

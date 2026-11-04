@@ -11,6 +11,8 @@ export interface Backend {
   getSessionUserId(): Promise<string | null>;
   sendLoginCode(email: string): Promise<void>;
   verifyLoginCode(email: string, code: string): Promise<string>;
+  /** Password login – used for the App Review test account. */
+  signInWithPassword(email: string, password: string): Promise<string>;
   signOut(): Promise<void>;
   deleteAccount(): Promise<void>;
   onAuthChange(cb: (userId: string | null) => void): () => void;

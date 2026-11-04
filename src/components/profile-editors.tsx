@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
@@ -17,17 +18,32 @@ export function PhotoGrid({ photos, onChange }: { photos: string[]; onChange: (p
   const c = useTheme();
   const [busy, setBusy] = useState<number | null>(null);
 
-  async function add(slot: number) {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  function add(slot: number) {
+    if (Platform.OS === 'web') return pick(slot, 'library');
+    Alert.alert('Foto hinzufügen', undefined, [
+      { text: 'Foto aufnehmen', onPress: () => pick(slot, 'camera') },
+      { text: 'Aus Mediathek wählen', onPress: () => pick(slot, 'library') },
+      { text: 'Abbrechen', style: 'cancel' },
+    ]);
+  }
+
+  async function pick(slot: number, source: 'camera' | 'library') {
+    const perm = source === 'camera'
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Zugriff benötigt', 'Bitte erlaube den Zugriff auf deine Fotos in den Einstellungen.');
+      Alert.alert('Zugriff benötigt', source === 'camera'
+        ? 'Bitte erlaube den Kamerazugriff in den Einstellungen.'
+        : 'Bitte erlaube den Zugriff auf deine Fotos in den Einstellungen.');
       return;
     }
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [4, 5], quality: 0.8 });
+    const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], allowsEditing: true, aspect: [4, 5], quality: 1 };
+    const res = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
     if (res.canceled) return;
     setBusy(slot);
     try {
-      const url = await backend.uploadPhoto(res.assets[0].uri);
+      const uri = await compress(res.assets[0].uri, res.assets[0].width);
+      const url = await backend.uploadPhoto(uri);
       onChange([...photos, url]);
     } catch (e) {
       Alert.alert('Upload fehlgeschlagen', (e as Error).message);
@@ -71,6 +87,19 @@ export function PhotoGrid({ photos, onChange }: { photos: string[]; onChange: (p
       })}
     </View>
   );
+}
+
+/** Resize to max. 1080 px wide JPEG (~150–300 KB) – faster uploads, less storage, strips EXIF/GPS. */
+async function compress(uri: string, width?: number): Promise<string> {
+  try {
+    const ctx = ImageManipulator.manipulate(uri);
+    if (!width || width > 1080) ctx.resize({ width: 1080 });
+    const img = await ctx.renderAsync();
+    const out = await img.saveAsync({ compress: 0.75, format: SaveFormat.JPEG });
+    return out.uri;
+  } catch {
+    return uri;
+  }
 }
 
 export function InterestPicker({ value, onChange, max = 10 }: { value: string[]; onChange: (v: string[]) => void; max?: number }) {

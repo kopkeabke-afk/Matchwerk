@@ -84,17 +84,18 @@ const imgs = JSON.parse(document.getElementById('imgs').textContent || '[]');
 
 const PHASES = [
   { id: 'accounts', title: 'Konten anlegen', items: [
+    { id: 'github', t: 'GitHub verbinden und leeres Repository anlegen', who: 'du', must: true, d: 'Unter claude.ai/connect-github dein Konto verbinden, ein leeres privates Repository (z. B. funke-app) anlegen und es in einer neuen Claude-Session auswählen. Dann lade ich den Code hoch.' },
     { id: 'apple', t: 'Apple Developer Program beitreten', who: 'du', must: true, d: '99 $ pro Jahr, Freischaltung dauert 1–2 Tage. Als Firma brauchst du eine D-U-N-S-Nummer.' },
     { id: 'google', t: 'Google Play Console registrieren', who: 'du', must: true, d: '25 $ einmalig. Neue private Konten müssen vor dem Launch 14 Tage mit 12 Testern testen.' },
     { id: 'expo', t: 'Expo-Konto erstellen und Projekt verknüpfen', who: 'du', d: 'Danach steht die projectId in app.json, die Push-Benachrichtigungen brauchen.', cmd: 'npx eas-cli@latest login && npx eas-cli@latest init' },
     { id: 'supabase', t: 'Supabase-Projekt in der Region Frankfurt anlegen', who: 'du', must: true, d: 'EU-Region wegen DSGVO. Für den Start reicht der Pro-Plan (25 $/Monat).' },
   ]},
   { id: 'backend', title: 'Backend einrichten', items: [
-    { id: 'schema', t: 'Datenbank-Schema einspielen', who: 'du', must: true, d: 'Tabellen, Zugriffsregeln, Match-Logik und Fotospeicher. Ist gegen Postgres 16 getestet.', cmd: 'supabase link --project-ref DEIN_REF && supabase db push' },
+    { id: 'schema', t: 'Datenbank-Schema einspielen', who: 'du', must: true, d: 'Zwei Migrationen: Tabellen, Zugriffsregeln, Match-Logik, Fotospeicher, Spam-Schutz und Moderation. 19 automatische Sicherheitsprüfungen bestanden.', cmd: 'supabase link --project-ref DEIN_REF && supabase db push' },
     { id: 'env', t: 'Zugangsdaten in .env eintragen', who: 'du', must: true, d: 'Ohne diese Datei läuft die App im Demo-Modus.', cmd: 'cp .env.example .env' },
     { id: 'smtp', t: 'Mail-Versand für Login-Codes einrichten', who: 'du', must: true, d: 'In Supabase unter Auth → SMTP einen Anbieter wie Resend oder Postmark eintragen. In der Mailvorlage {{ .Token }} verwenden.' },
     { id: 'push', t: 'Push-Funktion deployen und Webhooks anlegen', who: 'du', d: 'Zwei Webhooks: INSERT auf messages und matches, mit Header x-webhook-secret.', cmd: 'supabase functions deploy push --no-verify-jwt && supabase secrets set WEBHOOK_SECRET=$(openssl rand -hex 24)' },
-    { id: 'review-user', t: 'Test-Konto für Apples Prüfung anlegen', who: 'du', must: true, d: 'Ein Login, den die Prüfer ohne Postfach nutzen können, plus 3–5 echte Testprofile in der Nähe, damit der Stapel nicht leer ist.' },
+    { id: 'review-user', t: 'Test-Konto für Apples Prüfung anlegen', who: 'du', must: true, d: 'In Supabase einen Nutzer mit Passwort anlegen; die App hat dafür „Mit Passwort anmelden“. Dazu 3–5 echte Testprofile in der Nähe, damit der Stapel nicht leer ist.' },
   ]},
   { id: 'legal', title: 'Rechtliches', items: [
     { id: 'imprint', t: 'Firmenname, Adresse und Support-Mail eintragen', who: 'du', must: true, d: 'Alles an einer Stelle: src/constants/app.ts' },
@@ -106,7 +107,7 @@ const PHASES = [
     { id: 'bundle', t: 'Bundle-ID auf deine Domain ändern', who: 'du', must: true, d: 'In app.json: ios.bundleIdentifier und android.package. Lässt sich nach dem ersten Upload nicht mehr ändern.' },
     { id: 'icon', t: 'Finales App-Icon gestalten', who: 'du', d: 'Das aktuelle Flammen-Icon ist ein Platzhalter. 1024 × 1024 px, ohne Transparenz.' },
     { id: 'name-check', t: 'Markennamen prüfen', who: 'du', d: '„funke“ beim DPMA/EUIPO und im App Store suchen. Notfalls in app.json umbenennen.' },
-    { id: 'shots', t: 'Store-Screenshots erstellen', who: 'du', must: true, d: 'iPhone 6,9″ (1320 × 2868) und Android. Motive und Texte stehen in STORE.md.' },
+    { id: 'shots', t: 'Store-Screenshots prüfen', who: 'du', must: true, d: '7 fertige Bilder im Format 1320 × 2868 liegen in store/screenshots/ios-6.9. Sie stammen aus der Web-Version; nach dem ersten TestFlight-Build gegen Aufnahmen vom echten Gerät tauschen.' },
   ]},
   { id: 'ship', title: 'Bauen & einreichen', items: [
     { id: 'beta', t: 'Testversion auf echten Geräten prüfen', who: 'du', must: true, d: 'Gesten, Kamera, Standort und Push laufen nur auf echten Geräten. Ideal: 10–20 Testpersonen über TestFlight.', cmd: 'npx eas-cli@latest build --profile preview --platform all' },
@@ -115,13 +116,13 @@ const PHASES = [
     { id: 'submit', t: 'Bei Apple und Google einreichen', who: 'du', must: true, d: 'Altersfreigabe 17+ wählen. Prüfnotizen aus STORE.md einfügen.', cmd: 'npx eas-cli@latest submit --platform ios && npx eas-cli@latest submit --platform android' },
   ]},
   { id: 'ops', title: 'Nach dem Launch', items: [
-    { id: 'moderation', t: 'Meldungen täglich bearbeiten', who: 'du', must: true, d: 'Apple erwartet eine Reaktion innerhalb von 24 Stunden. Meldungen liegen in der Tabelle reports.' },
-    { id: 'verify', t: 'Ablauf für Profil-Verifizierung festlegen', who: 'du', d: 'Aktuell manuell per SQL. Später lässt sich ein Selfie-Abgleich anbinden.' },
+    { id: 'moderation', t: 'Meldungen täglich bearbeiten', who: 'du', must: true, d: 'Apple erwartet eine Reaktion innerhalb von 24 Stunden. Die Ansicht moderation_queue zeigt gemeldete Profile; ab 3 Meldungen wird ein Profil automatisch ausgeblendet.', cmd: "select moderate('<user-id>', 'ban');  -- oder 'dismiss' / 'verify'" },
+    { id: 'verify', t: 'Ablauf für Profil-Verifizierung festlegen', who: 'du', d: 'Aktuell per SQL mit moderate(..., \'verify\'). Später lässt sich ein Selfie-Abgleich anbinden.' },
     { id: 'seed', t: 'Startregion mit echten Nutzer:innen füllen', who: 'du', d: 'Eine Dating-App lebt von Dichte. Mit einer Stadt starten, z. B. Berlin.' },
   ]},
 ];
 
-const DONE = ['Swipen mit Gesten, Undo, Super-Like', 'Like auf Foto oder Antwort mit Kommentar', 'Wer zuerst schreibt, wählt jede:r selbst', 'Matches laufen nach 48 h ab, 1× verlängerbar', 'Likes kostenlos sehen', 'Match-Score mit Begründung', 'Daily Spark', 'Echtzeit-Chat mit Icebreakern', 'Login per E-Mail-Code', 'Onboarding mit 18+-Prüfung', 'Melden, Blockieren, Sicherheits-Center', 'Konto in der App löschen', 'Datenbank mit Zugriffsregeln (getestet)', 'Push-Benachrichtigungen', 'Dark Mode, iOS, Android, Web', 'Demo-Modus ohne Server'];
+const DONE = ['Swipen mit Gesten, Undo, Super-Like', 'Like auf Foto oder Antwort mit Kommentar', 'Wer zuerst schreibt, wählt jede:r selbst', 'Matches laufen nach 48 h ab, 1× verlängerbar', 'Likes kostenlos sehen', 'Match-Score mit Begründung', 'Daily Spark', 'Echtzeit-Chat mit Icebreakern', 'Login per E-Mail-Code', 'Onboarding mit 18+-Prüfung', 'Melden, Blockieren, Sicherheits-Center', 'Konto in der App löschen', 'Datenbank mit Zugriffsregeln (getestet)', 'Push-Benachrichtigungen', 'Dark Mode, iOS, Android, Web', 'Demo-Modus ohne Server', 'Spam-Schutz und Tageslimits', 'Auto-Ausblenden nach 3 Meldungen', 'Passwort-Login für App Review', 'Kamera & Foto-Komprimierung', '19 App-Tests + 19 Datenbank-Tests', 'GitHub-Actions-CI', '7 Store-Screenshots'];
 
 const TEXTS = [
   { label: 'App-Name', text: 'funke – Dating & echte Matches' },

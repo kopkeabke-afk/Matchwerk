@@ -95,6 +95,9 @@ export function createDemoBackend(): Backend {
       authListeners.forEach((cb) => cb(ME));
       return ME;
     },
+    async signInWithPassword(email, _password) {
+      return this.verifyLoginCode(email, '');
+    },
     async signOut() {
       const s = await load();
       s.signedIn = false;
