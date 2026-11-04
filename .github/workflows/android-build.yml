@@ -1,0 +1,42 @@
+name: Android-App bauen
+# Startet einen Build in der Expo-Cloud (EAS). Ergebnis: Download-Link auf expo.dev.
+# Einmalig nötig: GitHub-Secret EXPO_TOKEN (Expo → Account settings → Access tokens).
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'preview = APK zum direkten Installieren, production = AAB für Google Play'
+        required: true
+        default: preview
+        type: choice
+        options: [preview, production]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Prüfen, ob das Expo-Token hinterlegt ist
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Das GitHub-Secret EXPO_TOKEN fehlt. Settings → Secrets and variables → Actions → New repository secret."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Expo-Konto prüfen
+        run: npx eas-cli@latest whoami
+      - name: Projekt mit Expo verknüpfen (beim ersten Mal)
+        run: npx eas-cli@latest init --non-interactive --force
+      - name: App bauen
+        run: |
+          npx eas-cli@latest build --platform android --profile "${{ inputs.profile }}" --non-interactive --no-wait --json > build.json
+          cat build.json
+          URL=$(node -e "try{const b=require('./build.json');const x=Array.isArray(b)?b[0]:b;console.log('https://expo.dev/accounts/'+x.project.ownerAccount.name+'/projects/'+x.project.slug+'/builds/'+x.id)}catch(e){console.log('https://expo.dev (unter Projects → matchwerk → Builds)')}")
+          echo "### Build gestartet 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "Fortschritt und Download-Link (nach ca. 10–20 Minuten): $URL" >> $GITHUB_STEP_SUMMARY
