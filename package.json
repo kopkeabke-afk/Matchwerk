@@ -58,7 +58,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "site": "node --experimental-strip-types scripts/build-site.mjs"
   },
   "private": true,
   "jest": {

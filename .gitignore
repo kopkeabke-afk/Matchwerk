@@ -43,3 +43,7 @@ example
 /android
 
 .env
+google-play-service-account.json
+
+# generated website (built by .github/workflows/pages.yml)
+site/

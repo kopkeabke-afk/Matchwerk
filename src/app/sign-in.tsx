@@ -9,6 +9,9 @@ import { backend } from '@/lib';
 import { useSession } from '@/lib/session';
 import { appleSignInAvailable, toE164 } from '@/lib/social-auth';
 
+/** SMS costs money per message – off unless explicitly enabled. Apple sign-in only matters for an iOS release. */
+const PHONE_LOGIN = process.env.EXPO_PUBLIC_ENABLE_PHONE_LOGIN === 'true';
+
 type Stage = 'choose' | 'phone' | 'phone-code' | 'email' | 'email-code' | 'password';
 
 function Provider({ icon, label, onPress, dark, busy }: { icon: IconName; label: string; onPress: () => void; dark?: boolean; busy?: boolean }) {
@@ -91,13 +94,13 @@ export default function SignIn() {
 
           {stage === 'choose' && (
             <View style={{ gap: Space.md }}>
-              {(apple || demo) && Platform.OS !== 'android' && (
+              {apple && Platform.OS === 'ios' && (
                 <Provider icon="logo-apple" label="Mit Apple anmelden" dark busy={busy === 'apple'}
                   onPress={() => run('apple', () => backend.signInWithApple())} />
               )}
               <Provider icon="logo-google" label="Mit Google fortfahren" busy={busy === 'google'}
                 onPress={() => run('google', () => backend.signInWithGoogle())} />
-              <Provider icon="call-outline" label="Mit Telefonnummer" onPress={() => setStage('phone')} />
+              {PHONE_LOGIN && <Provider icon="call-outline" label="Mit Telefonnummer" onPress={() => setStage('phone')} />}
               <Provider icon="mail-outline" label="Mit E-Mail" onPress={() => setStage('email')} />
             </View>
           )}

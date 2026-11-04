@@ -118,7 +118,7 @@ const PHASES = [
     { id: 'bundle', t: 'Bundle-ID auf deine Domain ändern', who: 'du', must: true, d: 'In app.json: ios.bundleIdentifier und android.package. Lässt sich nach dem ersten Upload nicht mehr ändern.' },
     { id: 'icon', t: 'Finales App-Icon gestalten', who: 'du', d: 'Das aktuelle Flammen-Icon ist ein Platzhalter. 1024 × 1024 px, ohne Transparenz.' },
     { id: 'name-check', t: 'Markennamen prüfen', who: 'du', d: '„Matchwerk“ beim DPMA/EUIPO und im App Store suchen. Notfalls in app.json umbenennen.' },
-    { id: 'shots', t: 'Store-Screenshots prüfen', who: 'du', must: true, d: '7 fertige Bilder im Format 1320 × 2868 liegen in store/screenshots/ios-6.9. Sie stammen aus der Web-Version; nach dem ersten TestFlight-Build gegen Aufnahmen vom echten Gerät tauschen.' },
+    { id: 'shots', t: 'Store-Screenshots prüfen', who: 'du', must: true, d: '7 fertige Bilder im Format 1320 × 2868 liegen in store/screenshots/phone. Sie stammen aus der Web-Version; nach dem ersten TestFlight-Build gegen Aufnahmen vom echten Gerät tauschen.' },
   ]},
   { id: 'ship', title: 'Bauen & einreichen', items: [
     { id: 'beta', t: 'Testversion auf echten Geräten prüfen', who: 'du', must: true, d: 'Gesten, Kamera, Standort und Push laufen nur auf echten Geräten. Ideal: 10–20 Testpersonen über TestFlight.', cmd: 'npx eas-cli@latest build --profile preview --platform all' },
