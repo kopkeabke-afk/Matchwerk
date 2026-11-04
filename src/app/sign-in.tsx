@@ -73,9 +73,9 @@ export default function SignIn() {
       ? 'Wähle, wie du dich anmelden möchtest. Neu hier? Dann wird dein Konto automatisch erstellt.'
       : 'Melde dich mit deinem Google-Konto an. Neu hier? Dann wird dein Konto automatisch erstellt.',
     phone: 'Wir schicken dir einen Code per SMS. Deine Nummer ist für andere nie sichtbar.',
-    'phone-code': `Wir haben dir einen 6-stelligen Code an ${e164 ?? phone} geschickt.`,
+    'phone-code': `Wir haben dir einen Code an ${e164 ?? phone} geschickt.`,
     email: 'Kein Passwort nötig – wir senden dir einen Anmeldecode.',
-    'email-code': `Wir haben dir einen 6-stelligen Code an ${email} geschickt.`,
+    'email-code': `Wir haben dir einen Code an ${email} geschickt. Schau auch im Spam-Ordner nach.`,
     password: 'Nur für Test-Konten (z. B. die App-Prüfung durch Google). Alle anderen melden sich mit Google an.',
   };
 
@@ -126,7 +126,7 @@ export default function SignIn() {
 
           {(stage === 'phone-code' || stage === 'email-code') && (
             <>
-              <Field value={code} onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))} placeholder="123456"
+              <Field value={code} onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 10))} placeholder="12345678"
                 keyboardType="number-pad" autoFocus textContentType="oneTimeCode" autoComplete="one-time-code"
                 style={{ fontSize: 28, letterSpacing: 8, textAlign: 'center' }} />
               <Button title="Bestätigen" disabled={!demo && code.length < 6} loading={busy === 'verify'}
