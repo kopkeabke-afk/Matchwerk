@@ -16,6 +16,7 @@ import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { bus } from '@/lib/events';
 import { useSession } from '@/lib/session';
+import { getTravelPlace, type Place } from '@/lib/location';
 import { limitReason, type LikeNote, type Limits, type Profile, type SwipeAction } from '@/lib/types';
 import { compatibility } from '@/lib/utils';
 
@@ -26,6 +27,7 @@ export default function Discover() {
   const [sparkId, setSparkId] = useState<string>();
   const [last, setLast] = useState<{ p: Profile; action: SwipeAction } | null>(null);
   const [limits, setLimits] = useState<Limits | null>(null);
+  const [travel, setTravel] = useState<Place | null>(null);
   const [noteFor, setNoteFor] = useState<LikeNote['item'] | null>(null);
   const [sending, setSending] = useState(false);
   const refreshLimits = useCallback(() => { backend.getLimits().then(setLimits).catch(() => {}); }, []);
@@ -51,6 +53,7 @@ export default function Discover() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
   useFocusEffect(refreshLimits);
+  useFocusEffect(useCallback(() => { getTravelPlace().then(setTravel); }, []));
   useEffect(() => bus.on('swiped', ({ id }) => setDeck((d) => d?.filter((p) => p.id !== id) ?? d)), []);
 
   /** Pass, like or Funke for the profile currently shown. */
@@ -139,6 +142,13 @@ export default function Discover() {
         </Pressable>
       </View>
 
+      {travel && (
+        <Pressable onPress={() => router.push('/filters')} accessibilityRole="button" style={[styles.travel, { backgroundColor: c.surface }]}>
+          <Text style={{ color: c.text, fontWeight: '600', fontSize: 14 }}>✈️ Unterwegs in {travel.city ?? 'gewähltem Ort'}</Text>
+          <Text style={{ color: Brand.primary, fontWeight: '700', fontSize: 14 }}>Ändern</Text>
+        </Pressable>
+      )}
+
       {me.paused ? (
         <Empty icon="pause-circle" title="Dein Profil ist pausiert" text="Du wirst niemandem angezeigt und siehst keine neuen Profile. Bestehende Chats bleiben erhalten.">
           <Button title="Profil wieder aktivieren" onPress={() => router.push('/settings')} />
@@ -186,6 +196,7 @@ export default function Discover() {
 
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, paddingHorizontal: Space.lg, paddingVertical: Space.sm },
+  travel: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: Space.md, marginBottom: Space.sm, paddingHorizontal: Space.md, paddingVertical: 10, borderRadius: 14 },
   pill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   logo: { fontSize: 26, fontWeight: '900', color: Brand.primary, letterSpacing: -1 },
   headerBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },

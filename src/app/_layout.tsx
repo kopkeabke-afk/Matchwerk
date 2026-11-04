@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { Brand, Colors } from '@/constants/theme';
 import { listenForNotificationTaps, registerForPush } from '@/lib/notifications';
+import { refreshProfileLocation } from '@/lib/location';
 import { SessionProvider, useSession } from '@/lib/session';
 
 SplashScreen.preventAutoHideAsync();
@@ -29,6 +30,12 @@ function RootStack() {
       router.replace('/auth');
     }
   }, [ready, userId, segments]);
+
+  // keep the search area up to date when travelling (no prompt – only if permission was given before)
+  const { saveProfile } = useSession();
+  useEffect(() => {
+    if (profile) refreshProfileLocation(profile, saveProfile).catch(() => {});
+  }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!profile) return;

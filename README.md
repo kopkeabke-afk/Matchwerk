@@ -9,6 +9,8 @@ Eine vollständige Dating-App auf Basis von **Expo SDK 58 / React Native**, mit 
 |---|---|---|---|---|
 | Ein Profil nach dem anderen lesen (kein Karten-Wischen), Undo, Funken | – | ✅ | – | ✅ (Undo kostenlos) |
 | Dating **und** Freunde in einer App | – | – | ✅ (BFF) | ✅ |
+| Anderen Ort wählen (Reisemodus) | 💰 | – | 💰 | **kostenlos** |
+| Standort aktualisiert sich beim Öffnen (z. B. zu Besuch) | ✅ | ✅ | ✅ | ✅ |
 | Like auf ein Foto/eine Antwort + Kommentar | – | ✅ | – | ✅ |
 | Wer schreibt zuerst? | – | – | nur Frauen | **jede:r wählt selbst** |
 | Match läuft ab, 1× verlängerbar | – | – | ✅ | ✅ (48 h + 24 h) |
