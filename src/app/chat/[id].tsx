@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, T } from '@/components/ui';
+import { RecordingBar, useVoiceRecording, VoiceBubble } from '@/components/voice';
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
@@ -54,6 +55,18 @@ export default function Chat() {
       setSending(false);
     }
   }
+
+  const voice = useVoiceRecording(async (uri, durationMs) => {
+    setSending(true);
+    try {
+      const m = await backend.sendVoice(id, uri, durationMs);
+      setMsgs((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+    } catch (e) {
+      Alert.alert('Sprachnachricht nicht gesendet', (e as Error).message);
+    } finally {
+      setSending(false);
+    }
+  });
 
   if (!match || !me) return <View style={{ flex: 1, backgroundColor: c.background }} />;
 
@@ -126,6 +139,7 @@ export default function Chat() {
         }
         renderItem={({ item }) => {
           const mine = item.senderId === userId;
+          if (item.kind === 'voice') return <VoiceBubble message={item} mine={mine} surface={c.surface} text={c.text} />;
           return (
             <View style={[styles.bubble, mine ? styles.mine : [styles.theirs, { backgroundColor: c.surface }]]}>
               <T style={{ color: mine ? '#fff' : c.text }}>{item.text}</T>
@@ -143,23 +157,46 @@ export default function Chat() {
         </ScrollView>
       )}
       <View style={[styles.composer, { borderTopColor: c.border, paddingBottom: insets.bottom + 8 }]}>
-        <TextInput
-          value={text}
-          onChangeText={setText}
-          editable={!waiting}
-          placeholder={waiting ? `Warte auf ${p.name} …` : 'Nachricht schreiben …'}
-          placeholderTextColor={c.textSecondary}
-          multiline
-          maxLength={2000}
-          style={[styles.input, { color: c.text, backgroundColor: c.surface }]}
-        />
-        <Pressable
-          onPress={() => send()}
-          disabled={!text.trim() || sending || waiting}
-          accessibilityLabel="Senden"
-          style={[styles.send, { opacity: !text.trim() || waiting ? 0.4 : 1 }]}>
-          <Ionicons name="arrow-up" size={22} color="#fff" />
-        </Pressable>
+        {voice.recording ? (
+          <RecordingBar
+            elapsedMs={voice.elapsedMs}
+            onCancel={voice.cancel}
+            onSend={voice.finish}
+            border={c.border}
+            surface={c.surface}
+            text={c.text}
+          />
+        ) : (
+          <>
+            <TextInput
+              value={text}
+              onChangeText={setText}
+              editable={!waiting}
+              placeholder={waiting ? `Warte auf ${p.name} …` : 'Nachricht schreiben …'}
+              placeholderTextColor={c.textSecondary}
+              multiline
+              maxLength={2000}
+              style={[styles.input, { color: c.text, backgroundColor: c.surface }]}
+            />
+            {text.trim() || waiting ? (
+              <Pressable
+                onPress={() => send()}
+                disabled={!text.trim() || sending || waiting}
+                accessibilityLabel="Senden"
+                style={[styles.send, { opacity: !text.trim() || waiting ? 0.4 : 1 }]}>
+                <Ionicons name="arrow-up" size={22} color="#fff" />
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={voice.start}
+                disabled={sending}
+                accessibilityLabel="Sprachnachricht aufnehmen"
+                style={[styles.send, { opacity: sending ? 0.4 : 1 }]}>
+                {sending ? <ActivityIndicator color="#fff" /> : <Ionicons name="mic" size={22} color="#fff" />}
+              </Pressable>
+            )}
+          </>
+        )}
       </View>
     </KeyboardAvoidingView>
   );

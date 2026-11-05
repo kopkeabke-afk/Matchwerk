@@ -14,6 +14,7 @@ Matchwerk ist die App für Menschen, die mehr wollen als endloses Durchklicken �
 • Du entscheidest, wer zuerst schreibt – du, dein Match oder egal.
 • Kostenlos sehen, wer dich geliked hat.
 • Daily Spark: Jeden Tag dein kompatibelstes Profil zuerst.
+• Sprachnachrichten: Sag es einfach – bis zu 60 Sekunden, direkt im Chat.
 • Persönliche Gesprächsstarter, damit das erste „Hey“ nie wieder schwer ist.
 • Klare Absichten: von „Feste Beziehung“ bis „Neue Freundschaften“ – als Filter nutzbar.
 • Sicherheit zuerst: verifizierte Profile, Melden & Blockieren in jedem Chat, Sicherheits-Center.

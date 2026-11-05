@@ -88,8 +88,7 @@
       ],
       "blockedPermissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "RECORD_AUDIO"
+        "ACCESS_BACKGROUND_LOCATION"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -132,6 +131,13 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.DEINE-IOS-CLIENT-ID"
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Matchwerk braucht das Mikrofon, damit du Sprachnachrichten an deine Matches schicken kannst.",
+          "recordAudioAndroid": true
         }
       ]
     ],

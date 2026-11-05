@@ -59,7 +59,10 @@ function fromProfile(p: Profile, id: string): Row {
 }
 
 const toMessage = (r: Row): Message => ({
-  id: r.id, matchId: r.match_id, senderId: r.sender_id, text: r.text, createdAt: r.created_at,
+  id: r.id, matchId: r.match_id, senderId: r.sender_id, text: r.text ?? '', createdAt: r.created_at,
+  kind: r.kind === 'voice' ? 'voice' : 'text',
+  audioPath: r.audio_path ?? undefined,
+  durationMs: r.duration_ms ?? undefined,
 });
 
 export function createSupabaseBackend(url: string, anonKey: string): Backend {
@@ -101,6 +104,16 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     lastMessage: r.last_message ? toMessage(r.last_message) : undefined,
     unread: Number(r.unread ?? 0),
   });
+
+  /** Removes the voice files I sent (in one match, or everywhere). Best effort. */
+  async function removeMyVoice(matchId?: string) {
+    const id = await myId();
+    let q = sb.from('messages').select('audio_path').eq('sender_id', id).eq('kind', 'voice');
+    if (matchId) q = q.eq('match_id', matchId);
+    const { data } = await q.limit(1000);
+    const paths = (data ?? []).map((r: Row) => r.audio_path).filter(Boolean);
+    if (paths.length) await sb.storage.from('voice').remove(paths);
+  }
 
   const backend: Backend = {
     mode: 'supabase',
@@ -148,6 +161,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       const id = await myId();
       const files = check(await sb.storage.from('photos').list(id, { limit: 100 }));
       if (files?.length) await sb.storage.from('photos').remove(files.map((f) => `${id}/${f.name}`));
+      await removeMyVoice().catch(() => {});
       check(await sb.rpc('delete_account'));
       await sb.auth.signOut();
     },
@@ -218,6 +232,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       check(await sb.rpc('extend_match', { match_id: id }));
     },
     async unmatch(id) {
+      await removeMyVoice(id).catch(() => {});
       check(await sb.rpc('unmatch', { match_id: id }));
     },
     async getMessages(matchId) {
@@ -228,6 +243,26 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       const id = await myId();
       const row = check(await sb.from('messages').insert({ match_id: matchId, sender_id: id, text }).select('*').single());
       return toMessage(row);
+    },
+    async sendVoice(matchId, localUri, durationMs) {
+      const id = await myId();
+      const res = await fetch(localUri);
+      const body = await res.arrayBuffer();
+      const ext = localUri.split('?')[0].split('.').pop()?.toLowerCase();
+      const type = ext === 'webm' ? 'audio/webm' : ext === 'mp3' ? 'audio/mpeg' : 'audio/mp4';
+      const path = `${matchId}/${id}/${Date.now()}.${ext && ext.length <= 4 ? ext : 'm4a'}`;
+      check(await sb.storage.from('voice').upload(path, body, { contentType: type, upsert: false }));
+      const row = check(await sb.from('messages').insert({
+        match_id: matchId, sender_id: id, text: '', kind: 'voice', audio_path: path,
+        duration_ms: Math.min(Math.round(durationMs), 61000),
+      }).select('*').single());
+      return toMessage(row);
+    },
+    async getVoiceUrl(message) {
+      if (!message.audioPath) throw new Error('Keine Audiodatei');
+      const { data, error } = await sb.storage.from('voice').createSignedUrl(message.audioPath, 3600);
+      if (error || !data) throw new Error('Sprachnachricht konnte nicht geladen werden');
+      return data.signedUrl;
     },
     async markRead(matchId) {
       await sb.rpc('mark_read', { match_id: matchId });

@@ -39,6 +39,10 @@ export interface Backend {
   unmatch(id: string): Promise<void>;
   getMessages(matchId: string): Promise<Message[]>;
   sendMessage(matchId: string, text: string): Promise<Message>;
+  /** Uploads a recorded audio file (local uri) and sends it as a voice message. */
+  sendVoice(matchId: string, localUri: string, durationMs: number): Promise<Message>;
+  /** A playable url for a voice message (signed, short-lived on the server). */
+  getVoiceUrl(message: Message): Promise<string>;
   markRead(matchId: string): Promise<void>;
   subscribeMessages(matchId: string, cb: (m: Message) => void): () => void;
   subscribeMatches(cb: () => void): () => void;

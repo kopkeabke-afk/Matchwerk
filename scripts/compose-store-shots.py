@@ -16,7 +16,7 @@ ITEMS = [
     ('3-comment', 'Reagiere auf das,\nwas dich anspricht', 'Auf ein Foto oder eine Antwort – mit Kommentar'),
     ('4-likes', 'Sieh kostenlos,\nwer dich mag', 'Like zurück – und es funkt'),
     ('5-match', 'Es funkt!', 'Gegenseitig gemocht? Dann seid ihr ein Match'),
-    ('6-chat', 'Nie wieder\nnur „Hey“', 'Gesprächsstarter aus euren Gemeinsamkeiten'),
+    ('6-chat', 'Sag es mit\ndeiner Stimme', 'Sprachnachrichten bis 60 Sekunden – direkt im Chat'),
     ('7-friends', 'Auch für\nneue Freunde', 'Dating oder Freundschaft – oder beides'),
     ('8-premium', 'Mehr Funken.\nMehr Matches.', 'Matchwerk+ und VIP – schon ab 8,99 € im Monat'),
 ]

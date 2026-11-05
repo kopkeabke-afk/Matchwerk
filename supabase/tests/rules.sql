@@ -159,4 +159,31 @@ select tst.check((select mode from my_matches()) = 'friends' and (select opener 
 set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000002';
 insert into messages (match_id, sender_id, text) select id, auth.uid(), 'Lust auf Skat?' from matches where mode = 'friends' and '99999999-0000-0000-0000-000000000002' in (user_a, user_b);
 select tst.check((select count(*) from messages) >= 1, 'first-move rule not applied to Freunde');
+
+-- ───────── voice messages ─────────
+reset role;
+grant usage on schema storage to authenticated;
+grant execute on all functions in schema storage to authenticated;
+grant select, insert, delete on storage.objects to authenticated;
+set role authenticated;
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000002';
+select tst.check(
+  (select count(*) from (select 1 from matches where mode = 'friends' and auth.uid() in (user_a, user_b)) x) = 1,
+  'voice tests: friends match exists');
+insert into storage.objects (bucket_id, name)
+  select 'voice', id::text || '/' || auth.uid()::text || '/hallo.m4a' from matches where mode = 'friends' and auth.uid() in (user_a, user_b);
+select tst.check((select count(*) from storage.objects where bucket_id = 'voice') = 1, 'member can upload voice into own match folder');
+select id as voice_match from matches where mode = 'friends' and auth.uid() in (user_a, user_b) \gset
+insert into messages (match_id, sender_id, text, kind, audio_path, duration_ms)
+  select id, auth.uid(), '', 'voice', id::text || '/' || auth.uid()::text || '/hallo.m4a', 4200 from matches where mode = 'friends' and auth.uid() in (user_a, user_b);
+select tst.check((select count(*) from messages where kind = 'voice') = 1, 'voice message can be sent');
+select tst.fails($$insert into messages (match_id, sender_id, text, kind, audio_path)
+  select id, auth.uid(), '', 'voice', 'someone-else/file.m4a' from matches where mode = 'friends' and auth.uid() in (user_a, user_b)$$, 'voice message must point into its own match folder');
+select tst.fails($$insert into messages (match_id, sender_id, text) select id, auth.uid(), '' from matches where mode = 'friends' and auth.uid() in (user_a, user_b)$$, 'empty text message rejected');
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000001';
+select tst.check((select count(*) from storage.objects where bucket_id = 'voice') = 1, 'the other match member can hear it');
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000003';
+select tst.check((select count(*) from storage.objects where bucket_id = 'voice') = 0, 'outsiders cannot list voice messages');
+select tst.fails(format($f$insert into storage.objects (bucket_id, name) values ('voice', %L)$f$,
+  :'voice_match' || '/99999999-0000-0000-0000-000000000003/x.m4a'), 'outsiders cannot upload into a foreign match');
 \echo ALL DATABASE CHECKS PASSED

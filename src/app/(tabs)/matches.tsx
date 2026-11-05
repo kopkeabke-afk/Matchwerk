@@ -9,7 +9,7 @@ import { Brand, Radius, Space, TabInset, useTheme, WebTabTop } from '@/constants
 import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { useSession } from '@/lib/session';
-import type { Match } from '@/lib/types';
+import { messagePreview, type Match } from '@/lib/types';
 import { hoursLeft, timeAgo } from '@/lib/utils';
 
 export default function Matches() {
@@ -82,7 +82,7 @@ export default function Matches() {
                 <T variant="small" muted>{timeAgo(m.lastMessage!.createdAt)}</T>
               </View>
               <T muted={!m.unread} numberOfLines={1} style={m.unread ? { fontWeight: '700' } : undefined}>
-                {m.lastMessage!.senderId === userId ? 'Du: ' : ''}{m.lastMessage!.text}
+                {m.lastMessage!.senderId === userId ? 'Du: ' : ''}{messagePreview(m.lastMessage!)}
               </T>
             </View>
             {m.unread > 0 && <View style={styles.dot}><Text style={styles.dotText}>{m.unread}</Text></View>}

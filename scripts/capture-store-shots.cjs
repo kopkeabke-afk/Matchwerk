@@ -3,10 +3,10 @@
 // 2) node scripts/capture-store-shots.cjs   3) python3 scripts/compose-store-shots.py /tmp/claude-0/store2
 const { chromium } = require('playwright');
 (async () => {
-  const b = await chromium.launch(); const errs = [];
+  const b = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] }); const errs = [];
   const me = { id: 'me', name: 'Alex', birthdate: '1992-03-14', gender: 'man', interestedIn: 'women', bio: 'Neugierig, Kaffee-Liebhaber, Wochenend-Wanderer.', photos: ['https://i.pravatar.cc/800?img=12','https://picsum.photos/seed/alex-a/800/1000','https://picsum.photos/seed/alex-b/800/1000'], prompts: [{ question: 'Ein perfekter Sonntag sieht so aus …', answer: 'Lange frühstücken, dann raus.' }], interests: ['Kaffee', 'Wandern', 'Design', 'Kochen', 'Brettspiele'], intention: 'long_term', verified: true, firstMove: 'anyone', paused: false, lat: 52.52, lng: 13.4, city: 'Berlin', job: 'Produktdesigner', heightCm: 182, modes: ['dating','friends'] };
   const mk = async (mode = 'dating') => {
-    const ctx = await b.newContext({ viewport: { width: 440, height: 956 }, deviceScaleFactor: 3 });
+    const ctx = await b.newContext({ viewport: { width: 440, height: 956 }, deviceScaleFactor: 3, permissions: ['microphone'] });
     await ctx.addInitScript(([s, m]) => { if (!localStorage.getItem('matchwerk.demo.v1')) { localStorage.setItem('matchwerk.demo.v1', s); localStorage.setItem('matchwerk.mode', m); } }, [JSON.stringify({ signedIn: true, me, swipes: {}, matches: [], messages: [], blocked: [], likeLog: [], boostCredits: 0 }), mode]);
     const p = await ctx.newPage(); p.on('pageerror', e => errs.push(e.message)); return p;
   };
@@ -27,6 +27,8 @@ const { chromium } = require('playwright');
   await p.getByText('Zum Chat').click(); await p.waitForTimeout(7000);
   await p.getByPlaceholder('Nachricht schreiben …').fill('Catan-Revanche diese Woche? 😄');
   await p.getByLabel('Senden', { exact: true }).click(); await p.waitForTimeout(4000);
+  await p.getByLabel('Sprachnachricht aufnehmen').click(); await p.waitForTimeout(7300);
+  await p.getByLabel('Sprachnachricht senden').click(); await p.waitForTimeout(4000);
   await shot(p, '6-chat');
   p = await mk('friends');
   await p.goto('http://localhost:8086', { waitUntil: 'networkidle' }); await p.waitForTimeout(3500);

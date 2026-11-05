@@ -67,6 +67,17 @@ export interface Message {
   senderId: string;
   text: string;
   createdAt: string;
+  /** 'voice' messages carry an audio file instead of (or next to) text */
+  kind?: 'text' | 'voice';
+  audioPath?: string;
+  durationMs?: number;
+}
+
+/** Longest voice message in seconds. */
+export const VOICE_MAX_SECONDS = 60;
+
+export function messagePreview(m: Message): string {
+  return m.kind === 'voice' ? '🎤 Sprachnachricht' : m.text;
 }
 
 export interface Match {

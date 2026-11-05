@@ -95,13 +95,13 @@ export function createDemoBackend(): Backend {
     matchListeners.forEach((cb) => cb());
   }
 
-  function scheduleReply(matchId: string, delay = 2500) {
+  function scheduleReply(matchId: string, delay = 2500, voice = false) {
     setTimeout(async () => {
       const s = await load();
       if (!s.matches.find((m) => m.id === matchId)) return;
       const msg: Message = {
         id: uid(), matchId, senderId: 'other',
-        text: DEMO_REPLIES[Math.floor(Math.random() * DEMO_REPLIES.length)],
+        text: voice ? 'Wie schön, deine Stimme zu hören! 😊' : DEMO_REPLIES[Math.floor(Math.random() * DEMO_REPLIES.length)],
         createdAt: new Date().toISOString(),
       };
       s.messages.push(msg);
@@ -273,6 +273,22 @@ export function createDemoBackend(): Backend {
       emitMessage(msg);
       scheduleReply(matchId);
       return msg;
+    },
+    async sendVoice(matchId, localUri, durationMs) {
+      const s = await load();
+      const msg: Message = {
+        id: uid(), matchId, senderId: ME, text: '', createdAt: new Date().toISOString(),
+        kind: 'voice', audioPath: localUri, durationMs: Math.round(durationMs),
+      };
+      s.messages.push(msg);
+      await save();
+      emitMessage(msg);
+      scheduleReply(matchId, 2500, true);
+      return msg;
+    },
+    async getVoiceUrl(message) {
+      if (!message.audioPath) throw new Error('Keine Audiodatei');
+      return message.audioPath;
     },
     async markRead(matchId) {
       const s = await load();
