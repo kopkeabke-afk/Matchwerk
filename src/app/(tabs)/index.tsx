@@ -172,7 +172,7 @@ export default function Discover() {
                 onLikeItem={(item) => setNoteFor(item)} />
             </Animated.View>
           </ScrollView>
-          <LinearGradient pointerEvents="none" colors={[c.dark ? 'rgba(11,11,15,0)' : 'rgba(255,255,255,0)', c.background]}
+          <LinearGradient pointerEvents="none" colors={[c.dark ? 'rgba(18,11,24,0)' : 'rgba(255,255,255,0)', c.background]}
             locations={[0, 0.6]} style={styles.fade} />
           <View style={styles.actions} pointerEvents="box-none">
             <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => decide(deck[0], 'pass')} />

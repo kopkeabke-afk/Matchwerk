@@ -77,7 +77,7 @@ export default function RootLayout() {
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={{ ...base, colors: { ...base.colors, primary: Brand.primary } }}>
+      <ThemeProvider value={{ ...base, colors: { ...base.colors, primary: Brand.primary, background: Colors[scheme === 'dark' ? 'dark' : 'light'].background, card: Colors[scheme === 'dark' ? 'dark' : 'light'].background } }}>
         <SessionProvider>
           <RootStack />
         </SessionProvider>

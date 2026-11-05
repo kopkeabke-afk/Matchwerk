@@ -86,7 +86,7 @@ export function VoiceBubble({ message, mine, surface, text }: { message: Message
   const pos = status.currentTime * 1000;
   const progress = total > 0 ? Math.min(1, pos / total) : 0;
   const fg = mine ? '#fff' : Brand.primary;
-  const dim = mine ? 'rgba(255,255,255,0.4)' : 'rgba(131,56,208,0.28)';
+  const dim = mine ? 'rgba(255,255,255,0.4)' : 'rgba(123,63,191,0.35)';
 
   return (
     <View style={[styles.bubble, mine ? styles.mine : [styles.theirs, { backgroundColor: surface }]]}>
@@ -94,7 +94,7 @@ export function VoiceBubble({ message, mine, surface, text }: { message: Message
         onPress={toggle}
         accessibilityRole="button"
         accessibilityLabel={status.playing ? 'Sprachnachricht pausieren' : 'Sprachnachricht abspielen'}
-        style={[styles.play, { backgroundColor: mine ? 'rgba(255,255,255,0.22)' : 'rgba(131,56,208,0.12)' }]}>
+        style={[styles.play, { backgroundColor: mine ? 'rgba(255,255,255,0.22)' : 'rgba(123,63,191,0.18)' }]}>
         {loading ? (
           <ActivityIndicator size="small" color={fg} />
         ) : (

@@ -93,7 +93,7 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
   // 2 · why you match (Matchwerk's own feature)
   if (compat) {
     blocks.push(
-      <View key="compat" style={[styles.compat, { backgroundColor: c.dark ? '#24133A' : '#F4ECFB' }]}>
+      <View key="compat" style={[styles.compat, { backgroundColor: Brand.tint }]}>
         <View style={styles.score}>
           <Text style={styles.scoreNum}>{compat.score}</Text>
           <Text style={styles.scorePct}>%</Text>

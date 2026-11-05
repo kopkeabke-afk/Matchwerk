@@ -1,18 +1,26 @@
-import { Platform, useColorScheme } from 'react-native';
+import { Appearance, Platform, useColorScheme } from 'react-native';
 
 /**
  * Matchwerk's own palette, taken from the logo: night plum + violet as the main colour,
  * match-head gold as the accent (Funken, Daily Spark, highlights), warm cream on dark.
  * Deliberately distinct from the pink/red-orange look of other dating apps.
+ *
+ * Two looks: "plum" (light phones) – a deep, calm violet with neutral grey surfaces –
+ * and "night & gold" (phones in dark mode) – plum-black with a brighter violet and gold hearts.
+ * The colour-dependent values below follow the phone's setting.
  */
+const isDark = () => Appearance.getColorScheme() === 'dark';
+
 export const Brand = {
-  primary: '#8338D0',
-  primaryDark: '#5E1E99',
+  get primary() { return isDark() ? '#7B3FBF' : '#5B2687'; },
+  primaryDark: '#3A1358',
   /** match-head gold: Funken, Daily Spark, highlights */
   accent: '#E9A92E',
-  gradient: ['#9046DB', '#5E1E99'] as const,
-  /** hearts and likes */
-  heart: '#8338D0',
+  get gradient() { return (isDark() ? ['#7B3FBF', '#3A1358'] : ['#6A2E9C', '#3A1358']) as readonly [string, string]; },
+  /** hearts and likes – violet by day, gold at night */
+  get heart() { return isDark() ? '#E9A92E' : '#5B2687'; },
+  /** soft tinted surface, e.g. the "Warum ihr passt" card */
+  get tint() { return isDark() ? '#24133A' : '#F3F1F5'; },
   /** logo background */
   night: '#2A0E3F',
   nightDeep: '#160620',
@@ -36,12 +44,12 @@ export const Colors = {
   },
   dark: {
     text: '#F5F5F7',
-    textSecondary: '#A1A1AA',
-    background: '#0B0B0F',
-    surface: '#17171D',
-    surfaceStrong: '#24242C',
-    border: '#2A2A33',
-    card: '#17171D',
+    textSecondary: '#B3A7BF',
+    background: '#120B18',
+    surface: '#1E1528',
+    surfaceStrong: '#2A1F36',
+    border: '#2E2338',
+    card: '#1E1528',
     overlay: 'rgba(0,0,0,0.6)',
   },
 };

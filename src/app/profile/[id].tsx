@@ -106,7 +106,7 @@ export default function ProfileScreen() {
 
       {canSwipe && (
         <LinearGradient
-          colors={[c.dark ? 'rgba(11,11,15,0)' : 'rgba(255,255,255,0)', c.background]}
+          colors={[c.dark ? 'rgba(18,11,24,0)' : 'rgba(255,255,255,0)', c.background]}
           locations={[0, 0.45]}
           style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
           <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => act('pass')} />
