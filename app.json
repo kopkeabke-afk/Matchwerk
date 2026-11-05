@@ -139,7 +139,8 @@
           "microphonePermission": "Matchwerk braucht das Mikrofon, damit du Sprachnachrichten an deine Matches schicken kannst.",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
