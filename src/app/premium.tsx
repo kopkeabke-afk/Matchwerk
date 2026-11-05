@@ -22,7 +22,7 @@ const REASON_TEXT: Partial<Record<LimitReason, string>> = {
   extend: 'Mit Matchwerk+ kannst du Matches so oft verlängern, wie du willst.',
 };
 
-const VIP_GOLD = ['#F5B301', '#FF8A3D'] as const;
+const VIP_GOLD = ['#F2B544', '#B9781C'] as const;
 
 export default function Premium() {
   const { reason } = useLocalSearchParams<{ reason?: LimitReason }>();
@@ -54,7 +54,7 @@ export default function Premium() {
       const ok = await buy(plan);
       if (!ok) return;
       setLimits(await backend.getLimits());
-      const title = plan.kind === 'subscription' ? `Willkommen bei ${TIER_NAMES[plan.tier!]} 🔥` : plan.kind === 'funken' ? `${plan.title} gekauft 🔥` : `${plan.title} gekauft ⚡`;
+      const title = plan.kind === 'subscription' ? `Willkommen bei ${TIER_NAMES[plan.tier!]} ✨` : plan.kind === 'funken' ? `${plan.title} gekauft ✨` : `${plan.title} gekauft ⚡`;
       const text = plan.kind === 'subscription' ? 'Alle Vorteile sind ab sofort freigeschaltet.'
         : plan.kind === 'funken' ? 'Sie werden automatisch genutzt, wenn deine täglichen Funken aufgebraucht sind.'
         : 'Du aktivierst ihn mit dem Blitz oben auf dem Entdecken-Bildschirm.';
@@ -83,12 +83,12 @@ export default function Premium() {
   const savings = (p: StorePlan) =>
     monthly && p.months && p.months > 1 ? Math.round((1 - p.price / (monthly.price * p.months)) * 100) : 0;
 
-  const Pack = ({ p, icon }: { p: StorePlan; icon: 'flame' | 'flash' }) => (
+  const Pack = ({ p, icon }: { p: StorePlan; icon: 'sparkles' | 'flash' }) => (
     <Pressable onPress={() => purchase(p)} disabled={!!busy} accessibilityRole="button"
       style={({ pressed }) => [styles.pack, { borderColor: c.border, backgroundColor: c.surface, opacity: pressed ? 0.8 : 1 }]}>
       {busy === p.id ? <ActivityIndicator color={Brand.primary} /> : (
         <>
-          <Ionicons name={icon} size={22} color={icon === 'flame' ? Brand.accent : Brand.super} />
+          <Ionicons name={icon} size={22} color={icon === 'sparkles' ? Brand.accent : Brand.super} />
           <T style={{ fontWeight: '800', fontSize: 15, textAlign: 'center' }}>{p.title}</T>
           <T style={{ color: Brand.primary, fontWeight: '700', fontSize: 14 }}>{p.priceString}</T>
         </>
@@ -179,9 +179,9 @@ export default function Premium() {
 
           {funken.length > 0 && (
             <View style={{ gap: Space.sm }}>
-              <T variant="h3">🔥 Funken einzeln</T>
+              <T variant="h3">✨ Funken einzeln</T>
               <T muted variant="small">Ein Funke zeigt sofort, dass du es ernst meinst – dein Profil erscheint ganz oben in den Likes. Gekaufte Funken verfallen nicht.</T>
-              <View style={styles.row}>{funken.map((p) => <Pack key={p.id} p={p} icon="flame" />)}</View>
+              <View style={styles.row}>{funken.map((p) => <Pack key={p.id} p={p} icon="sparkles" />)}</View>
               {limits && limits.funkenCredits > 0 && <T muted variant="small">Du hast {limits.funkenCredits} gekaufte Funken übrig.</T>}
             </View>
           )}

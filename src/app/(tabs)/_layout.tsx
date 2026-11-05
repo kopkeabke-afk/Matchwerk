@@ -8,7 +8,7 @@ export default function TabsLayout() {
     <NativeTabs tintColor={Brand.primary} backgroundColor={c.background}>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Entdecken</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: 'flame', selected: 'flame.fill' }} md="local_fire_department" />
+        <NativeTabs.Trigger.Icon sf={{ default: 'sparkles', selected: 'sparkles' }} md="auto_awesome" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="likes">
         <NativeTabs.Trigger.Label>Likes</NativeTabs.Trigger.Label>

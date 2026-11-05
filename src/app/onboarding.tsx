@@ -22,7 +22,7 @@ function ModePicker({ value, onChange }: { value: Mode[]; onChange: (m: Mode[]) 
   };
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-      <Chip icon="🔥" label="Dating" selected={value.includes('dating')} onPress={() => toggle('dating')} />
+      <Chip icon="💜" label="Dating" selected={value.includes('dating')} onPress={() => toggle('dating')} />
       <Chip icon="👋" label="Neue Freunde" selected={value.includes('friends')} onPress={() => toggle('friends')} />
     </View>
   );

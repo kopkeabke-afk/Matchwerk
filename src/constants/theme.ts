@@ -2,16 +2,17 @@ import { Platform, useColorScheme } from 'react-native';
 
 /**
  * Matchwerk's own palette, taken from the logo: night plum + violet as the main colour,
- * match-flame orange and gold only as accents (hearts, Funken, highlights), warm cream on dark.
+ * match-head gold as the accent (Funken, Daily Spark, highlights), warm cream on dark.
  * Deliberately distinct from the pink/red-orange look of other dating apps.
  */
 export const Brand = {
   primary: '#8338D0',
   primaryDark: '#5E1E99',
-  accent: '#FF7A3D',
+  /** match-head gold: Funken, Daily Spark, highlights */
+  accent: '#E9A92E',
   gradient: ['#9046DB', '#5E1E99'] as const,
   /** hearts and likes */
-  heart: '#FF6A3D',
+  heart: '#8338D0',
   /** logo background */
   night: '#2A0E3F',
   nightDeep: '#160620',

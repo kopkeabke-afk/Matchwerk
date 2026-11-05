@@ -176,7 +176,7 @@ export default function Discover() {
             locations={[0, 0.6]} style={styles.fade} />
           <View style={styles.actions} pointerEvents="box-none">
             <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => decide(deck[0], 'pass')} />
-            <IconButton icon="flame" color={Brand.accent} size={52} label="Funke senden" onPress={() => decide(deck[0], 'superlike')} />
+            <IconButton icon="sparkles" color={Brand.accent} size={52} label="Funke senden" onPress={() => decide(deck[0], 'superlike')} />
             <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={mode === 'friends' ? Brand.super : Brand.heart} size={60}
               label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => decide(deck[0], 'like')} />
           </View>

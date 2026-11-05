@@ -44,7 +44,7 @@ export interface FeatureRow { icon: string; title: string; free: string; plus: s
 export const FEATURES: FeatureRow[] = [
   { icon: 'images', title: 'Profile pro Tag', free: '60', plus: '250', vip: '∞' },
   { icon: 'heart', title: 'Likes pro Tag', free: '25', plus: '∞', vip: '∞' },
-  { icon: 'flame', title: 'Funken pro Tag', free: '1', plus: '3', vip: '7' },
+  { icon: 'sparkles', title: 'Funken pro Tag', free: '1', plus: '3', vip: '7' },
   { icon: 'flash', title: 'Boost (30 Min. ganz oben)', free: '–', plus: '1 / Monat', vip: '1 / Woche' },
   { icon: 'time', title: 'Matches verlängern', free: '1×', plus: '∞', vip: '∞' },
   { icon: 'trending-up', title: 'Bevorzugt angezeigt', free: '–', plus: '–', vip: '✓' },

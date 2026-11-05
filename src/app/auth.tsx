@@ -9,7 +9,7 @@ import { Brand, Radius } from '@/constants/theme';
 import { APP } from '@/constants/app';
 
 const USPS: [string, string][] = [
-  ['🔥', 'Sieh kostenlos, wer dich mag – und warum ihr passt'],
+  ['✨', 'Sieh kostenlos, wer dich mag – und warum ihr passt'],
   ['💬', 'Like ein Foto oder eine Antwort – mit Kommentar'],
   ['👋', 'Dating oder neue Freunde – oder beides'],
   ['🛡️', 'Verifizierte Profile und Melden in jedem Chat'],
