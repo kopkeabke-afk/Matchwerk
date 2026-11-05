@@ -92,7 +92,7 @@ export default function Chat() {
             hitSlop={10}
             accessibilityLabel="Profil, melden oder Match auflösen"
             onPress={() => router.push({ pathname: '/profile/[id]', params: { id: p.id, from: 'match', matchId: match.id } })}>
-            <Ionicons name="shield-checkmark-outline" size={22} color={Brand.primary} />
+            <Ionicons name="shield-checkmark-outline" size={22} color={Brand.text} />
           </Pressable>
         ),
       }}
@@ -150,8 +150,8 @@ export default function Chat() {
       {first && !waiting && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: Space.lg, gap: 8, paddingBottom: 8 }} style={{ flexGrow: 0 }}>
           {icebreakers(me, p).map((q) => (
-            <Pressable key={q} onPress={() => setText(q)} style={[styles.ice, { borderColor: Brand.primary }]}>
-              <T variant="small" style={{ color: Brand.primary, fontWeight: '600' }}>💡 {q}</T>
+            <Pressable key={q} onPress={() => setText(q)} style={[styles.ice, { borderColor: Brand.text }]}>
+              <T variant="small" style={{ color: Brand.text, fontWeight: '600' }}>💡 {q}</T>
             </Pressable>
           ))}
         </ScrollView>

@@ -78,9 +78,9 @@ export function PhotoGrid({ photos, onChange }: { photos: string[]; onChange: (p
                 </Pressable>
               </>
             ) : busy === i ? (
-              <ActivityIndicator color={Brand.primary} />
+              <ActivityIndicator color={Brand.text} />
             ) : (
-              <Ionicons name="add-circle" size={32} color={i === photos.length ? Brand.primary : c.textSecondary} />
+              <Ionicons name="add-circle" size={32} color={i === photos.length ? Brand.text : c.textSecondary} />
             )}
           </Pressable>
         );
@@ -129,7 +129,7 @@ export function PromptEditor({ value, onChange, max = 3 }: { value: Prompt[]; on
         <View key={i} style={[styles.prompt, { backgroundColor: c.surface }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Pressable style={{ flex: 1 }} onPress={() => setPicking(i)}>
-              <T variant="small" style={{ fontWeight: '700', color: Brand.primary }}>{p.question} ▾</T>
+              <T variant="small" style={{ fontWeight: '700', color: Brand.text }}>{p.question} ▾</T>
             </Pressable>
             <Pressable onPress={() => onChange(value.filter((_, j) => j !== i))} hitSlop={8} accessibilityLabel="Prompt entfernen">
               <Ionicons name="trash-outline" size={18} color={c.textSecondary} />

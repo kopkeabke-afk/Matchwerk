@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, padding: Space.xl, gap: Space.md, paddingBottom: 40 },
   handle: { width: 40, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: Space.xs },
-  photo: { width: 132, height: 165, borderRadius: Radius.lg, alignSelf: 'center', borderWidth: 3, borderColor: Brand.primary },
+  photo: { width: 132, height: 165, borderRadius: Radius.lg, alignSelf: 'center', borderWidth: 3, borderColor: Brand.text },
   prompt: { padding: Space.lg, borderRadius: Radius.lg, gap: 6 },
 });

@@ -85,7 +85,7 @@ export function VoiceBubble({ message, mine, surface, text }: { message: Message
   const total = (status.duration > 0 ? status.duration * 1000 : message.durationMs) ?? 0;
   const pos = status.currentTime * 1000;
   const progress = total > 0 ? Math.min(1, pos / total) : 0;
-  const fg = mine ? '#fff' : Brand.primary;
+  const fg = mine ? '#fff' : Brand.text;
   const dim = mine ? 'rgba(255,255,255,0.4)' : 'rgba(123,63,191,0.35)';
 
   return (

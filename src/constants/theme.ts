@@ -19,6 +19,8 @@ export const Brand = {
   get gradient() { return (isDark() ? ['#7B3FBF', '#3A1358'] : ['#6A2E9C', '#3A1358']) as readonly [string, string]; },
   /** hearts and likes – violet by day, gold at night */
   get heart() { return isDark() ? '#E9A92E' : '#5B2687'; },
+  /** violet for text, icons and outlines – lighter at night so it stays readable */
+  get text() { return isDark() ? '#CDB0F2' : '#5B2687'; },
   /** soft tinted surface, e.g. the "Warum ihr passt" card */
   get tint() { return isDark() ? '#24133A' : '#F3F1F5'; },
   /** logo background */

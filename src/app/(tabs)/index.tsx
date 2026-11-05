@@ -145,7 +145,7 @@ export default function Discover() {
       {travel && (
         <Pressable onPress={() => router.push('/filters')} accessibilityRole="button" style={[styles.travel, { backgroundColor: c.surface }]}>
           <Text style={{ color: c.text, fontWeight: '600', fontSize: 14 }}>✈️ Unterwegs in {travel.city ?? 'gewähltem Ort'}</Text>
-          <Text style={{ color: Brand.primary, fontWeight: '700', fontSize: 14 }}>Ändern</Text>
+          <Text style={{ color: Brand.text, fontWeight: '700', fontSize: 14 }}>Ändern</Text>
         </Pressable>
       )}
 
@@ -154,7 +154,7 @@ export default function Discover() {
           <Button title="Profil wieder aktivieren" onPress={() => router.push('/settings')} />
         </Empty>
       ) : deck === null ? (
-        <View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator color={Brand.primary} size="large" /></View>
+        <View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator color={Brand.text} size="large" /></View>
       ) : deck.length === 0 ? (
         <Empty icon={mode === 'friends' ? 'people' : 'sparkles'} title="Das war's für jetzt"
           text={mode === 'friends'
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, paddingHorizontal: Space.lg, paddingVertical: Space.sm },
   travel: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: Space.md, marginBottom: Space.sm, paddingHorizontal: Space.md, paddingVertical: 10, borderRadius: 14 },
   pill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
-  logo: { fontSize: 26, fontWeight: '900', color: Brand.primary, letterSpacing: -1 },
+  logo: { fontSize: 26, fontWeight: '900', color: Brand.text, letterSpacing: -1 },
   headerBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   feed: { paddingHorizontal: Space.md, paddingTop: Space.xs, paddingBottom: TabInset + 120 },
   fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: TabInset + 130 },

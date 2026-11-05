@@ -107,7 +107,7 @@ export function Empty({ icon, title, text, children }: { icon: IconName; title: 
   return (
     <View style={styles.empty}>
       <View style={[styles.emptyIcon, { backgroundColor: c.surface }]}>
-        <Ionicons name={icon} size={40} color={Brand.primary} />
+        <Ionicons name={icon} size={40} color={Brand.text} />
       </View>
       <T variant="h2" style={{ textAlign: 'center' }}>{title}</T>
       <T muted style={{ textAlign: 'center' }}>{text}</T>

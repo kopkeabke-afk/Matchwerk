@@ -86,11 +86,11 @@ export default function Premium() {
   const Pack = ({ p, icon }: { p: StorePlan; icon: 'sparkles' | 'flash' }) => (
     <Pressable onPress={() => purchase(p)} disabled={!!busy} accessibilityRole="button"
       style={({ pressed }) => [styles.pack, { borderColor: c.border, backgroundColor: c.surface, opacity: pressed ? 0.8 : 1 }]}>
-      {busy === p.id ? <ActivityIndicator color={Brand.primary} /> : (
+      {busy === p.id ? <ActivityIndicator color={Brand.text} /> : (
         <>
           <Ionicons name={icon} size={22} color={icon === 'sparkles' ? Brand.accent : Brand.super} />
           <T style={{ fontWeight: '800', fontSize: 15, textAlign: 'center' }}>{p.title}</T>
-          <T style={{ color: Brand.primary, fontWeight: '700', fontSize: 14 }}>{p.priceString}</T>
+          <T style={{ color: Brand.text, fontWeight: '700', fontSize: 14 }}>{p.priceString}</T>
         </>
       )}
     </Pressable>
@@ -132,7 +132,7 @@ export default function Premium() {
             <View style={[styles.tr, { borderBottomColor: c.border, backgroundColor: c.surface }]}>
               <View style={{ flex: 1 }} />
               <T variant="small" muted style={styles.col}>Gratis</T>
-              <T variant="small" style={[styles.col, { color: Brand.primary, fontWeight: tier === 'plus' ? '900' : '600' }]}>Plus</T>
+              <T variant="small" style={[styles.col, { color: Brand.text, fontWeight: tier === 'plus' ? '900' : '600' }]}>Plus</T>
               <T variant="small" style={[styles.col, { color: Brand.gold, fontWeight: tier === 'vip' ? '900' : '600' }]}>VIP</T>
             </View>
             {FEATURES.map((f) => (
@@ -149,7 +149,7 @@ export default function Premium() {
           </View>
 
           {plans === null ? (
-            <ActivityIndicator color={Brand.primary} />
+            <ActivityIndicator color={Brand.text} />
           ) : !hasThisTier && subs.length > 0 ? (
             <View style={{ gap: Space.sm }}>
               <T variant="h3">{TIER_NAMES[tier]} – Zeitraum wählen</T>
@@ -197,7 +197,7 @@ export default function Premium() {
 
           <View style={{ gap: Space.sm }}>
             <Pressable onPress={onRestore} disabled={!!busy}>
-              <T style={{ color: Brand.primary, fontWeight: '600', textAlign: 'center' }}>
+              <T style={{ color: Brand.text, fontWeight: '600', textAlign: 'center' }}>
                 {busy === 'restore' ? 'Wird geprüft …' : 'Käufe wiederherstellen'}
               </T>
             </Pressable>

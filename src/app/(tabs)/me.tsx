@@ -49,7 +49,7 @@ export default function Me() {
         </View>
 
         <View style={{ alignItems: 'center', gap: Space.sm }}>
-          <View style={[styles.ring, { borderColor: Brand.primary }]}>
+          <View style={[styles.ring, { borderColor: Brand.text }]}>
             <Image source={profile.photos[0]} style={styles.avatar} contentFit="cover" />
           </View>
           <View style={[styles.pct, { backgroundColor: Brand.primary }]}>

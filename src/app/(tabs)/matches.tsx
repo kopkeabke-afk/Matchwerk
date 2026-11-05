@@ -51,7 +51,7 @@ export default function Matches() {
                     const urgent = h < 12;
                     return (
                       <Pressable key={m.id} onPress={() => open(m)} style={{ alignItems: 'center', gap: 6, width: 84 }}>
-                        <View style={[styles.ring, { borderColor: urgent ? Brand.pass : Brand.primary }]}>
+                        <View style={[styles.ring, { borderColor: urgent ? Brand.pass : Brand.text }]}>
                           <Image source={m.profile.photos[0]} style={styles.avatarLg} contentFit="cover" />
                         </View>
                         <T variant="small" style={{ fontWeight: '700' }} numberOfLines={1}>{m.profile.name}</T>

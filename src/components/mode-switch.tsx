@@ -16,8 +16,8 @@ export function ModeSwitch() {
         const on = m === mode;
         return (
           <Pressable key={m} onPress={() => setMode(m)} accessibilityRole="tab" accessibilityState={{ selected: on }}
-            style={[styles.seg, on && { backgroundColor: c.card, shadowOpacity: 0.12 }]}>
-            <Text style={[styles.text, { color: on ? (m === 'friends' ? Brand.super : Brand.primary) : c.textSecondary }]}>
+            style={[styles.seg, on && { backgroundColor: c.dark ? c.surfaceStrong : c.card, shadowOpacity: 0.12 }]}>
+            <Text style={[styles.text, { color: on ? (m === 'friends' ? Brand.super : Brand.text) : c.textSecondary }]}>
               {m === 'friends' ? '👋 ' : '💜 '}{MODE_LABELS[m]}
             </Text>
           </Pressable>

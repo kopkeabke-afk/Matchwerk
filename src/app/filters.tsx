@@ -86,7 +86,7 @@ export default function FiltersScreen() {
         <View style={{ flex: 1 }}>
           <Field value={query} onChangeText={setQuery} placeholder="Stadt oder Dorf, z. B. Freiburg" returnKeyType="search" onSubmitEditing={searchPlace} />
         </View>
-        {busy ? <ActivityIndicator color={Brand.primary} /> : <Chip label="Suchen" selected onPress={searchPlace} />}
+        {busy ? <ActivityIndicator color={Brand.text} /> : <Chip label="Suchen" selected onPress={searchPlace} />}
       </View>
 
       <T variant="h3">Alter</T>

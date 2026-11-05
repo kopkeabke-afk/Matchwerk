@@ -48,7 +48,7 @@ function RootStack() {
   const onboarded = !!profile;
 
   return (
-    <Stack screenOptions={{ headerTintColor: Brand.primary, contentStyle: { backgroundColor: c.background }, headerBackButtonDisplayMode: 'minimal' }}>
+    <Stack screenOptions={{ headerTintColor: Brand.text, headerTitleStyle: { color: c.text }, contentStyle: { backgroundColor: c.background }, headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="sign-in" options={{ title: 'Anmelden', headerTransparent: true, headerTitle: '' }} />
@@ -77,7 +77,7 @@ export default function RootLayout() {
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={{ ...base, colors: { ...base.colors, primary: Brand.primary, background: Colors[scheme === 'dark' ? 'dark' : 'light'].background, card: Colors[scheme === 'dark' ? 'dark' : 'light'].background } }}>
+      <ThemeProvider value={{ ...base, colors: { ...base.colors, primary: Brand.text, background: Colors[scheme === 'dark' ? 'dark' : 'light'].background, card: Colors[scheme === 'dark' ? 'dark' : 'light'].background } }}>
         <SessionProvider>
           <RootStack />
         </SessionProvider>

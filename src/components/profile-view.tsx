@@ -104,7 +104,7 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
           {compat.shared.length > 0 && (
             <View style={styles.wrap}>
               {compat.shared.map((s) => (
-                <View key={s} style={[styles.shared, { borderColor: Brand.primary }]}><Text style={[styles.sharedText, { color: Brand.primary }]}>{s}</Text></View>
+                <View key={s} style={[styles.shared, { borderColor: Brand.text }]}><Text style={[styles.sharedText, { color: Brand.text }]}>{s}</Text></View>
               ))}
             </View>
           )}
@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
   answer: { fontSize: 26, lineHeight: 34, fontFamily: SERIF },
   compat: { flexDirection: 'row', gap: Space.lg, padding: Space.lg, borderRadius: Radius.xl, alignItems: 'center' },
   score: { flexDirection: 'row', alignItems: 'flex-start' },
-  scoreNum: { fontSize: 44, fontWeight: '900', color: Brand.primary, letterSpacing: -1.5, fontFamily: SERIF },
-  scorePct: { fontSize: 18, fontWeight: '800', color: Brand.primary, marginTop: 6 },
+  scoreNum: { fontSize: 44, fontWeight: '900', color: Brand.text, letterSpacing: -1.5, fontFamily: SERIF },
+  scorePct: { fontSize: 18, fontWeight: '800', color: Brand.text, marginTop: 6 },
   intent: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Space.md, borderRadius: Radius.lg, borderWidth: 1 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   shared: { borderWidth: 1, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 },
