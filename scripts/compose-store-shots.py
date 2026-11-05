@@ -18,7 +18,7 @@ ITEMS = [
     ('5-match', 'Es funkt!', 'Gegenseitig gemocht? Dann seid ihr ein Match'),
     ('6-chat', 'Nie wieder\nnur „Hey“', 'Gesprächsstarter aus euren Gemeinsamkeiten'),
     ('7-friends', 'Auch für\nneue Freunde', 'Dating oder Freundschaft – oder beides'),
-    ('8-premium', 'Mehr Funken.\nMehr Matches.', 'Matchwerk+ und VIP – schon ab 5,83 € im Monat'),
+    ('8-premium', 'Mehr Funken.\nMehr Matches.', 'Matchwerk+ und VIP – schon ab 8,99 € im Monat'),
 ]
 top, bot = (0x3A, 0x13, 0x56), (0x16, 0x06, 0x20)
 g = Image.new('RGB', (1, 256))

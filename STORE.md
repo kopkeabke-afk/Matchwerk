@@ -68,12 +68,12 @@ Play Console → Testen → Geschlossener Test → Tester per E-Mail-Liste hinzu
 ## In-App-Produkte (Play Console → Monetarisierung)
 | Produkt-ID | Typ | Preis | Name |
 |---|---|---|---|
-| matchwerk_plus_1m | Abo, monatlich | 9,99 € | Matchwerk+ (1 Monat) |
-| matchwerk_plus_6m | Abo, alle 6 Monate | 44,99 € | Matchwerk+ (6 Monate) |
-| matchwerk_plus_12m | Abo, jährlich | 69,99 € | Matchwerk+ (12 Monate) |
-| matchwerk_vip_1m | Abo, monatlich | 17,99 € | Matchwerk VIP (1 Monat) |
-| matchwerk_vip_6m | Abo, alle 6 Monate | 79,99 € | Matchwerk VIP (6 Monate) |
-| matchwerk_vip_12m | Abo, jährlich | 119,99 € | Matchwerk VIP (12 Monate) |
+| matchwerk_plus_1m | Abo, monatlich | 11,99 € | Matchwerk+ (1 Monat) |
+| matchwerk_plus_6m | Abo, alle 6 Monate | 59,99 € | Matchwerk+ (6 Monate) |
+| matchwerk_plus_12m | Abo, jährlich | 107,88 € | Matchwerk+ (12 Monate) |
+| matchwerk_vip_1m | Abo, monatlich | 19,99 € | Matchwerk VIP (1 Monat) |
+| matchwerk_vip_6m | Abo, alle 6 Monate | 99,99 € | Matchwerk VIP (6 Monate) |
+| matchwerk_vip_12m | Abo, jährlich | 179,88 € | Matchwerk VIP (12 Monate) |
 | matchwerk_funken_5 | In-App-Produkt (verbrauchbar) | 4,99 € | 5 Funken |
 | matchwerk_funken_15 | In-App-Produkt (verbrauchbar) | 11,99 € | 15 Funken |
 | matchwerk_funken_30 | In-App-Produkt (verbrauchbar) | 19,99 € | 30 Funken |

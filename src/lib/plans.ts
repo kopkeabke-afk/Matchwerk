@@ -27,12 +27,12 @@ export interface Plan {
 }
 
 export const DEMO_PLANS: Plan[] = [
-  { id: 'matchwerk_plus_1m', kind: 'subscription', tier: 'plus', title: '1 Monat', months: 1, price: 9.99 },
-  { id: 'matchwerk_plus_6m', kind: 'subscription', tier: 'plus', title: '6 Monate', months: 6, price: 44.99, badge: 'Beliebt' },
-  { id: 'matchwerk_plus_12m', kind: 'subscription', tier: 'plus', title: '12 Monate', months: 12, price: 69.99 },
-  { id: 'matchwerk_vip_1m', kind: 'subscription', tier: 'vip', title: '1 Monat', months: 1, price: 17.99 },
-  { id: 'matchwerk_vip_6m', kind: 'subscription', tier: 'vip', title: '6 Monate', months: 6, price: 79.99, badge: 'Beliebt' },
-  { id: 'matchwerk_vip_12m', kind: 'subscription', tier: 'vip', title: '12 Monate', months: 12, price: 119.99 },
+  { id: 'matchwerk_plus_1m', kind: 'subscription', tier: 'plus', title: '1 Monat', months: 1, price: 11.99 },
+  { id: 'matchwerk_plus_6m', kind: 'subscription', tier: 'plus', title: '6 Monate', months: 6, price: 59.99, badge: 'Beliebt' },
+  { id: 'matchwerk_plus_12m', kind: 'subscription', tier: 'plus', title: '12 Monate', months: 12, price: 107.88 },
+  { id: 'matchwerk_vip_1m', kind: 'subscription', tier: 'vip', title: '1 Monat', months: 1, price: 19.99 },
+  { id: 'matchwerk_vip_6m', kind: 'subscription', tier: 'vip', title: '6 Monate', months: 6, price: 99.99, badge: 'Beliebt' },
+  { id: 'matchwerk_vip_12m', kind: 'subscription', tier: 'vip', title: '12 Monate', months: 12, price: 179.88 },
   { id: 'matchwerk_funken_5', kind: 'funken', title: '5 Funken', amount: 5, price: 4.99 },
   { id: 'matchwerk_funken_15', kind: 'funken', title: '15 Funken', amount: 15, price: 11.99 },
   { id: 'matchwerk_funken_30', kind: 'funken', title: '30 Funken', amount: 30, price: 19.99 },

@@ -72,7 +72,7 @@ export default function Me() {
                 <Text style={styles.plusText}>
                   {limits?.premium
                     ? `${limits.freeBoostAvailable ? 'Boost verfügbar · ' : ''}${limits.superlikesLeft + limits.funkenCredits} Funken heute`
-                    : 'Mehr Profile, unbegrenzt Likes, mehr Funken – ab 5,83 € im Monat'}
+                    : 'Mehr Profile, unbegrenzt Likes, mehr Funken – ab 8,99 € im Monat'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={22} color="#fff" />

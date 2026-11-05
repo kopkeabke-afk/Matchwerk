@@ -15,17 +15,14 @@ Eine vollständige Dating-App auf Basis von **Expo SDK 58 / React Native**, mit 
 | Wer schreibt zuerst? | – | – | nur Frauen | **jede:r wählt selbst** |
 | Match läuft ab, 1× verlängerbar | – | – | ✅ | ✅ (48 h + 24 h) |
 | Sehen, wer dich geliked hat | 💰 | 💰 | 💰 | **kostenlos** |
-| Premium-Abo | ab ca. 10 € / Monat* | ab ca. 15 € / Monat* | ab ca. 15 € / Monat* | **ab 3,75 € / Monat** (Jahresabo) |
 | Transparenter Match-Score mit Begründung | – | – | – | ✅ |
 | Daily Spark (bestes Match des Tages zuerst) | – | ✅ (Most Compatible) | – | ✅ |
 | Persönliche Icebreaker aus Gemeinsamkeiten | – | – | ✅ | ✅ |
 | Absichten als Dealbreaker-Filter | – | ✅ | ✅ | ✅ |
 | Kein Werbe-Tracking | – | – | – | ✅ |
 
-Dazu: Anmeldung mit Google oder E-Mail (SMS und Apple vorbereitet, standardmäßig aus), Premium-Abo matchwerk+ mit Boosts, 8-stufiges Onboarding mit 18+-Prüfung, Profil-Vollständigkeit mit Tipps,
+Dazu: Anmeldung mit Google oder E-Mail (SMS und Apple vorbereitet, standardmäßig aus), Premium-Stufen Matchwerk+ und VIP (ab 8,99 € im Monat) mit Funken und Boosts, 8-stufiges Onboarding mit 18+-Prüfung, Profil-Vollständigkeit mit Tipps,
 Profil pausieren, Melden & Blockieren überall, Sicherheits-Center, In-App-Kontolöschung, Dark Mode, Haptik.
-
-*Konkurrenzpreise schwanken je nach Land, Alter und Laufzeit – vor jeder Werbeaussage aktuell prüfen.
 
 ## Schnellstart (Demo-Modus, ohne Server)
 
@@ -82,7 +79,7 @@ SMS-Login später einschalten: SMS-Anbieter in Supabase unter Providers → Phon
 
 ### 3. Bezahlsystem (Matchwerk+)
 1. **Play Console** → deine App → Monetarisierung: alle 11 Produkte aus **STORE.md** anlegen
-   (Matchwerk+ 9,99 / 44,99 / 69,99 €, VIP 17,99 / 79,99 / 119,99 €, Funken-Pakete, Boost-Pakete).
+   (Matchwerk+ 11,99 / 59,99 / 107,88 €, VIP 19,99 / 99,99 / 179,88 €, Funken-Pakete, Boost-Pakete).
 2. **Zahlungsprofil** in der Play Console anlegen (Bankkonto, Steuerdaten) – sonst keine Auszahlungen.
 3. **RevenueCat** (<https://www.revenuecat.com>): Projekt anlegen, Google-Play-App verbinden (Service-Account-JSON),
    Entitlements `plus` und `vip`, Offering `default` mit allen 11 Produkten.
@@ -92,8 +89,8 @@ SMS-Login später einschalten: SMS-Anbieter in Supabase unter Providers → Phon
    `https://<projekt>.supabase.co/functions/v1/revenuecat` und Header `Authorization: Bearer <secret>`.
 5. Mit **Lizenztestern** (Play Console → Einstellungen → Lizenztests) kaufen, kündigen und wiederherstellen testen.
 
-Google behält bei Abos **15 %**. Beispiel VIP 1 Monat 17,99 €: − 19 % USt. = 15,12 € − 15 % = **≈ 12,85 €** für dich;
-Matchwerk+ 1 Monat 9,99 € → **≈ 7,14 €**.
+Google behält bei Abos **15 %**. Was bei dir ankommt (nach 19 % USt. und 15 % Google):
+Matchwerk+ 1 Monat 11,99 € → **≈ 8,56 €** · VIP 1 Monat 19,99 € → **≈ 14,28 €** · Matchwerk+ 12 Monate 107,88 € → **≈ 77,06 €**.
 Was Gratis-Nutzer bekommen, steht in `src/lib/plans.ts` und serverseitig verbindlich in `tier_limits()`
 (`supabase/migrations/0005_tiers.sql`). Umsätze: RevenueCat-Dashboard oder Ansicht `revenue_daily`.
 

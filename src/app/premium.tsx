@@ -88,7 +88,7 @@ export default function Premium() {
       style={({ pressed }) => [styles.pack, { borderColor: c.border, backgroundColor: c.surface, opacity: pressed ? 0.8 : 1 }]}>
       {busy === p.id ? <ActivityIndicator color={Brand.primary} /> : (
         <>
-          <Ionicons name={icon} size={22} color={icon === 'flame' ? Brand.primary : Brand.super} />
+          <Ionicons name={icon} size={22} color={icon === 'flame' ? Brand.accent : Brand.super} />
           <T style={{ fontWeight: '800', fontSize: 15, textAlign: 'center' }}>{p.title}</T>
           <T style={{ color: Brand.primary, fontWeight: '700', fontSize: 14 }}>{p.priceString}</T>
         </>
@@ -107,7 +107,7 @@ export default function Premium() {
           <Text style={styles.heroText}>
             {(reason && REASON_TEXT[reason]) || (tier === 'vip'
               ? 'Unbegrenzt Profile, 7 Funken am Tag, jede Woche ein Boost – und du wirst bevorzugt gezeigt.'
-              : 'Mehr Profile, unbegrenzt Likes und mehr Funken. Schon ab 5,83 € im Monat.')}
+              : 'Mehr Profile, unbegrenzt Likes und mehr Funken. Schon ab 8,99 € im Monat.')}
           </Text>
           <View style={styles.tabs} accessibilityRole="tablist">
             {(['plus', 'vip'] as const).map((t) => (
