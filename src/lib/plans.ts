@@ -33,9 +33,9 @@ export const DEMO_PLANS: Plan[] = [
   { id: 'matchwerk_vip_1m', kind: 'subscription', tier: 'vip', title: '1 Monat', months: 1, price: 19.99 },
   { id: 'matchwerk_vip_6m', kind: 'subscription', tier: 'vip', title: '6 Monate', months: 6, price: 99.99, badge: 'Beliebt' },
   { id: 'matchwerk_vip_12m', kind: 'subscription', tier: 'vip', title: '12 Monate', months: 12, price: 179.88 },
-  { id: 'matchwerk_funken_5', kind: 'funken', title: '5 Funken', amount: 5, price: 4.99 },
-  { id: 'matchwerk_funken_15', kind: 'funken', title: '15 Funken', amount: 15, price: 11.99 },
-  { id: 'matchwerk_funken_30', kind: 'funken', title: '30 Funken', amount: 30, price: 19.99 },
+  { id: 'matchwerk_funken_1', kind: 'funken', title: '1 Funke', amount: 1, price: 1.49 },
+  { id: 'matchwerk_funken_5', kind: 'funken', title: '5 Funken', amount: 5, price: 5.99 },
+  { id: 'matchwerk_funken_15', kind: 'funken', title: '15 Funken', amount: 15, price: 14.99 },
   { id: 'matchwerk_boost_1', kind: 'boost', title: '1 Boost', amount: 1, price: 3.99 },
   { id: 'matchwerk_boost_5', kind: 'boost', title: '5 Boosts', amount: 5, price: 14.99 },
 ];

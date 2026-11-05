@@ -83,6 +83,12 @@ export default function Premium() {
   const savings = (p: StorePlan) =>
     monthly && p.months && p.months > 1 ? Math.round((1 - p.price / (monthly.price * p.months)) * 100) : 0;
 
+  /** saving of a pack compared with buying single items of the same kind */
+  const packSave = (p: StorePlan) => {
+    const single = (plans ?? []).find((x) => x.kind === p.kind && x.amount === 1);
+    return single && p.amount && p.amount > 1 ? Math.round((1 - p.price / (single.price * p.amount)) * 100) : 0;
+  };
+
   const Pack = ({ p, icon }: { p: StorePlan; icon: 'sparkles' | 'flash' }) => (
     <Pressable onPress={() => purchase(p)} disabled={!!busy} accessibilityRole="button"
       style={({ pressed }) => [styles.pack, { borderColor: c.border, backgroundColor: c.surface, opacity: pressed ? 0.8 : 1 }]}>
@@ -91,6 +97,7 @@ export default function Premium() {
           <Ionicons name={icon} size={22} color={icon === 'sparkles' ? Brand.accent : Brand.super} />
           <T style={{ fontWeight: '800', fontSize: 15, textAlign: 'center' }}>{p.title}</T>
           <T style={{ color: Brand.text, fontWeight: '700', fontSize: 14 }}>{p.priceString}</T>
+          {packSave(p) > 0 && <View style={[styles.badge, { backgroundColor: Brand.accent }]}><Text style={[styles.badgeText, { color: '#2A0E3F' }]}>−{packSave(p)} %</Text></View>}
         </>
       )}
     </Pressable>

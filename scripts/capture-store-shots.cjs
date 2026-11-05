@@ -15,7 +15,7 @@ const { chromium } = require('playwright');
   let p = await mk();
   await p.goto('http://localhost:8086', { waitUntil: 'networkidle' }); await p.waitForTimeout(3500);
   await shot(p, '1-discover');
-  await scroll(p, 700); await shot(p, '2-why');
+  await scroll(p, 470); await shot(p, '2-why');
   await p.getByLabel('Auf diese Antwort reagieren').first().click(); await p.waitForTimeout(800);
   await p.getByPlaceholder(/Schreib etwas dazu/).fill('Flohmarkt und Pasta? Da bin ich dabei!');
   await shot(p, '3-comment');

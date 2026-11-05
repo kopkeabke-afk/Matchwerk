@@ -3,14 +3,14 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ModeSwitch } from '@/components/mode-switch';
+import { FunkeSheet } from '@/components/funke-sheet';
 import { LikeSheet } from '@/components/like-sheet';
 import { ProfileView } from '@/components/profile-view';
-import { Button, Empty, IconButton } from '@/components/ui';
+import { Button, Empty } from '@/components/ui';
 import { Brand, Space, TabInset, useTheme, WebTabTop } from '@/constants/theme';
 import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
@@ -30,6 +30,7 @@ export default function Discover() {
   const [travel, setTravel] = useState<Place | null>(null);
   const [noteFor, setNoteFor] = useState<LikeNote['item'] | null>(null);
   const [sending, setSending] = useState(false);
+  const [buyFunkeFor, setBuyFunkeFor] = useState<Profile | null>(null);
   const refreshLimits = useCallback(() => { backend.getLimits().then(setLimits).catch(() => {}); }, []);
 
   const compat = useCallback((p: Profile) => compatibility(me!, p, mode), [me, mode]);
@@ -77,7 +78,9 @@ export default function Discover() {
         // put the card back and offer an upgrade
         setDeck((d) => [p, ...(d ?? []).filter((x) => x.id !== p.id)]);
         setLast(null);
-        router.push({ pathname: '/premium', params: { reason } });
+        // out of Funken: offer a single one right here instead of the full upgrade page
+        if (reason === 'superlikes') setBuyFunkeFor(p);
+        else router.push({ pathname: '/premium', params: { reason } });
       } else {
         Alert.alert('Fehler', (e as Error).message);
       }
@@ -169,17 +172,21 @@ export default function Discover() {
           <ScrollView key={deck[0].id} contentContainerStyle={styles.feed} showsVerticalScrollIndicator={false}>
             <Animated.View entering={last ? FadeInRight.duration(260) : FadeIn.duration(200)}>
               <ProfileView profile={deck[0]} compat={compat(deck[0])} mode={mode} spark={deck[0].id === sparkId}
-                onLikeItem={(item) => setNoteFor(item)} />
+                onLikeItem={(item) => setNoteFor(item)}
+                actions={{
+                  onPass: () => decide(deck[0], 'pass'),
+                  onLike: () => decide(deck[0], 'like'),
+                  onFunke: () => decide(deck[0], 'superlike'),
+                }} />
             </Animated.View>
           </ScrollView>
-          <LinearGradient pointerEvents="none" colors={[c.dark ? 'rgba(18,11,24,0)' : 'rgba(255,255,255,0)', c.background]}
-            locations={[0, 0.6]} style={styles.fade} />
-          <View style={styles.actions} pointerEvents="box-none">
-            <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => decide(deck[0], 'pass')} />
-            <IconButton icon="sparkles" color={Brand.accent} size={52} label="Funke senden" onPress={() => decide(deck[0], 'superlike')} />
-            <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={mode === 'friends' ? Brand.super : Brand.heart} size={60}
-              label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => decide(deck[0], 'like')} />
-          </View>
+          <FunkeSheet visible={!!buyFunkeFor} name={buyFunkeFor?.name} onClose={() => setBuyFunkeFor(null)}
+            onBought={() => {
+              const p = buyFunkeFor;
+              setBuyFunkeFor(null);
+              refreshLimits();
+              if (p) decide(p, 'superlike');
+            }} />
           <LikeSheet profile={deck[0]} item={noteFor ?? null} mode={mode} busy={sending}
             onClose={() => setNoteFor(null)}
             onSend={async (note) => {
@@ -200,10 +207,5 @@ const styles = StyleSheet.create({
   pill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   logo: { fontSize: 26, fontWeight: '900', color: Brand.text, letterSpacing: -1 },
   headerBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  feed: { paddingHorizontal: Space.md, paddingTop: Space.xs, paddingBottom: TabInset + 120 },
-  fade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: TabInset + 130 },
-  actions: {
-    position: 'absolute', left: 0, right: 0, bottom: TabInset + Space.lg,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Space.xl,
-  },
+  feed: { paddingHorizontal: Space.sm, paddingTop: Space.xs, paddingBottom: TabInset + Space.xl },
 });

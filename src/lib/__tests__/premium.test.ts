@@ -1,5 +1,5 @@
 import { createDemoBackend } from '../demo-backend';
-import { TIER_LIMITS } from '../plans';
+import { DEMO_PLANS, TIER_LIMITS } from '../plans';
 import { toE164 } from '../social-auth';
 import { limitReason } from '../types';
 import { DEFAULT_FILTERS } from '../utils';
@@ -71,6 +71,24 @@ describe('tiers, Funken and boosts', () => {
     const l = await b.getLimits();
     expect(l.superlikesLeft).toBe(0);
     expect(l.funkenCredits).toBe(4);
+  });
+
+  it('a single Funke can be bought when the daily ones are gone', async () => {
+    const b = await fresh();
+    await b.swipe('a', 'superlike');
+    await expect(b.swipe('b', 'superlike')).rejects.toThrow();
+    await b.simulatePurchase!('matchwerk_funken_1');
+    expect((await b.getLimits()).funkenCredits).toBe(1);
+    await b.swipe('b', 'superlike');
+    expect((await b.getLimits()).funkenCredits).toBe(0);
+  });
+
+  it('single Funke costs 1,49 € and packs are cheaper per Funke', () => {
+    const f = DEMO_PLANS.filter((p) => p.kind === 'funken');
+    expect(f.map((p) => [p.amount, p.price])).toEqual([[1, 1.49], [5, 5.99], [15, 14.99]]);
+    const each = f.map((p) => p.price / p.amount!);
+    expect(each[1]).toBeLessThan(each[0]);
+    expect(each[2]).toBeLessThan(each[1]);
   });
 
   it('boost packs add credits', async () => {

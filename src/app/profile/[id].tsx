@@ -1,14 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActionSheetIOS, Alert, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { FunkeSheet } from '@/components/funke-sheet';
 import { LikeSheet } from '@/components/like-sheet';
 import { ProfileView } from '@/components/profile-view';
-import { IconButton, T } from '@/components/ui';
-import { Brand, Space, useTheme } from '@/constants/theme';
+import { T } from '@/components/ui';
+import { Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { bus } from '@/lib/events';
@@ -30,6 +30,8 @@ export default function ProfileScreen() {
     if (!p) backend.getProfile(id).then(setP).catch(() => {});
   }, [id, p]);
 
+  const [buyFunke, setBuyFunke] = useState(false);
+
   async function act(action: SwipeAction, note?: LikeNote) {
     if (!p) return;
     setBusy(true);
@@ -42,7 +44,8 @@ export default function ProfileScreen() {
       const reason = limitReason(e);
       if (reason) {
         setNoteFor(null);
-        router.push({ pathname: '/premium', params: { reason } });
+        if (reason === 'superlikes') setBuyFunke(true);
+        else router.push({ pathname: '/premium', params: { reason } });
       } else {
         Alert.alert('Fehler', (e as Error).message);
       }
@@ -86,8 +89,9 @@ export default function ProfileScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
-      <ScrollView contentContainerStyle={{ padding: Space.lg, paddingTop: Space.xxl, paddingBottom: 140 }}>
-        <ProfileView profile={p} compat={compatibility(me, p, mode)} mode={from === 'match' ? 'dating' : mode} onLikeItem={canSwipe ? (item) => setNoteFor(item) : undefined} />
+      <ScrollView contentContainerStyle={{ padding: Space.lg, paddingTop: Space.xxl, paddingBottom: insets.bottom + Space.xl }}>
+        <ProfileView profile={p} compat={compatibility(me, p, mode)} mode={from === 'match' ? 'dating' : mode} onLikeItem={canSwipe ? (item) => setNoteFor(item) : undefined}
+          actions={canSwipe ? { onPass: () => act('pass'), onLike: () => act('like'), onFunke: () => act('superlike') } : undefined} />
         {canSwipe && (
           <T muted variant="small" style={{ textAlign: 'center', marginTop: Space.xl }}>
             Tipp: Like ein bestimmtes Foto oder eine Antwort und schreib etwas dazu – das erhöht deine Match-Chance deutlich.
@@ -104,17 +108,8 @@ export default function ProfileScreen() {
         </Pressable>
       </View>
 
-      {canSwipe && (
-        <LinearGradient
-          colors={[c.dark ? 'rgba(18,11,24,0)' : 'rgba(255,255,255,0)', c.background]}
-          locations={[0, 0.45]}
-          style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}>
-          <IconButton icon="close" color={Brand.pass} size={60} label="Weiter" onPress={() => act('pass')} />
-          <IconButton icon="sparkles" color={Brand.accent} size={48} label="Funke" onPress={() => act('superlike')} />
-          <IconButton icon={mode === 'friends' ? 'hand-left' : 'heart'} color={mode === 'friends' ? Brand.super : Brand.heart} size={60} label={mode === 'friends' ? 'Verbinden' : 'Like'} onPress={() => act('like')} />
-        </LinearGradient>
-      )}
-
+      <FunkeSheet visible={buyFunke} name={p.name} onClose={() => setBuyFunke(false)}
+        onBought={() => { setBuyFunke(false); act('superlike'); }} />
       <LikeSheet profile={p} item={noteFor ?? null} mode={mode} busy={busy}
         onClose={() => setNoteFor(null)}
         onSend={(note) => act('like', note)} />
@@ -128,5 +123,4 @@ const styles = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
     shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
-  bottom: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 28, paddingTop: 40 },
 });

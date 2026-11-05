@@ -15,12 +15,21 @@ type Item = NonNullable<LikeNote['item']>;
 /** Editorial serif for prompt answers – gives Matchwerk its own voice. */
 export const SERIF = Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, "Times New Roman", serif' });
 
+export interface DecideActions {
+  onPass: () => void;
+  onLike: () => void;
+  onFunke: () => void;
+}
+
 /**
  * Full, scrollable profile (used for discovery, the profile modal and the own-profile preview).
  * Every photo and answer can be liked individually, optionally with a comment.
+ * With `actions`, the big first photo carries the decision: no on the left, yes on the right,
+ * a Funke at the top centre – and the end of the profile repeats no / yes.
  */
-export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spark }: {
+export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spark, actions }: {
   profile: Profile; compat?: Compatibility; onLikeItem?: (item: Item) => void; mode?: Mode; spark?: boolean;
+  actions?: DecideActions;
 }) {
   const c = useTheme();
   const age = ageFrom(profile.birthdate);
@@ -64,16 +73,55 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
 
   const blocks: ReactNode[] = [];
 
+  const friends = mode === 'friends';
+  const yesColor = friends ? Brand.super : Brand.heart;
+  const yesLabel = friends ? 'Verbinden' : 'Like';
+
   // 1 · hero photo with name
   blocks.push(
     <View key="hero" style={styles.heroWrap}>
-      <Image source={profile.photos[0]} style={styles.hero} contentFit="cover" transition={150} />
-      <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(20,6,30,0.85)']} style={styles.heroShade} pointerEvents="none" />
-      {spark && (
+      <Image source={profile.photos[0]} style={[styles.hero, actions && styles.heroBig]} contentFit="cover" transition={150} />
+      <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(20,6,30,0.88)']} style={styles.heroShade} pointerEvents="none" />
+      {spark && !actions && (
         <View style={styles.spark} pointerEvents="none">
           <Text style={styles.sparkText}>✨ Dein Daily Spark</Text>
         </View>
       )}
+      {actions && (
+        <View style={styles.funkeWrap} pointerEvents="box-none">
+          <Pressable onPress={actions.onFunke} accessibilityRole="button" accessibilityLabel="Funke senden"
+            style={({ pressed }) => [styles.funke, { transform: [{ scale: pressed ? 0.92 : 1 }] }]}>
+            <Ionicons name="sparkles" size={18} color={Brand.accent} />
+            <Text style={styles.funkeText}>Funke</Text>
+          </Pressable>
+        </View>
+      )}
+      {actions ? (
+        <View style={styles.heroBottom} pointerEvents="box-none">
+          <View pointerEvents="none" style={{ paddingHorizontal: 4 }}>
+            {spark && <View style={[styles.spark, styles.sparkInline]}><Text style={styles.sparkText}>✨ Dein Daily Spark</Text></View>}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.name} numberOfLines={1}>{profile.name}, {age}</Text>
+              {profile.verified && <Ionicons name="checkmark-circle" size={22} color="#7CC4FF" accessibilityLabel="Verifiziert" />}
+            </View>
+            <Text style={styles.heroMeta}>
+              {profile.distanceKm != null ? `${profile.distanceKm} km entfernt` : profile.city}
+              {profile.job ? ` · ${profile.job}` : ''}
+            </Text>
+          </View>
+          <View style={styles.decideRow} pointerEvents="box-none">
+            <Pressable onPress={actions.onPass} accessibilityRole="button" accessibilityLabel="Weiter"
+              style={({ pressed }) => [styles.decide, styles.decideNo, { transform: [{ scale: pressed ? 0.92 : 1 }] }]}>
+              <Ionicons name="close" size={30} color="#fff" />
+            </Pressable>
+            <Pressable onPress={actions.onLike} onLongPress={onLikeItem ? () => onLikeItem({ kind: 'photo', index: 0 }) : undefined}
+              accessibilityRole="button" accessibilityLabel={yesLabel} accessibilityHint="Lange drücken, um etwas dazu zu schreiben"
+              style={({ pressed }) => [styles.decide, { backgroundColor: 'rgba(255,255,255,0.96)', transform: [{ scale: pressed ? 0.92 : 1 }] }]}>
+              <Ionicons name={likeIcon} size={30} color={yesColor} />
+            </Pressable>
+          </View>
+        </View>
+      ) : (
       <View style={styles.heroText} pointerEvents="box-none">
         <View style={{ flex: 1 }} pointerEvents="none">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -87,6 +135,7 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
         </View>
         {likeBtn({ kind: 'photo', index: 0 }, true)}
       </View>
+      )}
     </View>,
   );
 
@@ -154,12 +203,48 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
     blocks.push(prompt(i), photo(i + 1));
   }
 
+  // end of the profile: decide without scrolling back up
+  if (actions) {
+    blocks.push(
+      <View key="end" style={styles.endRow}>
+        <Pressable onPress={actions.onPass} accessibilityRole="button" accessibilityLabel="Weiter"
+          style={({ pressed }) => [styles.endBtn, { borderColor: c.border, backgroundColor: c.surface, opacity: pressed ? 0.8 : 1 }]}>
+          <Ionicons name="close" size={22} color={Brand.pass} />
+          <Text style={[styles.endText, { color: c.text }]}>Nein</Text>
+        </Pressable>
+        <Pressable onPress={actions.onLike} accessibilityRole="button" accessibilityLabel={yesLabel}
+          style={({ pressed }) => [styles.endBtn, { borderColor: yesColor, backgroundColor: c.surface, opacity: pressed ? 0.8 : 1 }]}>
+          <Ionicons name={likeIcon} size={22} color={yesColor} />
+          <Text style={[styles.endText, { color: c.text }]}>{friends ? 'Verbinden' : 'Ja'}</Text>
+        </Pressable>
+      </View>,
+    );
+  }
+
   return <View style={{ gap: Space.lg }}>{blocks.map((b, i) => <Fragment key={i}>{b}</Fragment>)}</View>;
 }
 
 const styles = StyleSheet.create({
   heroWrap: { borderRadius: Radius.xl, overflow: 'hidden', backgroundColor: '#2A0E3F' },
   hero: { width: '100%', aspectRatio: 4 / 5 },
+  heroBig: { aspectRatio: 3 / 4.3 },
+  heroBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: Space.lg, gap: Space.md },
+  decideRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  decide: {
+    width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 5,
+  },
+  decideNo: { backgroundColor: 'rgba(20,6,30,0.55)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.7)' },
+  funkeWrap: { position: 'absolute', top: 14, left: 0, right: 0, alignItems: 'center' },
+  funke: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 9, borderRadius: Radius.pill,
+    backgroundColor: 'rgba(20,6,30,0.6)', borderWidth: 1, borderColor: 'rgba(233,169,46,0.75)',
+  },
+  funkeText: { color: '#FFE3A3', fontWeight: '800', fontSize: 14 },
+  sparkInline: { position: 'relative', top: 0, left: 0, alignSelf: 'flex-start', marginBottom: 8 },
+  endRow: { flexDirection: 'row', gap: Space.md, marginTop: Space.sm },
+  endBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: Radius.pill, borderWidth: 1.5 },
+  endText: { fontSize: 16, fontWeight: '700' },
   heroShade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '45%' },
   heroText: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: Space.lg, flexDirection: 'row', alignItems: 'flex-end', gap: Space.md },
   name: { color: '#fff', fontSize: 30, fontWeight: '800', letterSpacing: -0.5, flexShrink: 1 },

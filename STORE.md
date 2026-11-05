@@ -75,9 +75,9 @@ Play Console → Testen → Geschlossener Test → Tester per E-Mail-Liste hinzu
 | matchwerk_vip_1m | Abo, monatlich | 19,99 € | Matchwerk VIP (1 Monat) |
 | matchwerk_vip_6m | Abo, alle 6 Monate | 99,99 € | Matchwerk VIP (6 Monate) |
 | matchwerk_vip_12m | Abo, jährlich | 179,88 € | Matchwerk VIP (12 Monate) |
-| matchwerk_funken_5 | In-App-Produkt (verbrauchbar) | 4,99 € | 5 Funken |
-| matchwerk_funken_15 | In-App-Produkt (verbrauchbar) | 11,99 € | 15 Funken |
-| matchwerk_funken_30 | In-App-Produkt (verbrauchbar) | 19,99 € | 30 Funken |
+| matchwerk_funken_1 | In-App-Produkt (verbrauchbar) | 1,49 € | 1 Funke |
+| matchwerk_funken_5 | In-App-Produkt (verbrauchbar) | 5,99 € | 5 Funken |
+| matchwerk_funken_15 | In-App-Produkt (verbrauchbar) | 14,99 € | 15 Funken |
 | matchwerk_boost_1 | In-App-Produkt (verbrauchbar) | 3,99 € | 1 Boost |
 | matchwerk_boost_5 | In-App-Produkt (verbrauchbar) | 14,99 € | 5 Boosts |
 
