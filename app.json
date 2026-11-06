@@ -145,6 +145,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "owner": "matchwerk",
+    "extra": {
+      "eas": {
+        "projectId": "d4af485a-a1b1-4e84-88e3-0d0e6e486c23"
+      }
     }
   }
 }
