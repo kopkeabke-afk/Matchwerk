@@ -55,14 +55,14 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 const pages = {
   'index.html': ['Dating und neue Freunde', `<img src="feature.png" alt="Matchwerk – ${esc(APP.slogan)}" style="width:100%;border-radius:16px;margin-bottom:20px"><h1>${esc(APP.slogan)}</h1>
-<p>${esc(APP.name)} zeigt dir, warum ihr zusammenpasst: transparenter Match-Score, Reaktionen auf einzelne Fotos und Antworten, Sprachnachrichten im Chat, Dating oder neue Freunde – und sehen, wer dich mag, ist kostenlos.</p>
+<p>${esc(APP.name)} zeigt dir, warum ihr zusammenpasst: transparenter Match-Score, Reaktionen auf einzelne Fotos und Antworten, Sprachnachrichten im Chat, Aktivitäten mit Gruppenchat, Dating oder neue Freunde – und sehen, wer dich mag, ist kostenlos.</p>
 <div class="card"><h2 style="margin-top:0">Bald bei Google Play</h2><p><a href="${esc(APP.playStoreUrl)}">${esc(APP.name)} bei Google Play ansehen</a></p></div>
 <h2>Sicherheit zuerst</h2><p>Verifizierte Profile, Melden und Blockieren in jedem Chat, Moderation innerhalb von 24 Stunden. Kein Werbe-Tracking.</p>`],
   'datenschutz.html': ['Datenschutzerklärung', legalPage('privacy')],
   'agb.html': ['Nutzungsbedingungen', legalPage('terms')],
   'sicherheit.html': ['Sicherheits-Center', legalPage('safety')],
   'konto-loeschen.html': ['Konto löschen', `<h1>Konto und Daten löschen</h1>
-<p>Du kannst dein ${esc(APP.name)}-Konto jederzeit selbst löschen. Dabei werden dein Profil, deine Fotos, Likes, Matches, Nachrichten und Sprachnachrichten endgültig entfernt.</p>
+<p>Du kannst dein ${esc(APP.name)}-Konto jederzeit selbst löschen. Dabei werden dein Profil, deine Fotos, Likes, Matches, Nachrichten, Sprachnachrichten und deine Aktivitäten endgültig entfernt.</p>
 <h2>In der App (sofort)</h2><ol><li>App öffnen und unten auf <b>Profil</b> tippen.</li><li>Oben rechts das Zahnrad <b>Einstellungen</b> öffnen.</li><li><b>Konto löschen</b> wählen und bestätigen.</li></ol>
 <h2>Ohne App</h2><p>Schreib uns von der E-Mail-Adresse bzw. mit der Telefonnummer oder dem Google-Konto, mit dem du angemeldet bist, an <a href="mailto:${esc(APP.supportEmail)}?subject=Konto%20l%C3%B6schen">${esc(APP.supportEmail)}</a>. Wir löschen dein Konto innerhalb von 30 Tagen und bestätigen dir das.</p>
 <h2>Was aufbewahrt wird</h2><p>Meldungen über Regelverstöße bewahren wir zur Missbrauchsbekämpfung bis zu 12 Monate pseudonymisiert auf. Kaufbelege speichern Google bzw. Apple nach ihren eigenen Regeln. Ein laufendes Abo kündigst du in Google Play unter Abos.</p>`],

@@ -1,4 +1,4 @@
-import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Mode, Profile, SwipeAction } from './types';
+import type { Activity, ActivityMessage, NewActivity, Filters, IncomingLike, LikeNote, Limits, Match, Message, Mode, Profile, SwipeAction } from './types';
 
 export interface SwipeResult {
   match?: Match;
@@ -39,6 +39,18 @@ export interface Backend {
   unmatch(id: string): Promise<void>;
   getMessages(matchId: string): Promise<Message[]>;
   sendMessage(matchId: string, text: string): Promise<Message>;
+
+  // Aktivitäten
+  getActivities(maxKm: number): Promise<Activity[]>;
+  getActivity(id: string): Promise<Activity | null>;
+  createActivity(input: NewActivity): Promise<string>;
+  joinActivity(id: string): Promise<void>;
+  leaveActivity(id: string): Promise<void>;
+  cancelActivity(id: string): Promise<void>;
+  removeActivityMember(id: string, userId: string): Promise<void>;
+  getActivityMessages(id: string): Promise<ActivityMessage[]>;
+  sendActivityMessage(id: string, text: string): Promise<ActivityMessage>;
+  subscribeActivityMessages(id: string, cb: (m: ActivityMessage) => void): () => void;
   /** Uploads a recorded audio file (local uri) and sends it as a voice message. */
   sendVoice(matchId: string, localUri: string, durationMs: number): Promise<Message>;
   /** A playable url for a voice message (signed, short-lived on the server). */

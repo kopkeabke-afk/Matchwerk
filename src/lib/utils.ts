@@ -131,3 +131,14 @@ export function defaultFiltersFor(birthdate?: string): Filters {
     maxDistanceKm: 60,
   };
 }
+
+/** "Heute, 19:00" · "Morgen, 10:30" · "Sa., 14. Nov., 11:00" */
+export function formatWhen(iso: string, now = new Date()): string {
+  const d = new Date(iso);
+  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(d) - day(now)) / 86_400_000);
+  const time = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  if (diff === 0) return `Heute, ${time}`;
+  if (diff === 1) return `Morgen, ${time}`;
+  return `${d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' })}, ${time}`;
+}

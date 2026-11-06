@@ -48,6 +48,7 @@ export const FEATURES: FeatureRow[] = [
   { icon: 'flash', title: 'Boost (30 Min. ganz oben)', free: '–', plus: '1 / Monat', vip: '1 / Woche' },
   { icon: 'time', title: 'Matches verlängern', free: '1×', plus: '∞', vip: '∞' },
   { icon: 'trending-up', title: 'Bevorzugt angezeigt', free: '–', plus: '–', vip: '✓' },
+  { icon: 'people', title: 'Aktivitäten anbieten', free: '1', plus: '5', vip: '10' },
   { icon: 'eye', title: 'Sehen, wer dich mag', free: '✓', plus: '✓', vip: '✓' },
   { icon: 'arrow-undo', title: 'Rückgängig', free: '✓', plus: '✓', vip: '✓' },
 ];

@@ -182,9 +182,71 @@ export interface Limits {
 }
 
 /** Error codes the backend throws when a plan limit is hit (message starts with "LIMIT:"). */
-export type LimitReason = 'swipes' | 'likes' | 'superlikes' | 'boost' | 'extend' | 'daily';
+export type LimitReason = 'swipes' | 'likes' | 'superlikes' | 'boost' | 'extend' | 'daily' | 'activities';
 export function limitReason(e: unknown): LimitReason | null {
   const m = (e as Error)?.message ?? '';
   const hit = /LIMIT:(\w+)/.exec(m);
   return hit ? (hit[1] as LimitReason) : null;
+}
+
+// ───────── Aktivitäten ─────────
+export type ActivityCategory = 'coffee' | 'hike' | 'drinks' | 'games' | 'sport' | 'culture' | 'food' | 'other';
+
+export const ACTIVITY_CATEGORIES: { id: ActivityCategory; emoji: string; label: string }[] = [
+  { id: 'coffee', emoji: '☕', label: 'Kaffee' },
+  { id: 'hike', emoji: '🥾', label: 'Wandern' },
+  { id: 'drinks', emoji: '🍻', label: 'Feierabend' },
+  { id: 'games', emoji: '🎲', label: 'Spieleabend' },
+  { id: 'sport', emoji: '🏃', label: 'Sport' },
+  { id: 'culture', emoji: '🎨', label: 'Kultur' },
+  { id: 'food', emoji: '🍝', label: 'Essen' },
+  { id: 'other', emoji: '✨', label: 'Sonstiges' },
+];
+
+export const categoryOf = (id: ActivityCategory) => ACTIVITY_CATEGORIES.find((c) => c.id === id) ?? ACTIVITY_CATEGORIES[7];
+
+/** A short public card of a person in an activity. */
+export interface Person {
+  id: string;
+  name: string;
+  photo?: string;
+  verified: boolean;
+  age: number;
+}
+
+export interface Activity {
+  id: string;
+  category: ActivityCategory;
+  title: string;
+  description: string;
+  startsAt: string;
+  place: string;
+  city?: string;
+  maxPeople: number;
+  cancelled: boolean;
+  distanceKm?: number;
+  host: Person;
+  isHost: boolean;
+  joined: boolean;
+  memberCount: number;
+  /** first few members in the list, everyone on the detail screen */
+  members: Person[];
+  lastMessage?: ActivityMessage;
+}
+
+export interface NewActivity {
+  category: ActivityCategory;
+  title: string;
+  description: string;
+  startsAt: string;
+  place: string;
+  maxPeople: number;
+}
+
+export interface ActivityMessage {
+  id: string;
+  activityId: string;
+  senderId: string;
+  text: string;
+  createdAt: string;
 }

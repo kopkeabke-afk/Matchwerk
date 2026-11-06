@@ -4,7 +4,7 @@ import { AppState, Platform } from 'react-native';
 
 import type { Backend } from './backend';
 import { appleIdToken, googleIdToken } from './social-auth';
-import type { Filters, IncomingLike, Limits, Match, Message, Profile } from './types';
+import type { Activity, ActivityMessage, Filters, IncomingLike, Limits, Match, Message, Person, Profile } from './types';
 
 type Row = Record<string, any>;
 
@@ -63,6 +63,20 @@ const toMessage = (r: Row): Message => ({
   kind: r.kind === 'voice' ? 'voice' : 'text',
   audioPath: r.audio_path ?? undefined,
   durationMs: r.duration_ms ?? undefined,
+});
+
+const toPerson = (r: Row): Person => ({
+  id: r.id, name: r.name, photo: r.photo ?? undefined, verified: !!r.verified, age: Number(r.age ?? 0),
+});
+const toActivityMessage = (r: Row): ActivityMessage => ({
+  id: r.id, activityId: r.activity_id, senderId: r.sender_id, text: r.text, createdAt: r.created_at,
+});
+const toActivity = (r: Row): Activity => ({
+  id: r.id, category: r.category, title: r.title, description: r.description ?? '', startsAt: r.starts_at,
+  place: r.place, city: r.city ?? undefined, maxPeople: r.max_people, cancelled: !!r.cancelled,
+  distanceKm: r.distance_km ?? undefined, host: toPerson(r.host ?? {}), isHost: !!r.is_host, joined: !!r.joined,
+  memberCount: Number(r.member_count ?? 0), members: (r.members ?? []).map(toPerson),
+  lastMessage: r.last_message ? toActivityMessage(r.last_message) : undefined,
 });
 
 export function createSupabaseBackend(url: string, anonKey: string): Backend {
@@ -263,6 +277,49 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
       const { data, error } = await sb.storage.from('voice').createSignedUrl(message.audioPath, 3600);
       if (error || !data) throw new Error('Sprachnachricht konnte nicht geladen werden');
       return data.signedUrl;
+    },
+    async getActivities(maxKm) {
+      const rows = check(await sb.rpc('get_activities', { max_km: maxKm }));
+      return ((rows ?? []) as Row[]).map(toActivity);
+    },
+    async getActivity(id) {
+      const row = check(await sb.rpc('get_activity', { aid: id }));
+      return row ? toActivity(row as Row) : null;
+    },
+    async createActivity(a) {
+      return check(await sb.rpc('create_activity', {
+        category: a.category, title: a.title, description: a.description, starts_at: a.startsAt,
+        place: a.place, max_people: a.maxPeople,
+      })) as string;
+    },
+    async joinActivity(id) {
+      check(await sb.rpc('join_activity', { aid: id }));
+    },
+    async leaveActivity(id) {
+      check(await sb.rpc('leave_activity', { aid: id }));
+    },
+    async cancelActivity(id) {
+      check(await sb.rpc('cancel_activity', { aid: id }));
+    },
+    async removeActivityMember(id, userId) {
+      check(await sb.rpc('remove_activity_member', { aid: id, uid: userId }));
+    },
+    async getActivityMessages(id) {
+      const rows = check(await sb.from('activity_messages').select('*').eq('activity_id', id).order('created_at').limit(500));
+      return (rows ?? []).map(toActivityMessage);
+    },
+    async sendActivityMessage(id, text) {
+      const me = await myId();
+      const row = check(await sb.from('activity_messages').insert({ activity_id: id, sender_id: me, text }).select('*').single());
+      return toActivityMessage(row);
+    },
+    subscribeActivityMessages(id, cb) {
+      const ch = sb
+        .channel(`activity:${id}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_messages', filter: `activity_id=eq.${id}` },
+          (payload) => cb(toActivityMessage(payload.new as Row)))
+        .subscribe();
+      return () => { sb.removeChannel(ch); };
     },
     async markRead(matchId) {
       await sb.rpc('mark_read', { match_id: matchId });

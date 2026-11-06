@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Backend, SwipeResult } from './backend';
 import { DEMO_INCOMING_FRIENDS, DEMO_INCOMING_LIKES, DEMO_PROFILES, DEMO_REPLIES } from './demo-data';
 import { TIER_LIMITS, type Tier } from './plans';
-import type { Filters, IncomingLike, LikeNote, Limits, Match, Message, Mode, Profile, SwipeAction } from './types';
-import { MATCH_TTL_HOURS, mutuallyCompatible, passesFilters, resolveOpener, uid } from './utils';
+import type { Activity, ActivityCategory, ActivityMessage, Filters, IncomingLike, LikeNote, Limits, Match, Message, Mode, Person, Profile, SwipeAction } from './types';
+import { ageFrom, MATCH_TTL_HOURS, mutuallyCompatible, passesFilters, resolveOpener, uid } from './utils';
 
 const KEY = 'matchwerk.demo.v1';
 const ME = 'me';
@@ -24,7 +24,37 @@ interface State {
   boostedUntil?: string;
   lastBoostAt?: string;
   boostCredits: number;
+  activities?: DemoActivity[];
+  activityMessages?: ActivityMessage[];
 }
+
+interface DemoActivity {
+  id: string; hostId: string; category: ActivityCategory; title: string; description: string; startsAt: string;
+  place: string; city?: string; maxPeople: number; cancelled: boolean; distanceKm: number; memberIds: string[];
+}
+
+const HOST_LIMIT: Record<Tier, number> = { free: 1, plus: 5, vip: 10 };
+
+/** A few example activities around the demo profiles, relative to "now". */
+function seedActivities(): DemoActivity[] {
+  const at = (days: number, h: number, m = 0) => {
+    const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, m, 0, 0); return d.toISOString();
+  };
+  const ids = DEMO_PROFILES.map((p) => p.id);
+  const pick = (...i: number[]) => i.map((x) => ids[x % ids.length]);
+  const A = (id: string, category: ActivityCategory, title: string, description: string, startsAt: string, place: string,
+    maxPeople: number, distanceKm: number, members: string[]): DemoActivity =>
+    ({ id, hostId: members[0], category, title, description, startsAt, place, city: 'Berlin', maxPeople, cancelled: false, distanceKm, memberIds: members });
+  return [
+    A('act-1', 'hike', 'Sonntagswanderung am Grunewald', 'Gemütliche 12 km, Picknick an der Havel. Jedes Tempo willkommen.', at(2, 10), 'S-Bahnhof Grunewald', 8, 6, pick(3, 7, 12)),
+    A('act-2', 'games', 'Spieleabend: Catan & Co.', 'Ich bringe Catan, Codenames und Wingspan mit. Snacks gern mitbringen.', at(1, 19), 'Café Spielwiese, Kreuzberg', 6, 3, pick(5, 9)),
+    A('act-3', 'coffee', 'Kaffee & Flohmarkt', 'Erst Flat White, dann über den Mauerpark-Flohmarkt schlendern.', at(3, 11), 'Mauerpark, Haupteingang', 5, 2, pick(1, 14, 20, 22)),
+    A('act-4', 'drinks', 'Feierabendbier am Kanal', 'Lockere Runde nach der Arbeit – einfach vorbeikommen.', at(0, 19, 30), 'Admiralbrücke', 10, 4, pick(8, 16, 18, 2, 11)),
+    A('act-5', 'sport', 'Laufgruppe Tempelhofer Feld', '5–7 km, ruhiges Tempo (6:00 min/km). Danach Kaffee.', at(4, 8), 'Eingang Columbiadamm', 12, 7, pick(10, 4)),
+  ].filter((a) => new Date(a.startsAt) > new Date());
+}
+
+const GROUP_REPLIES = ['Super, freu mich! 🙌', 'Bin dabei – bring noch Kekse mit 🍪', 'Wer ist zum ersten Mal dabei?', 'Treffpunkt wie beschrieben, ich hab eine gelbe Jacke an.', 'Klingt gut! Bis dann 👋'];
 
 const empty = (): State => ({
   signedIn: false, me: null, swipes: {}, matches: [], messages: [], blocked: [], likeLog: [], boostCredits: 0,
@@ -88,6 +118,39 @@ export function createDemoBackend(): Backend {
       lastMessage: msgs[msgs.length - 1],
       unread: msgs.filter((x) => x.senderId !== ME && x.createdAt > m.lastReadAt).length,
     };
+  }
+
+  const actListeners = new Map<string, Set<(m: ActivityMessage) => void>>();
+
+  function person(id: string, s: State): Person | null {
+    if (id === ME) return s.me ? { id: ME, name: s.me.name, photo: s.me.photos[0], verified: s.me.verified, age: ageFrom(s.me.birthdate) } : null;
+    const p = profileById(id);
+    return p && !s.blocked.includes(id) ? { id, name: p.name, photo: p.photos[0], verified: p.verified, age: ageFrom(p.birthdate) } : null;
+  }
+
+  function activities(s: State): DemoActivity[] {
+    if (!s.activities) s.activities = seedActivities();
+    return s.activities;
+  }
+
+  function toActivity(s: State, a: DemoActivity, all: boolean): Activity {
+    const members = a.memberIds.map((id) => person(id, s)).filter((x): x is Person => !!x);
+    const msgs = (s.activityMessages ?? []).filter((m) => m.activityId === a.id);
+    return {
+      id: a.id, category: a.category, title: a.title, description: a.description, startsAt: a.startsAt, place: a.place,
+      city: a.city, maxPeople: a.maxPeople, cancelled: a.cancelled, distanceKm: a.distanceKm,
+      host: person(a.hostId, s) ?? { id: a.hostId, name: '?', verified: false, age: 0 },
+      isHost: a.hostId === ME, joined: a.memberIds.includes(ME), memberCount: a.memberIds.length,
+      members: all ? members : members.slice(0, 5), lastMessage: msgs[msgs.length - 1],
+    };
+  }
+
+  function visible(s: State, a: DemoActivity) {
+    return !s.blocked.includes(a.hostId);
+  }
+
+  function emitActivityMessage(m: ActivityMessage) {
+    actListeners.get(m.activityId)?.forEach((cb) => cb(m));
   }
 
   function emitMessage(msg: Message) {
@@ -289,6 +352,117 @@ export function createDemoBackend(): Backend {
     async getVoiceUrl(message) {
       if (!message.audioPath) throw new Error('Keine Audiodatei');
       return message.audioPath;
+    },
+    async getActivities(maxKm) {
+      const s = await load();
+      const list = activities(s).filter((a) => visible(s, a)
+        && new Date(a.startsAt).getTime() > Date.now() - DAY
+        && (a.hostId === ME || a.memberIds.includes(ME) || (!a.cancelled && new Date(a.startsAt) > new Date() && a.distanceKm <= maxKm)));
+      await save();
+      const mine = (a: DemoActivity) => (a.hostId === ME || a.memberIds.includes(ME) ? 0 : 1);
+      return list.sort((x, y) => mine(x) - mine(y) || x.startsAt.localeCompare(y.startsAt)).map((a) => toActivity(s, a, false));
+    },
+    async getActivity(id) {
+      const s = await load();
+      const a = activities(s).find((x) => x.id === id);
+      if (!a || !visible(s, a) || (a.cancelled && !a.memberIds.includes(ME))) return null;
+      return toActivity(s, a, true);
+    },
+    async createActivity(input) {
+      const s = await load();
+      const start = new Date(input.startsAt).getTime();
+      if (start < Date.now() + 15 * 60_000 || start > Date.now() + 60 * DAY) throw new Error('Wähle einen Termin in den nächsten 60 Tagen.');
+      const hosting = activities(s).filter((a) => a.hostId === ME && !a.cancelled && new Date(a.startsAt) > new Date()).length;
+      if (hosting >= HOST_LIMIT[tierOf(s)]) throw new Error('LIMIT:activities');
+      const a: DemoActivity = {
+        id: uid(), hostId: ME, category: input.category, title: input.title.trim(), description: input.description.trim(),
+        startsAt: input.startsAt, place: input.place.trim(), city: s.me?.city, maxPeople: input.maxPeople, cancelled: false,
+        distanceKm: 0, memberIds: [ME],
+      };
+      s.activities!.push(a);
+      await save();
+      // someone nearby joins after a moment, so the group chat comes alive in the demo
+      setTimeout(async () => {
+        const st = await load();
+        const x = st.activities?.find((y) => y.id === a.id);
+        const guest = others(st).find((p) => !x?.memberIds.includes(p.id));
+        if (x && guest && !x.cancelled && x.memberIds.length < x.maxPeople) {
+          x.memberIds.push(guest.id);
+          const msg: ActivityMessage = { id: uid(), activityId: a.id, senderId: guest.id, text: `Hi, ich bin ${guest.name} – bin dabei! 🙌`, createdAt: new Date().toISOString() };
+          (st.activityMessages ??= []).push(msg);
+          await save();
+          emitActivityMessage(msg);
+        }
+      }, 4000);
+      return a.id;
+    },
+    async joinActivity(id) {
+      const s = await load();
+      const a = activities(s).find((x) => x.id === id);
+      if (!a || !visible(s, a)) throw new Error('Diese Aktivität gibt es nicht mehr.');
+      if (a.memberIds.includes(ME)) return;
+      if (a.cancelled) throw new Error('Diese Aktivität wurde abgesagt.');
+      if (new Date(a.startsAt) < new Date()) throw new Error('Diese Aktivität hat schon begonnen.');
+      if (a.memberIds.length >= a.maxPeople) throw new Error('Diese Aktivität ist schon voll.');
+      a.memberIds.push(ME);
+      await save();
+    },
+    async leaveActivity(id) {
+      const s = await load();
+      const a = activities(s).find((x) => x.id === id);
+      if (!a) return;
+      if (a.hostId === ME) throw new Error('Als Gastgeber:in kannst du die Aktivität absagen.');
+      a.memberIds = a.memberIds.filter((m) => m !== ME);
+      await save();
+    },
+    async cancelActivity(id) {
+      const s = await load();
+      const a = activities(s).find((x) => x.id === id && x.hostId === ME);
+      if (!a) throw new Error('Nur die Gastgeberin oder der Gastgeber kann absagen.');
+      a.cancelled = true;
+      await save();
+    },
+    async removeActivityMember(id, userId) {
+      const s = await load();
+      const a = activities(s).find((x) => x.id === id && x.hostId === ME);
+      if (!a) throw new Error('Nur die Gastgeberin oder der Gastgeber kann Personen entfernen.');
+      a.memberIds = a.memberIds.filter((m) => m !== userId || m === ME);
+      await save();
+    },
+    async getActivityMessages(id) {
+      const s = await load();
+      const a = activities(s).find((x) => x.id === id);
+      if (!a?.memberIds.includes(ME)) return [];
+      return (s.activityMessages ?? []).filter((m) => m.activityId === id && !s.blocked.includes(m.senderId));
+    },
+    async sendActivityMessage(id, text) {
+      const s = await load();
+      const a = activities(s).find((x) => x.id === id);
+      if (!a?.memberIds.includes(ME)) throw new Error('Tritt der Aktivität bei, um mitzuschreiben.');
+      if (a.cancelled) throw new Error('Diese Aktivität ist beendet.');
+      const msg: ActivityMessage = { id: uid(), activityId: id, senderId: ME, text, createdAt: new Date().toISOString() };
+      (s.activityMessages ??= []).push(msg);
+      await save();
+      emitActivityMessage(msg);
+      const other = a.memberIds.find((m) => m !== ME);
+      if (other) {
+        setTimeout(async () => {
+          const st = await load();
+          const reply: ActivityMessage = {
+            id: uid(), activityId: id, senderId: other, createdAt: new Date().toISOString(),
+            text: GROUP_REPLIES[Math.floor(Math.random() * GROUP_REPLIES.length)],
+          };
+          (st.activityMessages ??= []).push(reply);
+          await save();
+          emitActivityMessage(reply);
+        }, 2500);
+      }
+      return msg;
+    },
+    subscribeActivityMessages(id, cb) {
+      if (!actListeners.has(id)) actListeners.set(id, new Set());
+      actListeners.get(id)!.add(cb);
+      return () => actListeners.get(id)?.delete(cb);
     },
     async markRead(matchId) {
       const s = await load();

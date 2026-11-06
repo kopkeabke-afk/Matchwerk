@@ -186,4 +186,56 @@ set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000003';
 select tst.check((select count(*) from storage.objects where bucket_id = 'voice') = 0, 'outsiders cannot list voice messages');
 select tst.fails(format($f$insert into storage.objects (bucket_id, name) values ('voice', %L)$f$,
   :'voice_match' || '/99999999-0000-0000-0000-000000000003/x.m4a'), 'outsiders cannot upload into a foreign match');
+-- ───────── Aktivitäten (group activities) ─────────
+reset role;
+insert into auth.users (id, email) values
+  ('77777777-0000-0000-0000-000000000001','h@x'),('77777777-0000-0000-0000-000000000002','j@x'),
+  ('77777777-0000-0000-0000-000000000003','k@x'),('77777777-0000-0000-0000-000000000004','far@x');
+set role authenticated;
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000001';
+insert into profiles (id,name,birthdate,gender,interested_in,lat,lng,city,modes) values (auth.uid(),'Hanna','1960-02-02','woman','men',48.10,11.60,'München','{friends}');
+select create_activity('hike', 'Sonntagswanderung', 'Gemütlich, ca. 10 km', now() + interval '2 days', 'Parkplatz am See', 2) as act \gset
+select tst.check((select (a->>'is_host')::boolean and (a->>'member_count')::int = 1 from get_activities(50) a), 'host is a member of the new activity');
+select tst.check(not (get_activity(:'act') ? 'lat') and get_activity(:'act')->'host' ? 'name', 'activity shows host card but no coordinates');
+select tst.fails($$select create_activity('food', 'Pizza', '', now() + interval '3 days', 'Bei Toni', 4)$$, 'free users host one activity at a time');
+select tst.fails($$select create_activity('food', 'Gestern', '', now() - interval '1 day', 'Bei Toni', 4)$$, 'no activities in the past');
+select tst.fails($$insert into activities (host_id, category, title, starts_at, place) values (auth.uid(), 'other', 'Direkt', now() + interval '1 day', 'Hier')$$, 'activities cannot be inserted directly');
+
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000002';
+insert into profiles (id,name,birthdate,gender,interested_in,lat,lng,modes) values (auth.uid(),'Jonas','1999-03-03','man','women',48.12,11.58,'{dating}');
+select tst.check((select count(*) from get_activities(50)) = 1, 'nearby activity is listed – for every age and mode');
+select tst.check((select count(*) from activity_messages) = 0, 'group chat hidden before joining');
+select tst.fails(format('insert into activity_messages (activity_id, sender_id, text) values (%L, auth.uid(), %L)', :'act', 'Hi'), 'non-members cannot post');
+select join_activity(:'act');
+select tst.check((get_activity(:'act')->>'member_count')::int = 2 and (get_activity(:'act')->>'joined')::boolean, 'joining works');
+insert into activity_messages (activity_id, sender_id, text) values (:'act', auth.uid(), 'Ich bring Kaffee mit!');
+select tst.check((select count(*) from activity_messages) = 1, 'members can chat');
+
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000003';
+insert into profiles (id,name,birthdate,gender,interested_in,lat,lng) values (auth.uid(),'Kim','1990-04-04','nonbinary','everyone',48.11,11.61);
+select tst.fails(format('select join_activity(%L)', :'act'), 'full activities cannot be joined');
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000004';
+insert into profiles (id,name,birthdate,gender,interested_in,lat,lng) values (auth.uid(),'Fern','1990-04-04','woman','men',53.55,9.99);
+select tst.check((select count(*) from get_activities(50)) = 0, 'activities far away are not listed');
+
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000002';
+select tst.fails(format('select cancel_activity(%L)', :'act'), 'only the host can cancel');
+select leave_activity(:'act');
+select tst.check((select count(*) from activity_messages) = 0, 'after leaving the chat is closed again');
+
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000003';
+select join_activity(:'act');
+select tst.check((get_activity(:'act')->>'member_count')::int = 2, 'free spot can be taken again');
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000001';
+select block_user('77777777-0000-0000-0000-000000000003');
+select tst.check((get_activity(:'act')->>'member_count')::int = 1, 'blocking removes the person from my activity');
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000003';
+select tst.check(get_activity(:'act') is null and (select count(*) from get_activities(50)) = 0, 'blocked person no longer sees the activity');
+select tst.fails(format('select join_activity(%L)', :'act'), 'blocked person cannot rejoin');
+
+set request.jwt.claim.sub = '77777777-0000-0000-0000-000000000001';
+select cancel_activity(:'act');
+select tst.fails(format('insert into activity_messages (activity_id, sender_id, text) values (%L, auth.uid(), %L)', :'act', 'Noch da?'), 'no messages in cancelled activities');
+select tst.fails(format('select activity_json(a, p, true) from activities a, profiles p where a.id = %L limit 1', :'act'), 'internal activity helpers are not callable');
+select tst.check(create_activity('coffee', 'Kaffee am Markt', '', now() + interval '1 day', 'Marktcafé', 6) is not null, 'after cancelling a new activity can be hosted');
 \echo ALL DATABASE CHECKS PASSED

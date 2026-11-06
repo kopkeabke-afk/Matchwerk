@@ -66,6 +66,9 @@ function RootStack() {
         <Stack.Screen name="settings" options={{ title: 'Einstellungen' }} />
         <Stack.Screen name="report/[id]" options={{ title: 'Melden', presentation: 'modal' }} />
         <Stack.Screen name="premium" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="activity/new" options={{ title: 'Aktivität anbieten', presentation: 'modal' }} />
+        <Stack.Screen name="activity/[id]" options={{ title: '' }} />
+        <Stack.Screen name="activity/chat/[id]" options={{ title: 'Gruppenchat' }} />
       </Stack.Protected>
       <Stack.Screen name="legal/[doc]" options={{ title: '' }} />
     </Stack>

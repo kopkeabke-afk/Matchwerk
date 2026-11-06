@@ -145,10 +145,11 @@ In der Play Console:
 ## Projektstruktur
 ```
 src/app/            Screens (Expo Router)
-  (tabs)/           Entdecken · Likes · Chats · Profil
+  (tabs)/           Entdecken · Aktivitäten · Likes · Chats · Profil
   auth, sign-in, onboarding
   profile/[id]      Ganzes Profil, Like auf Foto/Prompt mit Kommentar
   chat/[id]         Echtzeit-Chat mit Sprachnachrichten, Icebreakern & Ablauf-Timer
+  activity/         Aktivitäten: anbieten (new), Details & Mitmachen ([id]), Gruppenchat (chat/[id])
   match/[id]        „Es ist ein Match!“
   edit-profile, filters, settings, report/[id], legal/[doc]
 src/components/     Swipe-Deck, Profilkarte, Profilansicht, Editoren, UI-Kit

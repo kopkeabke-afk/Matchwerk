@@ -1,5 +1,5 @@
-// Supabase Edge Function: sends Expo push notifications for new messages and matches.
-// Wire it up in Dashboard → Database → Webhooks: on INSERT of public.messages and public.matches,
+// Supabase Edge Function: sends Expo push notifications for new messages, matches and group-chat messages.
+// Wire it up in Dashboard → Database → Webhooks: on INSERT of public.messages, public.matches and public.activity_messages,
 // POST to this function with header `x-webhook-secret: <WEBHOOK_SECRET>`.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -31,7 +31,19 @@ Deno.serve(async (req) => {
 
   if (table === 'matches') {
     for (const uid of [record.user_a, record.user_b]) {
-      await push(uid, 'Es ist ein Match! 🔥', 'Ihr mögt euch gegenseitig – sag Hallo.', { url: `/chat/${record.id}` });
+      await push(uid, 'Es funkt! ✨', 'Ihr mögt euch gegenseitig – sag Hallo.', { url: `/chat/${record.id}` });
+    }
+  }
+  if (table === 'activity_messages') {
+    const [{ data: act }, { data: members }, { data: sender }] = await Promise.all([
+      sb.from('activities').select('title').eq('id', record.activity_id).single(),
+      sb.from('activity_members').select('user_id').eq('activity_id', record.activity_id),
+      sb.from('profiles').select('name').eq('id', record.sender_id).single(),
+    ]);
+    for (const m of members ?? []) {
+      if (m.user_id === record.sender_id) continue;
+      await push(m.user_id, act?.title ?? 'Gruppenchat', `${sender?.name ?? 'Jemand'}: ${String(record.text).slice(0, 110)}`,
+        { url: `/activity/chat/${record.activity_id}` });
     }
   }
   return new Response('ok');

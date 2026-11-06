@@ -20,6 +20,7 @@ const REASON_TEXT: Partial<Record<LimitReason, string>> = {
   superlikes: 'Dein Funke für heute ist vergeben. Hol dir mehr Funken einzeln oder täglich mit Matchwerk+ oder VIP.',
   boost: 'Mit einem Boost stehst du 30 Minuten ganz oben in den Stapeln in deiner Nähe.',
   extend: 'Mit Matchwerk+ kannst du Matches so oft verlängern, wie du willst.',
+  activities: 'Kostenlos kannst du eine Aktivität gleichzeitig anbieten. Mit Matchwerk+ sind es 5, mit VIP 10. Mitmachen ist immer kostenlos.',
 };
 
 const VIP_GOLD = ['#F2B544', '#B9781C'] as const;
