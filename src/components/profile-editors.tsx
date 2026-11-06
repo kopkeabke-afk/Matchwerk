@@ -90,7 +90,7 @@ export function PhotoGrid({ photos, onChange }: { photos: string[]; onChange: (p
 }
 
 /** Resize to max. 1080 px wide JPEG (~150–300 KB) – faster uploads, less storage, strips EXIF/GPS. */
-async function compress(uri: string, width?: number): Promise<string> {
+export async function compress(uri: string, width?: number): Promise<string> {
   try {
     const ctx = ImageManipulator.manipulate(uri);
     if (!width || width > 1080) ctx.resize({ width: 1080 });

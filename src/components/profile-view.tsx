@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { Fragment, type ReactNode } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
-import { GENDER_LABELS, INTENTION_EMOJI, INTENTION_LABELS, type LikeNote, type Mode, type Profile } from '@/lib/types';
+import { GENDER_LABELS, INTENTION_EMOJI, INTENTION_LABELS, type Activity, type LikeNote, type Mode, type Profile } from '@/lib/types';
 import { ageFrom, type Compatibility } from '@/lib/utils';
 
+import { ActivityMini } from './activity-card';
 import { Chip, T } from './ui';
 
 type Item = NonNullable<LikeNote['item']>;
@@ -27,9 +29,11 @@ export interface DecideActions {
  * With `actions`, the big first photo carries the decision: no on the left, yes on the right,
  * a Funke at the top centre – and the end of the profile repeats no / yes.
  */
-export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spark, actions }: {
+export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spark, actions, activities }: {
   profile: Profile; compat?: Compatibility; onLikeItem?: (item: Item) => void; mode?: Mode; spark?: boolean;
   actions?: DecideActions;
+  /** upcoming activities this person hosts or joined ("Macht mit bei") */
+  activities?: Activity[];
 }) {
   const c = useTheme();
   const age = ageFrom(profile.birthdate);
@@ -158,6 +162,16 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
             </View>
           )}
         </View>
+      </View>,
+    );
+  }
+
+  // 2b · Macht mit bei … – shared plans are the easiest way to start talking
+  if (activities?.length) {
+    blocks.push(
+      <View key="acts" style={{ gap: Space.sm }}>
+        <Text style={[styles.question, { color: c.textSecondary }]}>🎉 {profile.name} macht mit bei</Text>
+        {activities.map((a) => <ActivityMini key={a.id} a={a} onPress={() => router.push(`/activity/${a.id}`)} />)}
       </View>,
     );
   }

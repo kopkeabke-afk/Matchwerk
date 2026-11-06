@@ -7,6 +7,7 @@ import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ModeSwitch } from '@/components/mode-switch';
+import { ActivityCard, ActivityMini } from '@/components/activity-card';
 import { FunkeSheet } from '@/components/funke-sheet';
 import { LikeSheet } from '@/components/like-sheet';
 import { ProfileView } from '@/components/profile-view';
@@ -17,7 +18,7 @@ import { profileCache } from '@/lib/cache';
 import { bus } from '@/lib/events';
 import { useSession } from '@/lib/session';
 import { getTravelPlace, type Place } from '@/lib/location';
-import { limitReason, type LikeNote, type Limits, type Profile, type SwipeAction } from '@/lib/types';
+import { limitReason, type Activity, type LikeNote, type Limits, type Profile, type SwipeAction } from '@/lib/types';
 import { compatibility } from '@/lib/utils';
 
 export default function Discover() {
@@ -31,6 +32,11 @@ export default function Discover() {
   const [noteFor, setNoteFor] = useState<LikeNote['item'] | null>(null);
   const [sending, setSending] = useState(false);
   const [buyFunkeFor, setBuyFunkeFor] = useState<Profile | null>(null);
+  const [nearby, setNearby] = useState<Activity[]>([]);
+  const [personActs, setPersonActs] = useState<{ id: string; list: Activity[] } | null>(null);
+  // every few profiles we show what is going on nearby – Matchwerk is also about doing things together
+  const [decisions, setDecisions] = useState(0);
+  const [teaserDoneAt, setTeaserDoneAt] = useState(0);
   const refreshLimits = useCallback(() => { backend.getLimits().then(setLimits).catch(() => {}); }, []);
 
   const compat = useCallback((p: Profile) => compatibility(me!, p, mode), [me, mode]);
@@ -54,6 +60,16 @@ export default function Discover() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
   useFocusEffect(refreshLimits);
+  useFocusEffect(useCallback(() => {
+    backend.getActivities(filters.maxDistanceKm)
+      .then((l) => setNearby(l.filter((a) => !a.joined && !a.isHost && !a.cancelled && a.memberCount < a.maxPeople && new Date(a.startsAt) > new Date())))
+      .catch(() => {});
+  }, [filters.maxDistanceKm]));
+  const currentId = deck?.[0]?.id;
+  useEffect(() => {
+    if (!currentId) return;
+    backend.getPersonActivities(currentId).then((list) => setPersonActs({ id: currentId, list })).catch(() => {});
+  }, [currentId]);
   useFocusEffect(useCallback(() => { getTravelPlace().then(setTravel); }, []));
   useEffect(() => bus.on('swiped', ({ id }) => setDeck((d) => d?.filter((p) => p.id !== id) ?? d)), []);
 
@@ -65,6 +81,7 @@ export default function Discover() {
     }
     setDeck((d) => d?.filter((x) => x.id !== p.id) ?? d);
     setLast({ p, action });
+    setDecisions((n) => n + 1);
     try {
       const { match } = await backend.swipe(p.id, action, note, mode);
       if (match) {
@@ -111,6 +128,9 @@ export default function Discover() {
   }
 
   if (!me) return null;
+
+  const teaser = decisions > 0 && decisions % 5 === 0 && teaserDoneAt !== decisions && nearby.length > 0
+    ? nearby[(decisions / 5 - 1) % nearby.length] : null;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.background }} edges={['top']}>
@@ -165,7 +185,26 @@ export default function Discover() {
             : 'Du hast alle Profile in deiner Nähe gesehen. Erweitere deine Filter oder schau später wieder vorbei.'}>
           <Button title="Filter anpassen" icon="options-outline" onPress={() => router.push('/filters')} />
           <Button title="Neu laden" variant="ghost" onPress={() => { setDeck(null); load(); }} />
+          {nearby.length > 0 && (
+            <View style={{ alignSelf: 'stretch', gap: Space.sm, marginTop: Space.lg }}>
+              <Text style={{ color: c.text, fontWeight: '800', fontSize: 17, textAlign: 'center' }}>🎉 Dafür ist in deiner Nähe was los</Text>
+              {nearby.slice(0, 3).map((a) => <ActivityMini key={a.id} a={a} onPress={() => router.push(`/activity/${a.id}`)} />)}
+              <Button title="Alle Aktivitäten" variant="secondary" icon="people" onPress={() => router.push('/activities')} />
+            </View>
+          )}
         </Empty>
+      ) : teaser ? (
+        <ScrollView contentContainerStyle={[styles.feed, { gap: Space.lg, paddingTop: Space.md }]} showsVerticalScrollIndicator={false}>
+          <Animated.View entering={FadeIn.duration(250)} style={{ gap: Space.lg }}>
+            <View style={{ gap: 4, paddingHorizontal: Space.xs }}>
+              <Text style={{ color: Brand.text, fontWeight: '800', fontSize: 13, letterSpacing: 0.6, textTransform: 'uppercase' }}>Mal was anderes</Text>
+              <Text style={{ color: c.text, fontWeight: '800', fontSize: 26, letterSpacing: -0.4 }}>Lern Leute direkt kennen – bei einer Aktivität in deiner Nähe</Text>
+            </View>
+            <ActivityCard a={teaser} onPress={() => { setTeaserDoneAt(decisions); router.push(`/activity/${teaser.id}`); }} />
+            <Button title="Ansehen & mitmachen" icon="hand-right" onPress={() => { setTeaserDoneAt(decisions); router.push(`/activity/${teaser.id}`); }} />
+            <Button title="Weiter zu den Profilen" variant="ghost" onPress={() => setTeaserDoneAt(decisions)} />
+          </Animated.View>
+        </ScrollView>
       ) : (
         <>
           {/* one profile at a time, read like a page – no card swiping */}
@@ -173,6 +212,7 @@ export default function Discover() {
             <Animated.View entering={last ? FadeInRight.duration(260) : FadeIn.duration(200)}>
               <ProfileView profile={deck[0]} compat={compat(deck[0])} mode={mode} spark={deck[0].id === sparkId}
                 onLikeItem={(item) => setNoteFor(item)}
+                activities={personActs?.id === deck[0].id ? personActs.list : undefined}
                 actions={{
                   onPass: () => decide(deck[0], 'pass'),
                   onLike: () => decide(deck[0], 'like'),

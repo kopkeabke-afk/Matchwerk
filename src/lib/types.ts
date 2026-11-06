@@ -68,16 +68,20 @@ export interface Message {
   text: string;
   createdAt: string;
   /** 'voice' messages carry an audio file instead of (or next to) text */
-  kind?: 'text' | 'voice';
+  kind?: 'text' | 'voice' | 'invite';
   audioPath?: string;
   durationMs?: number;
+  /** for 'invite': the activity the match is invited to */
+  activityId?: string;
 }
 
 /** Longest voice message in seconds. */
 export const VOICE_MAX_SECONDS = 60;
 
 export function messagePreview(m: Message): string {
-  return m.kind === 'voice' ? '🎤 Sprachnachricht' : m.text;
+  if (m.kind === 'voice') return '🎤 Sprachnachricht';
+  if (m.kind === 'invite') return '🎉 Einladung zu einer Aktivität';
+  return m.text;
 }
 
 export interface Match {
@@ -224,6 +228,8 @@ export interface Activity {
   city?: string;
   maxPeople: number;
   cancelled: boolean;
+  /** own cover photo; otherwise the category picture is shown */
+  coverUrl?: string;
   distanceKm?: number;
   host: Person;
   isHost: boolean;
@@ -241,6 +247,7 @@ export interface NewActivity {
   startsAt: string;
   place: string;
   maxPeople: number;
+  coverUrl?: string;
 }
 
 export interface ActivityMessage {

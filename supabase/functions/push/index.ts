@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     if (!m) return new Response('ok');
     const to = m.user_a === record.sender_id ? m.user_b : m.user_a;
     const { data: sender } = await sb.from('profiles').select('name').eq('id', record.sender_id).single();
-    await push(to, sender?.name ?? 'Neue Nachricht', record.kind === 'voice' ? '🎤 Sprachnachricht' : String(record.text).slice(0, 120), { url: `/chat/${record.match_id}` });
+    await push(to, sender?.name ?? 'Neue Nachricht', record.kind === 'voice' ? '🎤 Sprachnachricht' : record.kind === 'invite' ? '🎉 Lädt dich zu einer Aktivität ein' : String(record.text).slice(0, 120), { url: `/chat/${record.match_id}` });
   }
 
   if (table === 'matches') {

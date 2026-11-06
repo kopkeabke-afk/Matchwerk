@@ -51,6 +51,10 @@ export interface Backend {
   getActivityMessages(id: string): Promise<ActivityMessage[]>;
   sendActivityMessage(id: string, text: string): Promise<ActivityMessage>;
   subscribeActivityMessages(id: string, cb: (m: ActivityMessage) => void): () => void;
+  /** upcoming activities a person hosts or joined ("Macht mit bei") */
+  getPersonActivities(userId: string): Promise<Activity[]>;
+  /** invite a match to an activity, as a chat message */
+  sendInvite(matchId: string, activityId: string, text: string): Promise<Message>;
   /** Uploads a recorded audio file (local uri) and sends it as a voice message. */
   sendVoice(matchId: string, localUri: string, durationMs: number): Promise<Message>;
   /** A playable url for a voice message (signed, short-lived on the server). */

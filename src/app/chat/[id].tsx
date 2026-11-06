@@ -6,6 +6,7 @@ import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, Pre
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, T } from '@/components/ui';
+import { InviteBubble, InviteSheet } from '@/components/invite';
 import { RecordingBar, useVoiceRecording, VoiceBubble } from '@/components/voice';
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
@@ -23,6 +24,7 @@ export default function Chat() {
   const [msgs, setMsgs] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [inviting, setInviting] = useState(false);
   const list = useRef<FlatList<Message>>(null);
 
   const load = useCallback(async () => {
@@ -139,6 +141,7 @@ export default function Chat() {
         }
         renderItem={({ item }) => {
           const mine = item.senderId === userId;
+          if (item.kind === 'invite') return <InviteBubble message={item} mine={mine} name={p.name} />;
           if (item.kind === 'voice') return <VoiceBubble message={item} mine={mine} surface={c.surface} text={c.text} />;
           return (
             <View style={[styles.bubble, mine ? styles.mine : [styles.theirs, { backgroundColor: c.surface }]]}>
@@ -168,6 +171,12 @@ export default function Chat() {
           />
         ) : (
           <>
+            {!waiting && (
+              <Pressable onPress={() => setInviting(true)} accessibilityLabel="Zu einer Aktivität einladen" hitSlop={6}
+                style={[styles.plus, { backgroundColor: c.surface }]}>
+                <Ionicons name="calendar" size={20} color={Brand.accent} />
+              </Pressable>
+            )}
             <TextInput
               value={text}
               onChangeText={setText}
@@ -198,6 +207,16 @@ export default function Chat() {
           </>
         )}
       </View>
+      <InviteSheet visible={inviting} name={p.name} onClose={() => setInviting(false)}
+        onPick={async (a) => {
+          setInviting(false);
+          try {
+            const m = await backend.sendInvite(id, a.id, `Lust, gemeinsam zu „${a.title}“ zu kommen?`);
+            setMsgs((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+          } catch (e) {
+            Alert.alert('Einladung nicht gesendet', (e as Error).message);
+          }
+        }} />
     </KeyboardAvoidingView>
   );
 }
@@ -211,5 +230,6 @@ const styles = StyleSheet.create({
   ice: { borderWidth: 1, borderRadius: Radius.pill, paddingHorizontal: 12, paddingVertical: 8, maxWidth: 280 },
   composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: Space.md, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth },
   input: { flex: 1, borderRadius: 22, paddingHorizontal: 16, paddingTop: 11, paddingBottom: 11, fontSize: 16, maxHeight: 120 },
+  plus: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   send: { width: 44, height: 44, borderRadius: 22, backgroundColor: Brand.primary, alignItems: 'center', justifyContent: 'center' },
 });

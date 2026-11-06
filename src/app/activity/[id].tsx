@@ -11,6 +11,7 @@ import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { categoryOf, type Activity, type Person } from '@/lib/types';
 import { formatWhen } from '@/lib/utils';
+import { coverOf } from '@/lib/covers';
 
 /** Ask before something irreversible – works on native and web. */
 function confirm(title: string, text: string, ok: string, run: () => void) {
@@ -90,12 +91,15 @@ export default function ActivityDetail() {
         ),
       }} />
       <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
-        <LinearGradient colors={Brand.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-          <Text style={{ fontSize: 44 }}>{cat.emoji}</Text>
-          <Text style={styles.heroCat}>{cat.label}</Text>
-          <Text style={styles.heroTitle}>{a.title}</Text>
-          {a.cancelled && <View style={styles.cancelled}><Text style={{ color: '#fff', fontWeight: '800' }}>Abgesagt</Text></View>}
-        </LinearGradient>
+        <View>
+          <Image source={coverOf(a)} style={styles.cover} contentFit="cover" transition={150} />
+          <LinearGradient colors={['rgba(20,6,30,0)', 'rgba(20,6,30,0.85)']} locations={[0.35, 1]} style={StyleSheet.absoluteFill} />
+          <View style={styles.heroText}>
+            <Text style={styles.heroCat}>{cat.emoji} {cat.label}</Text>
+            <Text style={styles.heroTitle}>{a.title}</Text>
+            {a.cancelled && <View style={styles.cancelled}><Text style={{ color: '#fff', fontWeight: '800' }}>Abgesagt</Text></View>}
+          </View>
+        </View>
 
         <View style={{ padding: Space.lg, gap: Space.lg }}>
           <View style={[styles.box, { backgroundColor: c.surface }]}>
@@ -150,7 +154,8 @@ export default function ActivityDetail() {
 }
 
 const styles = StyleSheet.create({
-  hero: { padding: Space.xl, paddingTop: Space.xxl, gap: 4, alignItems: 'flex-start' },
+  cover: { width: '100%', aspectRatio: 4 / 3, backgroundColor: '#2A0E3F' },
+  heroText: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: Space.xl, gap: 4, alignItems: 'flex-start' },
   heroCat: { color: '#FFE3A3', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6, fontSize: 13 },
   heroTitle: { color: '#fff', fontSize: 28, fontWeight: '800', letterSpacing: -0.4 },
   cancelled: { marginTop: 8, backgroundColor: Brand.pass, borderRadius: Radius.pill, paddingHorizontal: 12, paddingVertical: 4 },

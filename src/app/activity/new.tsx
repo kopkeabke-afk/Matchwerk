@@ -1,11 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { compress } from '@/components/profile-editors';
 import { Button, Field, T } from '@/components/ui';
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
+import { coverOf } from '@/lib/covers';
 import { ACTIVITY_CATEGORIES, limitReason, type ActivityCategory } from '@/lib/types';
 
 const MINUTES = [0, 15, 30, 45];
@@ -42,6 +46,8 @@ export default function NewActivity() {
   const [minute, setMinute] = useState(0);
   const [maxPeople, setMaxPeople] = useState(6);
   const [busy, setBusy] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string>();
+  const [uploading, setUploading] = useState(false);
   const [openedAt] = useState(() => Date.now());
 
   const startsAt = new Date(days[day]);
@@ -52,10 +58,28 @@ export default function NewActivity() {
   const dayLabel = (d: Date, i: number) =>
     i === 0 ? 'Heute' : i === 1 ? 'Morgen' : d.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' });
 
+  async function pickCover() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('Zugriff benötigt', 'Bitte erlaube den Zugriff auf deine Fotos in den Einstellungen.');
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [16, 9], quality: 1 });
+    if (res.canceled) return;
+    setUploading(true);
+    try {
+      setCoverUrl(await backend.uploadPhoto(await compress(res.assets[0].uri, res.assets[0].width)));
+    } catch (e) {
+      Alert.alert('Upload fehlgeschlagen', (e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function create() {
     setBusy(true);
     try {
-      const id = await backend.createActivity({ category, title, description, place, maxPeople, startsAt: startsAt.toISOString() });
+      const id = await backend.createActivity({ category, title, description, place, maxPeople, startsAt: startsAt.toISOString(), coverUrl });
       router.replace(`/activity/${id}`);
     } catch (e) {
       if (limitReason(e)) {
@@ -83,6 +107,21 @@ export default function NewActivity() {
                 </Pressable>
               );
             })}
+          </View>
+        </View>
+
+        <View style={styles.coverWrap}>
+          <Image source={coverOf({ category, coverUrl })} style={styles.cover} contentFit="cover" transition={150} />
+          <View style={styles.coverBar}>
+            <Pressable onPress={pickCover} disabled={uploading} accessibilityRole="button" style={styles.coverBtn}>
+              {uploading ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="image" size={16} color="#fff" />}
+              <Text style={styles.coverBtnText}>{coverUrl ? 'Anderes Foto' : 'Eigenes Titelbild'}</Text>
+            </Pressable>
+            {coverUrl && (
+              <Pressable onPress={() => setCoverUrl(undefined)} accessibilityRole="button" style={styles.coverBtn}>
+                <Text style={styles.coverBtnText}>Standardbild</Text>
+              </Pressable>
+            )}
           </View>
         </View>
 
@@ -138,6 +177,11 @@ export default function NewActivity() {
 
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  coverWrap: { borderRadius: Radius.lg, overflow: 'hidden' },
+  cover: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#2A0E3F' },
+  coverBar: { position: 'absolute', right: 10, bottom: 10, flexDirection: 'row', gap: 8 },
+  coverBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(20,6,30,0.7)', borderRadius: Radius.pill, paddingHorizontal: 12, paddingVertical: 8 },
+  coverBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   cat: { width: '23%', flexGrow: 1, alignItems: 'center', gap: 4, paddingVertical: 10, borderRadius: Radius.md, borderWidth: 1 },
   day: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: Radius.pill, borderWidth: 1 },
   timeRow: { flexDirection: 'row', gap: Space.md, alignItems: 'center', flexWrap: 'wrap' },

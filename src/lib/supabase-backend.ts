@@ -60,9 +60,10 @@ function fromProfile(p: Profile, id: string): Row {
 
 const toMessage = (r: Row): Message => ({
   id: r.id, matchId: r.match_id, senderId: r.sender_id, text: r.text ?? '', createdAt: r.created_at,
-  kind: r.kind === 'voice' ? 'voice' : 'text',
+  kind: r.kind === 'voice' || r.kind === 'invite' ? r.kind : 'text',
   audioPath: r.audio_path ?? undefined,
   durationMs: r.duration_ms ?? undefined,
+  activityId: r.activity_id ?? undefined,
 });
 
 const toPerson = (r: Row): Person => ({
@@ -73,7 +74,7 @@ const toActivityMessage = (r: Row): ActivityMessage => ({
 });
 const toActivity = (r: Row): Activity => ({
   id: r.id, category: r.category, title: r.title, description: r.description ?? '', startsAt: r.starts_at,
-  place: r.place, city: r.city ?? undefined, maxPeople: r.max_people, cancelled: !!r.cancelled,
+  place: r.place, city: r.city ?? undefined, maxPeople: r.max_people, cancelled: !!r.cancelled, coverUrl: r.cover_url ?? undefined,
   distanceKm: r.distance_km ?? undefined, host: toPerson(r.host ?? {}), isHost: !!r.is_host, joined: !!r.joined,
   memberCount: Number(r.member_count ?? 0), members: (r.members ?? []).map(toPerson),
   lastMessage: r.last_message ? toActivityMessage(r.last_message) : undefined,
@@ -289,7 +290,7 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     async createActivity(a) {
       return check(await sb.rpc('create_activity', {
         category: a.category, title: a.title, description: a.description, starts_at: a.startsAt,
-        place: a.place, max_people: a.maxPeople,
+        place: a.place, max_people: a.maxPeople, cover_url: a.coverUrl ?? null,
       })) as string;
     },
     async joinActivity(id) {
@@ -303,6 +304,15 @@ export function createSupabaseBackend(url: string, anonKey: string): Backend {
     },
     async removeActivityMember(id, userId) {
       check(await sb.rpc('remove_activity_member', { aid: id, uid: userId }));
+    },
+    async getPersonActivities(userId) {
+      const rows = check(await sb.rpc('person_activities', { uid: userId }));
+      return ((rows ?? []) as Row[]).map(toActivity);
+    },
+    async sendInvite(matchId, activityId, text) {
+      const id = await myId();
+      const row = check(await sb.from('messages').insert({ match_id: matchId, sender_id: id, text, kind: 'invite', activity_id: activityId }).select('*').single());
+      return toMessage(row);
     },
     async getActivityMessages(id) {
       const rows = check(await sb.from('activity_messages').select('*').eq('activity_id', id).order('created_at').limit(500));

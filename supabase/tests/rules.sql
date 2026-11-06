@@ -238,4 +238,22 @@ select cancel_activity(:'act');
 select tst.fails(format('insert into activity_messages (activity_id, sender_id, text) values (%L, auth.uid(), %L)', :'act', 'Noch da?'), 'no messages in cancelled activities');
 select tst.fails(format('select activity_json(a, p, true) from activities a, profiles p where a.id = %L limit 1', :'act'), 'internal activity helpers are not callable');
 select tst.check(create_activity('coffee', 'Kaffee am Markt', '', now() + interval '1 day', 'Marktcafé', 6) is not null, 'after cancelling a new activity can be hosted');
+-- ───────── activity covers, invites, "Macht mit bei" ─────────
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000002';
+select tst.fails($$select create_activity('hike', 'Mit fremdem Bild', '', now() + interval '1 day', 'Wald', 5, 'https://evil.example/x.jpg')$$, 'cover must be an own uploaded photo');
+select create_activity('hike', 'Mit eigenem Bild', '', now() + interval '1 day', 'Wald', 5,
+  'https://p.supabase.co/storage/v1/object/public/photos/99999999-0000-0000-0000-000000000002/cover.jpg') as cov \gset
+select tst.check(get_activity(:'cov')->>'cover_url' like '%/cover.jpg', 'own cover photo is stored');
+insert into messages (match_id, sender_id, text, kind, activity_id)
+  select id, auth.uid(), 'Kommst du mit?', 'invite', :'cov' from matches where mode = 'friends' and auth.uid() in (user_a, user_b);
+select tst.check((select count(*) from messages where kind = 'invite' and activity_id = :'cov') = 1, 'match can be invited to an activity');
+select tst.fails($$insert into messages (match_id, sender_id, text, kind) select id, auth.uid(), '', 'invite' from matches where mode = 'friends' and auth.uid() in (user_a, user_b)$$, 'invite needs an activity');
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000001';
+select tst.check((select count(*) from person_activities('99999999-0000-0000-0000-000000000002')) = 1, 'profile shows "Macht mit bei"');
+select tst.check(get_activity(:'cov') is not null, 'invited person can open the activity');
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000002';
+select cancel_activity(:'cov');
+select tst.fails(format($f$insert into messages (match_id, sender_id, text, kind, activity_id) select id, auth.uid(), '', 'invite', %L from matches where mode = 'friends' and auth.uid() in (user_a, user_b)$f$, :'cov'), 'no invites to cancelled activities');
+set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000001';
+select tst.check((select count(*) from person_activities('99999999-0000-0000-0000-000000000002')) = 0, 'cancelled activities leave the profile');
 \echo ALL DATABASE CHECKS PASSED

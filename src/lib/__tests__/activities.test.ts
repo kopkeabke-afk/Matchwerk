@@ -1,4 +1,5 @@
 import { createDemoBackend } from '../demo-backend';
+import { messagePreview } from '../types';
 import { formatWhen } from '../utils';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -66,6 +67,27 @@ describe('Aktivitäten (demo)', () => {
     expect((await b.getActivity(id))!.cancelled).toBe(true);
     await expect(b.sendActivityMessage(id, 'Noch da?')).rejects.toThrow();
     expect(await b.createActivity({ category: 'coffee', title: 'Kaffee', description: '', place: 'Markt', startsAt: inDays(1), maxPeople: 4 })).toBeTruthy();
+  });
+
+  it('shows "Macht mit bei", keeps own cover photos and lets you invite a match', async () => {
+    const b = await fresh();
+    const list = await b.getActivities(50);
+    const a = list.find((x) => !x.isHost && !x.joined && x.members.length > 0)!;
+    const someone = a.members[0];
+    expect((await b.getPersonActivities(someone.id)).map((x) => x.id)).toContain(a.id);
+
+    for (const mine of (await b.getActivities(50)).filter((x) => x.isHost && !x.cancelled)) await b.cancelActivity(mine.id);
+    const id = await b.createActivity({ category: 'games', title: 'Doppelkopf', description: '', place: 'Dorfkrug', startsAt: inDays(1), maxPeople: 4, coverUrl: 'file:///cover.jpg' });
+    expect((await b.getActivity(id))!.coverUrl).toBe('file:///cover.jpg');
+
+    const likes = await b.getIncomingLikes('friends');
+    const { match } = await b.swipe(likes[0].profile.id, 'like', undefined, 'friends');
+    const msg = await b.sendInvite(match!.id, id, 'Kommst du mit?');
+    expect(msg).toMatchObject({ kind: 'invite', activityId: id });
+    const [m] = (await b.getMatches()).filter((x) => x.id === match!.id);
+    expect(messagePreview(m.lastMessage!)).toBe('🎉 Einladung zu einer Aktivität');
+    await b.cancelActivity(id);
+    await expect(b.sendInvite(match!.id, id, 'Und jetzt?')).rejects.toThrow();
   });
 
   it('formats the time of an activity', () => {

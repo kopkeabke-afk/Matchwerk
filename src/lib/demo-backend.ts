@@ -30,7 +30,7 @@ interface State {
 
 interface DemoActivity {
   id: string; hostId: string; category: ActivityCategory; title: string; description: string; startsAt: string;
-  place: string; city?: string; maxPeople: number; cancelled: boolean; distanceKm: number; memberIds: string[];
+  place: string; city?: string; maxPeople: number; cancelled: boolean; distanceKm: number; memberIds: string[]; coverUrl?: string;
 }
 
 const HOST_LIMIT: Record<Tier, number> = { free: 1, plus: 5, vip: 10 };
@@ -138,7 +138,7 @@ export function createDemoBackend(): Backend {
     const msgs = (s.activityMessages ?? []).filter((m) => m.activityId === a.id);
     return {
       id: a.id, category: a.category, title: a.title, description: a.description, startsAt: a.startsAt, place: a.place,
-      city: a.city, maxPeople: a.maxPeople, cancelled: a.cancelled, distanceKm: a.distanceKm,
+      city: a.city, maxPeople: a.maxPeople, cancelled: a.cancelled, distanceKm: a.distanceKm, coverUrl: a.coverUrl,
       host: person(a.hostId, s) ?? { id: a.hostId, name: '?', verified: false, age: 0 },
       isHost: a.hostId === ME, joined: a.memberIds.includes(ME), memberCount: a.memberIds.length,
       members: all ? members : members.slice(0, 5), lastMessage: msgs[msgs.length - 1],
@@ -377,7 +377,7 @@ export function createDemoBackend(): Backend {
       const a: DemoActivity = {
         id: uid(), hostId: ME, category: input.category, title: input.title.trim(), description: input.description.trim(),
         startsAt: input.startsAt, place: input.place.trim(), city: s.me?.city, maxPeople: input.maxPeople, cancelled: false,
-        distanceKm: 0, memberIds: [ME],
+        distanceKm: 0, memberIds: [ME], coverUrl: input.coverUrl,
       };
       s.activities!.push(a);
       await save();
@@ -428,6 +428,30 @@ export function createDemoBackend(): Backend {
       if (!a) throw new Error('Nur die Gastgeberin oder der Gastgeber kann Personen entfernen.');
       a.memberIds = a.memberIds.filter((m) => m !== userId || m === ME);
       await save();
+    },
+    async getPersonActivities(userId) {
+      const s = await load();
+      return activities(s)
+        .filter((a) => visible(s, a) && !a.cancelled && new Date(a.startsAt) > new Date() && a.memberIds.includes(userId))
+        .sort((x, y) => x.startsAt.localeCompare(y.startsAt)).slice(0, 5).map((a) => toActivity(s, a, false));
+    },
+    async sendInvite(matchId, activityId, text) {
+      const s = await load();
+      const a = activities(s).find((x) => x.id === activityId);
+      if (!a || a.cancelled || new Date(a.startsAt) < new Date()) throw new Error('Zu dieser Aktivität kannst du nicht einladen.');
+      const msg: Message = { id: uid(), matchId, senderId: ME, text, createdAt: new Date().toISOString(), kind: 'invite', activityId };
+      s.messages.push(msg);
+      await save();
+      emitMessage(msg);
+      setTimeout(async () => {
+        const st = await load();
+        if (!st.matches.find((m) => m.id === matchId)) return;
+        const reply: Message = { id: uid(), matchId, senderId: 'other', text: 'Oh ja, da komm ich gern mit! 😍', createdAt: new Date().toISOString() };
+        st.messages.push(reply);
+        await save();
+        emitMessage(reply);
+      }, 2500);
+      return msg;
     },
     async getActivityMessages(id) {
       const s = await load();

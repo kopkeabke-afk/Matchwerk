@@ -9,9 +9,9 @@ import { Brand, Radius } from '@/constants/theme';
 import { APP } from '@/constants/app';
 
 const USPS: [string, string][] = [
+  ['🎉', 'Gemeinsam was erleben: Aktivitäten mit Gruppenchat'],
   ['✨', 'Sieh kostenlos, wer dich mag – und warum ihr passt'],
-  ['💬', 'Like ein Foto oder eine Antwort – mit Kommentar'],
-  ['👋', 'Dating oder neue Freunde – oder beides'],
+  ['👋', 'Dating, neue Freunde oder beides – jedes Alter'],
   ['🛡️', 'Verifizierte Profile und Melden in jedem Chat'],
 ];
 
@@ -31,6 +31,7 @@ export default function Welcome() {
             Match<Text style={{ color: Brand.accent }}>werk</Text>
           </Text>
           <Text style={styles.tagline}>{APP.slogan}</Text>
+          <Text style={styles.pillars}>Dating · Freunde · Aktivitäten</Text>
         </Animated.View>
         <Animated.View entering={FadeInDown.delay(200).duration(500)} style={{ gap: 16 }}>
           <View style={styles.usps}>
@@ -58,6 +59,7 @@ export default function Welcome() {
 }
 
 const styles = StyleSheet.create({
+  pillars: { color: Brand.accent, fontSize: 15, fontWeight: '800', letterSpacing: 0.4, textAlign: 'center', marginTop: 6 },
   glowWrap: { position: 'absolute', top: '8%', left: 0, right: 0, height: 420, alignItems: 'center', justifyContent: 'center' },
   wrap: { flex: 1, padding: 24, justifyContent: 'space-between' },
   hero: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 6 },

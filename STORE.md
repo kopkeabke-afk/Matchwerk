@@ -2,19 +2,20 @@
 
 ## Store-Eintrag (Play Console → Haupteintrag im Play Store)
 
-**App-Name (max. 30):** Matchwerk – Dating & Matches
-**Kurzbeschreibung (max. 80):** Sieh kostenlos, wer dich mag – und warum ihr wirklich zusammenpasst.
-**Kategorie:** Dating · **Tags:** Dating, Partnersuche, Soziales
+**App-Name (max. 30):** Matchwerk: Dating & Treffen
+**Kurzbeschreibung (max. 80):** Dating, neue Freunde & gemeinsame Aktivitäten in deiner Nähe – für jedes Alter.
+**Kategorie:** Dating · **Tags:** Dating, Partnersuche, Soziales, Freizeit
 
 **Vollständige Beschreibung (max. 4000):**
-Matchwerk ist die App für Menschen, die mehr wollen als endloses Durchklicken – für Dating und neue Freundschaften.
+Matchwerk ist die App für Menschen, die mehr wollen als endloses Durchklicken: Dating, neue Freundschaften und gemeinsame Aktivitäten in deiner Nähe.
 
 • Transparenter Match-Score: Du siehst, was ihr gemeinsam habt – Interessen, Absichten, Nähe.
 • Like, was dich wirklich anspricht: ein bestimmtes Foto oder eine Antwort, gern mit Kommentar.
 • Du entscheidest, wer zuerst schreibt – du, dein Match oder egal.
 • Kostenlos sehen, wer dich geliked hat.
 • Daily Spark: Jeden Tag dein kompatibelstes Profil zuerst.
-• Aktivitäten mit Gruppenchat: Wandern, Spieleabend, Kaffee – gemeinsam etwas erleben, für jedes Alter.
+• Aktivitäten mit Gruppenchat: Wandern, Spieleabend, Kaffee – mitmachen oder selbst anbieten, für jedes Alter.
+• Gemeinsam hingehen: Lade dein Match zu einer Aktivität ein – ein entspanntes erstes Treffen in der Gruppe.
 • Sprachnachrichten: Sag es einfach – bis zu 60 Sekunden, direkt im Chat.
 • Persönliche Gesprächsstarter, damit das erste „Hey“ nie wieder schwer ist.
 • Klare Absichten: von „Feste Beziehung“ bis „Neue Freundschaften“ – als Filter nutzbar.

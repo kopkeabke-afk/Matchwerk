@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { InterestPicker, locate, PhotoGrid, PromptEditor } from '@/components/profile-editors';
@@ -134,6 +134,13 @@ export default function Onboarding() {
               <T variant="h3">Ich bin hier für</T>
               <ModePicker value={p.modes ?? ['dating']} onChange={(modes) => set({ modes, intention: modes.includes('dating') ? (p.intention === 'friends' ? 'unsure' : p.intention) : 'friends' })} />
               <T muted variant="small">Du kannst beides wählen und später jederzeit oben in der App zwischen Dating und Freunden wechseln.</T>
+              <View style={[styles.actsHint, { backgroundColor: c.surface, borderColor: Brand.accent }]}>
+                <Text style={{ fontSize: 26 }}>🎉</Text>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <T style={{ fontWeight: '800' }}>Und für alle: Aktivitäten</T>
+                  <T muted variant="small">Wandern, Spieleabend, Kaffee am Markt – mitmachen oder selbst anbieten, mit Gruppenchat. Egal ob Dating oder Freunde.</T>
+                </View>
+              </View>
               {(p.modes ?? ['dating']).includes('dating') && (
                 <View style={{ gap: 10 }}>
                   <T variant="h3">Beim Dating suche ich</T>
@@ -176,6 +183,7 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
+  actsHint: { flexDirection: 'row', gap: Space.md, alignItems: 'center', padding: Space.lg, borderRadius: Radius.lg, borderWidth: 1.5 },
   progress: { flexDirection: 'row', gap: 4, paddingHorizontal: Space.xl, paddingTop: Space.md },
   seg: { flex: 1, height: 4, borderRadius: 2 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

@@ -13,7 +13,7 @@ import { backend } from '@/lib';
 import { profileCache } from '@/lib/cache';
 import { bus } from '@/lib/events';
 import { useSession } from '@/lib/session';
-import { limitReason, type LikeNote, type Profile, type SwipeAction } from '@/lib/types';
+import { limitReason, type Activity, type LikeNote, type Profile, type SwipeAction } from '@/lib/types';
 import { compatibility } from '@/lib/utils';
 
 export default function ProfileScreen() {
@@ -24,6 +24,8 @@ export default function ProfileScreen() {
   const [p, setP] = useState<Profile | null>(profileCache.get(id) ?? null);
   const [noteFor, setNoteFor] = useState<LikeNote['item'] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [acts, setActs] = useState<Activity[]>();
+  useEffect(() => { backend.getPersonActivities(id).then(setActs).catch(() => {}); }, [id]);
   const canSwipe = from === 'deck' || from === 'likes';
 
   useEffect(() => {
@@ -91,6 +93,7 @@ export default function ProfileScreen() {
     <View style={{ flex: 1, backgroundColor: c.background }}>
       <ScrollView contentContainerStyle={{ padding: Space.lg, paddingTop: Space.xxl, paddingBottom: insets.bottom + Space.xl }}>
         <ProfileView profile={p} compat={compatibility(me, p, mode)} mode={from === 'match' ? 'dating' : mode} onLikeItem={canSwipe ? (item) => setNoteFor(item) : undefined}
+          activities={acts}
           actions={canSwipe ? { onPass: () => act('pass'), onLike: () => act('like'), onFunke: () => act('superlike') } : undefined} />
         {canSwipe && (
           <T muted variant="small" style={{ textAlign: 'center', marginTop: Space.xl }}>
