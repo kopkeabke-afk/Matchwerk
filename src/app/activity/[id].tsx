@@ -6,12 +6,12 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ActivityCover } from '@/components/activity-card';
 import { Button, Empty, T } from '@/components/ui';
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { categoryOf, type Activity, type Person } from '@/lib/types';
 import { formatWhen } from '@/lib/utils';
-import { coverOf } from '@/lib/covers';
 
 /** Ask before something irreversible – works on native and web. */
 function confirm(title: string, text: string, ok: string, run: () => void) {
@@ -92,10 +92,10 @@ export default function ActivityDetail() {
       }} />
       <ScrollView contentContainerStyle={{ paddingBottom: 140 }}>
         <View>
-          <Image source={coverOf(a)} style={styles.cover} contentFit="cover" transition={150} />
+          <ActivityCover a={a} style={styles.cover} iconSize={84} />
           <LinearGradient colors={['rgba(20,6,30,0)', 'rgba(20,6,30,0.85)']} locations={[0.35, 1]} style={StyleSheet.absoluteFill} />
           <View style={styles.heroText}>
-            <Text style={styles.heroCat}>{cat.emoji} {cat.label}</Text>
+            <Text style={styles.heroCat}>{cat.label}</Text>
             <Text style={styles.heroTitle}>{a.title}</Text>
             {a.cancelled && <View style={styles.cancelled}><Text style={{ color: '#fff', fontWeight: '800' }}>Abgesagt</Text></View>}
           </View>
@@ -154,7 +154,7 @@ export default function ActivityDetail() {
 }
 
 const styles = StyleSheet.create({
-  cover: { width: '100%', aspectRatio: 4 / 3, backgroundColor: '#2A0E3F' },
+  cover: { width: '100%', aspectRatio: 16 / 10 },
   heroText: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: Space.xl, gap: 4, alignItems: 'flex-start' },
   heroCat: { color: '#FFE3A3', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6, fontSize: 13 },
   heroTitle: { color: '#fff', fontSize: 28, fontWeight: '800', letterSpacing: -0.4 },

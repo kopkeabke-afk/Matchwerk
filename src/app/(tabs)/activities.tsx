@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ActivityCard } from '@/components/activity-card';
+import { ActivityAgenda } from '@/components/activity-card';
 import { Button, Empty, T } from '@/components/ui';
 import { Brand, Radius, Space, TabInset, useTheme, WebTabTop } from '@/constants/theme';
 import { backend } from '@/lib';
@@ -53,7 +53,7 @@ export default function Activities() {
             {mine.length > 0 && (
               <View style={{ gap: Space.md }}>
                 <T variant="h2">Deine Aktivitäten</T>
-                {mine.map((a) => <ActivityCard key={a.id} a={a} onPress={() => open(a)} />)}
+                <ActivityAgenda list={mine} onOpen={open} />
               </View>
             )}
 
@@ -68,7 +68,7 @@ export default function Activities() {
                   return (
                     <Pressable key={id ?? 'all'} onPress={() => setCat(id)} accessibilityRole="button" accessibilityState={{ selected: on }}
                       style={[styles.filter, { backgroundColor: on ? Brand.primary : c.surface, borderColor: on ? Brand.primary : c.border }]}>
-                      <Text style={{ color: on ? '#fff' : c.text, fontWeight: '700', fontSize: 14 }}>{info ? `${info.emoji} ${info.label}` : 'Alle'}</Text>
+                      <Text style={{ color: on ? '#fff' : c.text, fontWeight: '700', fontSize: 14 }}>{info ? info.label : 'Alle'}</Text>
                     </Pressable>
                   );
                 })}
@@ -78,7 +78,7 @@ export default function Activities() {
                 <Empty icon="people" title="Noch nichts in deiner Nähe"
                   text={cat ? 'In dieser Kategorie gibt es gerade nichts. Starte doch selbst etwas!' : 'Sei die erste Person und biete etwas an – Kaffee, Wandern, Spieleabend …'} />
               ) : (
-                nearby.map((a) => <ActivityCard key={a.id} a={a} onPress={() => open(a)} />)
+                <ActivityAgenda list={nearby} onOpen={open} />
               )}
             </View>
 

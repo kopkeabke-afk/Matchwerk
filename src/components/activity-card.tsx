@@ -1,107 +1,152 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
-import { coverOf } from '@/lib/covers';
-import { categoryOf, type Activity, type Person } from '@/lib/types';
+import type { Activity, ActivityCategory, Person } from '@/lib/types';
 import { formatWhen } from '@/lib/utils';
 
 import { T } from './ui';
 
+type IconName = keyof typeof Ionicons.glyphMap;
+
+/**
+ * Calm category look: one plum gradient family, a single thin gold line icon.
+ * The shades shift only slightly between categories so a list stays quiet.
+ */
+export const CATEGORY_STYLE: Record<ActivityCategory, { icon: IconName; colors: readonly [string, string] }> = {
+  coffee: { icon: 'cafe-outline', colors: ['#5E2E5C', '#2A0E3F'] },
+  hike: { icon: 'trail-sign-outline', colors: ['#3F3A78', '#1F1238'] },
+  drinks: { icon: 'beer-outline', colors: ['#6B3150', '#2A0E3F'] },
+  games: { icon: 'dice-outline', colors: ['#4B2C86', '#22103F'] },
+  sport: { icon: 'bicycle-outline', colors: ['#2F4776', '#1A1236'] },
+  culture: { icon: 'color-palette-outline', colors: ['#6E2C6F', '#2A0E3F'] },
+  food: { icon: 'restaurant-outline', colors: ['#6A3A45', '#2A0E3F'] },
+  other: { icon: 'sparkles-outline', colors: ['#5B2687', '#2A0E3F'] },
+};
+
+/** The picture of an activity: the host's own photo, otherwise the calm category cover. */
+export function ActivityCover({ a, iconSize = 26, style }: {
+  a: Pick<Activity, 'coverUrl' | 'category'>; iconSize?: number; style?: StyleProp<ViewStyle>;
+}) {
+  if (a.coverUrl) {
+    return (
+      <View style={[{ overflow: 'hidden', backgroundColor: '#2A0E3F' }, style]}>
+        <Image source={{ uri: a.coverUrl }} style={StyleSheet.absoluteFill} contentFit="cover" transition={150} />
+      </View>
+    );
+  }
+  const st = CATEGORY_STYLE[a.category] ?? CATEGORY_STYLE.other;
+  return (
+    <LinearGradient colors={st.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.coverBox, style]}>
+      <Ionicons name={st.icon} size={iconSize} color="#F4D58D" />
+    </LinearGradient>
+  );
+}
+
 /** Overlapping round photos of the first members. */
-export function Faces({ people, size = 28, max = 5, border }: { people: Person[]; size?: number; max?: number; border: string }) {
+export function Faces({ people, size = 22, max = 4, border }: { people: Person[]; size?: number; max?: number; border: string }) {
   return (
     <View style={{ flexDirection: 'row' }}>
       {people.slice(0, max).map((p, i) => (
         <Image key={p.id} source={p.photo} accessibilityLabel={p.name}
-          style={{ width: size, height: size, borderRadius: size / 2, marginLeft: i ? -size / 3 : 0, borderWidth: 2, borderColor: border, backgroundColor: '#3A1358' }} />
+          style={{ width: size, height: size, borderRadius: size / 2, marginLeft: i ? -size / 3 : 0, borderWidth: 1.5, borderColor: border, backgroundColor: '#3A1358' }} />
       ))}
     </View>
   );
 }
 
-/** The tear-off date of a ticket: weekday, big day number, month. */
-function DateStub({ iso }: { iso: string }) {
+const timeOf = (iso: string) => new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+/** "Heute" · "Morgen" · "Samstag, 7. November" – headers of the agenda. */
+export function dayLabel(iso: string, now = new Date()) {
   const d = new Date(iso);
-  return (
-    <View style={styles.stub} accessibilityElementsHidden>
-      <Text style={styles.stubDay}>{d.toLocaleDateString('de-DE', { weekday: 'short' }).replace('.', '')}</Text>
-      <Text style={styles.stubNum}>{d.getDate()}</Text>
-      <Text style={styles.stubMonth}>{d.toLocaleDateString('de-DE', { month: 'short' }).replace('.', '')}</Text>
-    </View>
-  );
+  const day = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day(d) - day(now)) / 86_400_000);
+  if (diff === 0) return 'Heute';
+  if (diff === 1) return 'Morgen';
+  return d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
-function badgeOf(a: Activity) {
-  if (a.cancelled) return { text: 'Abgesagt', bg: Brand.pass, fg: '#fff' };
-  if (a.isHost) return { text: 'Du lädst ein', bg: Brand.accent, fg: '#2A0E3F' };
-  if (a.joined) return { text: 'Du bist dabei ✓', bg: Brand.accent, fg: '#2A0E3F' };
-  if (a.memberCount >= a.maxPeople) return { text: 'Voll', bg: 'rgba(20,6,30,0.75)', fg: '#fff' };
+function status(a: Activity): { text: string; color: string } | null {
+  if (a.cancelled) return { text: 'Abgesagt', color: Brand.pass };
+  if (a.isHost) return { text: 'Du lädst ein', color: Brand.accent };
+  if (a.joined) return { text: 'Dabei ✓', color: Brand.accent };
+  if (a.memberCount >= a.maxPeople) return { text: 'Voll', color: '#9A8FA6' };
   return null;
 }
 
 /**
- * An activity as a Matchwerk ticket: big picture with the date stub, a perforated
- * tear-off line, then title, time, place and who is coming.
+ * One activity as a compact agenda row: time, small picture, title, place and who is coming.
+ * Six or seven fit on a phone screen.
  */
-export function ActivityCard({ a, onPress, pageBg }: { a: Activity; onPress: () => void; pageBg?: string }) {
+export function ActivityRow({ a, onPress, last }: { a: Activity; onPress: () => void; last?: boolean }) {
   const c = useTheme();
-  const cat = categoryOf(a.category);
   const free = Math.max(0, a.maxPeople - a.memberCount);
-  const badge = badgeOf(a);
-  const notch = pageBg ?? c.background;
+  const st = status(a);
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${a.title}, ${formatWhen(a.startsAt)}, ${a.place}`}
-      style={({ pressed }) => [styles.ticket, { backgroundColor: c.surface, transform: [{ scale: pressed ? 0.985 : 1 }] }]}>
-      <View>
-        <Image source={coverOf(a)} style={styles.cover} contentFit="cover" transition={150} />
-        <LinearGradient colors={['rgba(20,6,30,0)', 'rgba(20,6,30,0.55)']} style={StyleSheet.absoluteFill} pointerEvents="none" />
-        <DateStub iso={a.startsAt} />
-        {badge && <View style={[styles.badge, { backgroundColor: badge.bg }]}><Text style={[styles.badgeText, { color: badge.fg }]}>{badge.text}</Text></View>}
-        <View style={styles.catChip}><Text style={styles.catText}>{cat.emoji} {cat.label}</Text></View>
+      style={({ pressed }) => [styles.row, { backgroundColor: pressed ? c.surfaceStrong : 'transparent' }]}>
+      <View style={styles.time}>
+        <Text style={[styles.timeText, { color: c.text }]}>{timeOf(a.startsAt)}</Text>
       </View>
-
-      {/* perforated tear-off line */}
-      <View style={styles.perf}>
-        <View style={[styles.notch, { left: -11, backgroundColor: notch }]} />
-        <View style={[styles.dashes, { borderColor: c.border }]} />
-        <View style={[styles.notch, { right: -11, backgroundColor: notch }]} />
-      </View>
-
-      <View style={styles.body}>
-        <T variant="h3" numberOfLines={2} style={{ fontSize: 19 }}>{a.title}</T>
-        <T variant="small" muted numberOfLines={1}>
-          🕙 {formatWhen(a.startsAt)} · 📍 {a.place}
-          {a.distanceKm != null && !a.isHost ? ` · ${a.distanceKm} km` : ''}
-        </T>
-        <View style={styles.row}>
+      <ActivityCover a={a} style={styles.thumb} iconSize={24} />
+      <View style={[styles.info, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.border }]}>
+        <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>{a.title}</Text>
+        <Text style={[styles.meta, { color: c.textSecondary }]} numberOfLines={1}>
+          {a.place}{a.distanceKm != null && !a.isHost ? ` · ${a.distanceKm} km` : ''}
+        </Text>
+        <View style={styles.people}>
           <Faces people={a.members} border={c.surface} />
-          <T variant="small" muted style={{ flex: 1 }}>{a.memberCount} dabei</T>
-          {!a.cancelled && (
-            <Text style={[styles.free, { color: free ? Brand.text : c.textSecondary }]}>
-              {free ? `${free} ${free === 1 ? 'Platz' : 'Plätze'} frei` : 'ausgebucht'}
-            </Text>
-          )}
+          <Text style={[styles.meta, { color: c.textSecondary }]}>
+            {a.memberCount} dabei{!a.cancelled && free > 0 ? ` · ${free} frei` : ''}
+          </Text>
+          <View style={{ flex: 1 }} />
+          {st && <Text style={[styles.status, { color: st.color }]}>{st.text}</Text>}
         </View>
       </View>
     </Pressable>
   );
 }
 
-/** Small horizontal ticket for lists inside other screens (profile, invites, chat). */
+/** Several rows grouped under day headers, each day on one calm card. */
+export function ActivityAgenda({ list, onOpen }: { list: Activity[]; onOpen: (a: Activity) => void }) {
+  const c = useTheme();
+  const days: { label: string; items: Activity[] }[] = [];
+  for (const a of list) {
+    const label = dayLabel(a.startsAt);
+    const g = days[days.length - 1];
+    if (g?.label === label) g.items.push(a);
+    else days.push({ label, items: [a] });
+  }
+  return (
+    <View style={{ gap: Space.md }}>
+      {days.map((d) => (
+        <View key={d.label} style={{ gap: 6 }}>
+          <Text style={[styles.day, { color: Brand.text }]}>{d.label}</Text>
+          <View style={[styles.group, { backgroundColor: c.surface }]}>
+            {d.items.map((a, i) => <ActivityRow key={a.id} a={a} onPress={() => onOpen(a)} last={i === d.items.length - 1} />)}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** Small horizontal entry for lists inside other screens (profile, invites, chat). */
 export function ActivityMini({ a, onPress, right }: { a: Activity; onPress?: () => void; right?: ReactNode }) {
   const c = useTheme();
   return (
     <Pressable onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={`${a.title}, ${formatWhen(a.startsAt)}`}
       style={({ pressed }) => [styles.mini, { backgroundColor: c.surface, borderColor: c.border, opacity: pressed ? 0.85 : 1 }]}>
-      <Image source={coverOf(a)} style={styles.miniImg} contentFit="cover" />
-      <View style={{ flex: 1, gap: 2 }}>
+      <ActivityCover a={a} style={styles.miniImg} iconSize={22} />
+      <View style={{ flex: 1, gap: 1 }}>
         <T variant="small" style={{ color: Brand.text, fontWeight: '800' }}>{formatWhen(a.startsAt)}</T>
         <T style={{ fontWeight: '700' }} numberOfLines={1}>{a.title}</T>
-        <T variant="small" muted numberOfLines={1}>📍 {a.place} · {a.memberCount}/{a.maxPeople} dabei</T>
+        <T variant="small" muted numberOfLines={1}>{a.place} · {a.memberCount}/{a.maxPeople} dabei</T>
       </View>
       {right}
     </Pressable>
@@ -109,26 +154,18 @@ export function ActivityMini({ a, onPress, right }: { a: Activity; onPress?: () 
 }
 
 const styles = StyleSheet.create({
-  ticket: { borderRadius: Radius.xl, overflow: 'hidden' },
-  cover: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#2A0E3F' },
-  stub: {
-    position: 'absolute', top: 12, left: 12, width: 58, paddingVertical: 6, borderRadius: 14, alignItems: 'center',
-    backgroundColor: '#FFF6E6', borderWidth: 2, borderColor: Brand.accent,
-    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 4,
-  },
-  stubDay: { color: '#8A5A12', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
-  stubNum: { color: '#2A0E3F', fontSize: 24, fontWeight: '900', lineHeight: 26 },
-  stubMonth: { color: '#5B2687', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
-  badge: { position: 'absolute', top: 14, right: 12, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 5 },
-  badgeText: { fontSize: 12, fontWeight: '800' },
-  catChip: { position: 'absolute', left: 12, bottom: 12, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: 'rgba(20,6,30,0.6)' },
-  catText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  perf: { height: 22, justifyContent: 'center' },
-  notch: { position: 'absolute', top: 0, width: 22, height: 22, borderRadius: 11 },
-  dashes: { marginHorizontal: 18, borderTopWidth: 2, borderStyle: 'dashed' },
-  body: { paddingHorizontal: Space.lg, paddingBottom: Space.lg, gap: 6 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, marginTop: 4 },
-  free: { fontSize: 13, fontWeight: '800' },
+  coverBox: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  day: { fontSize: 13, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase', paddingHorizontal: 4 },
+  group: { borderRadius: Radius.lg, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', paddingLeft: Space.md, gap: Space.md },
+  time: { width: 44 },
+  timeText: { fontSize: 15, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  thumb: { width: 52, height: 52, borderRadius: 14 },
+  info: { flex: 1, paddingVertical: 12, paddingRight: Space.md, gap: 2 },
+  title: { fontSize: 16, fontWeight: '700' },
+  meta: { fontSize: 13 },
+  people: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
+  status: { fontSize: 12, fontWeight: '800' },
   mini: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: 10, borderRadius: Radius.lg, borderWidth: 1 },
-  miniImg: { width: 64, height: 64, borderRadius: 12, backgroundColor: '#2A0E3F' },
+  miniImg: { width: 52, height: 52, borderRadius: 12 },
 });

@@ -9,7 +9,7 @@ import { T } from '@/components/ui';
 import { Brand, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { useSession } from '@/lib/session';
-import { categoryOf, type Activity, type ActivityMessage, type Person } from '@/lib/types';
+import type { Activity, ActivityMessage, Person } from '@/lib/types';
 import { formatWhen } from '@/lib/utils';
 
 export default function GroupChat() {
@@ -62,7 +62,7 @@ export default function GroupChat() {
       <Stack.Screen options={{
         headerTitle: () => (
           <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Details der Aktivität">
-            <T variant="h3" numberOfLines={1}>{a ? `${categoryOf(a.category).emoji} ${a.title}` : 'Gruppenchat'}</T>
+            <T variant="h3" numberOfLines={1}>{a ? a.title : 'Gruppenchat'}</T>
             {a && <T variant="small" muted numberOfLines={1}>{formatWhen(a.startsAt)} · {a.memberCount} dabei</T>}
           </Pressable>
         ),

@@ -7,7 +7,7 @@ import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ModeSwitch } from '@/components/mode-switch';
-import { ActivityCard, ActivityMini } from '@/components/activity-card';
+import { ActivityAgenda, ActivityMini } from '@/components/activity-card';
 import { FunkeSheet } from '@/components/funke-sheet';
 import { LikeSheet } from '@/components/like-sheet';
 import { ProfileView } from '@/components/profile-view';
@@ -200,8 +200,8 @@ export default function Discover() {
               <Text style={{ color: Brand.text, fontWeight: '800', fontSize: 13, letterSpacing: 0.6, textTransform: 'uppercase' }}>Mal was anderes</Text>
               <Text style={{ color: c.text, fontWeight: '800', fontSize: 26, letterSpacing: -0.4 }}>Lern Leute direkt kennen – bei einer Aktivität in deiner Nähe</Text>
             </View>
-            <ActivityCard a={teaser} onPress={() => { setTeaserDoneAt(decisions); router.push(`/activity/${teaser.id}`); }} />
-            <Button title="Ansehen & mitmachen" icon="hand-right" onPress={() => { setTeaserDoneAt(decisions); router.push(`/activity/${teaser.id}`); }} />
+            <ActivityAgenda list={nearby.slice(0, 5)} onOpen={(x) => { setTeaserDoneAt(decisions); router.push(`/activity/${x.id}`); }} />
+            <Button title="Alle Aktivitäten" icon="people" onPress={() => { setTeaserDoneAt(decisions); router.push('/activities'); }} />
             <Button title="Weiter zu den Profilen" variant="ghost" onPress={() => setTeaserDoneAt(decisions)} />
           </Animated.View>
         </ScrollView>

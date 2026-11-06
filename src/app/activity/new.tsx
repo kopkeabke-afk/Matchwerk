@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { ActivityCover, CATEGORY_STYLE } from '@/components/activity-card';
 import { compress } from '@/components/profile-editors';
 import { Button, Field, T } from '@/components/ui';
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
-import { coverOf } from '@/lib/covers';
 import { ACTIVITY_CATEGORIES, limitReason, type ActivityCategory } from '@/lib/types';
 
 const MINUTES = [0, 15, 30, 45];
@@ -102,7 +101,7 @@ export default function NewActivity() {
               return (
                 <Pressable key={x.id} onPress={() => setCategory(x.id)} accessibilityRole="button" accessibilityState={{ selected: on }}
                   style={[styles.cat, { backgroundColor: on ? Brand.primary : c.surface, borderColor: on ? Brand.primary : c.border }]}>
-                  <Text style={{ fontSize: 22 }}>{x.emoji}</Text>
+                  <Ionicons name={CATEGORY_STYLE[x.id].icon} size={22} color={on ? '#fff' : Brand.text} />
                   <Text style={{ color: on ? '#fff' : c.text, fontWeight: '700', fontSize: 13 }}>{x.label}</Text>
                 </Pressable>
               );
@@ -111,7 +110,7 @@ export default function NewActivity() {
         </View>
 
         <View style={styles.coverWrap}>
-          <Image source={coverOf({ category, coverUrl })} style={styles.cover} contentFit="cover" transition={150} />
+          <ActivityCover a={{ category, coverUrl }} style={styles.cover} iconSize={56} />
           <View style={styles.coverBar}>
             <Pressable onPress={pickCover} disabled={uploading} accessibilityRole="button" style={styles.coverBtn}>
               {uploading ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="image" size={16} color="#fff" />}
@@ -178,7 +177,7 @@ export default function NewActivity() {
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   coverWrap: { borderRadius: Radius.lg, overflow: 'hidden' },
-  cover: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#2A0E3F' },
+  cover: { width: '100%', aspectRatio: 16 / 7 },
   coverBar: { position: 'absolute', right: 10, bottom: 10, flexDirection: 'row', gap: 8 },
   coverBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(20,6,30,0.7)', borderRadius: Radius.pill, paddingHorizontal: 12, paddingVertical: 8 },
   coverBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
