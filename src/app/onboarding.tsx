@@ -3,17 +3,18 @@ import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, Vi
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { InterestPicker, locate, PhotoGrid, PromptEditor } from '@/components/profile-editors';
+import { GenderEditor, PrefsEditor, TraitsEditor } from '@/components/traits-editors';
 import { Button, Chip, Field, T } from '@/components/ui';
 import { Brand, Radius, Space, useTheme } from '@/constants/theme';
 import { backend } from '@/lib';
 import { useSession } from '@/lib/session';
 import {
-  FIRST_MOVE_LABELS, GENDER_LABELS, INTENTION_EMOJI, INTENTION_LABELS, INTEREST_LABELS,
-  type FirstMove, type Gender, type Intention, type Interest, type Mode, type Profile,
+  FIRST_MOVE_LABELS, INTENTION_EMOJI, INTENTION_LABELS,
+  type FirstMove, type Intention, type Mode, type Profile,
 } from '@/lib/types';
 import { isAdult } from '@/lib/utils';
 
-const STEPS = 8;
+const STEPS = 10;
 
 function ModePicker({ value, onChange }: { value: Mode[]; onChange: (m: Mode[]) => void }) {
   const toggle = (m: Mode) => {
@@ -39,6 +40,7 @@ export default function Onboarding() {
   const [p, setP] = useState<Profile>({
     id: '', name: '', birthdate: '', gender: 'woman', interestedIn: 'men', bio: '', photos: [], prompts: [],
     interests: [], intention: 'long_term', verified: false, firstMove: 'anyone', paused: false, modes: ['dating'],
+    seeking: ['man'], traits: {}, prefs: {},
   });
   const set = (patch: Partial<Profile>) => setP((x) => ({ ...x, ...patch }));
   const birthdate = `${yyyy.padStart(4, '0')}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
@@ -47,6 +49,8 @@ export default function Onboarding() {
   const valid = [
     p.name.trim().length >= 2,
     dateValid && isAdult(birthdate),
+    true,
+    true,
     true,
     true,
     p.photos.length >= 2,
@@ -77,11 +81,13 @@ export default function Onboarding() {
 
   const titles = [
     'Wie heißt du?', 'Wann hast du Geburtstag?', 'Erzähl uns von dir', 'Was suchst du?',
-    'Zeig dich', 'Was begeistert dich?', 'Gib Gesprächsstoff', 'Fast fertig!',
+    'Über dich', 'Was dir wichtig ist', 'Zeig dich', 'Was begeistert dich?', 'Gib Gesprächsstoff', 'Fast fertig!',
   ];
   const subtitles = [
     'So wird dein Name auf matchwerk angezeigt.', 'Dein Alter wird angezeigt, dein Geburtsdatum nicht.', '',
     'Dating, neue Freunde oder beides – wir zeigen dir Menschen mit ähnlichen Zielen.',
+    'Alles freiwillig – je mehr du angibst, desto genauer wird dein Match-Score. Tippe nochmal, um eine Auswahl zu entfernen.',
+    'Unser Match-Score rechnet in beide Richtungen und gewichtet, was dir wichtig ist. Alles später änderbar.',
     'Mindestens 2 Fotos. Tipp: Gesicht gut sichtbar, natürliches Licht.',
     'Wähle 3–10 Interessen. Gemeinsamkeiten erhöhen deinen Match-Score.',
     'Beantworte mindestens 2 Prompts – sie sind der beste Einstieg ins Gespräch.',
@@ -112,22 +118,7 @@ export default function Onboarding() {
             </View>
           )}
 
-          {step === 2 && (
-            <View style={{ gap: Space.lg }}>
-              <T variant="h3">Ich bin</T>
-              <View style={styles.wrap}>
-                {(Object.keys(GENDER_LABELS) as Gender[]).map((g) => (
-                  <Chip key={g} label={GENDER_LABELS[g]} selected={p.gender === g} onPress={() => set({ gender: g })} />
-                ))}
-              </View>
-              <T variant="h3">Ich möchte kennenlernen</T>
-              <View style={styles.wrap}>
-                {(Object.keys(INTEREST_LABELS) as Interest[]).map((g) => (
-                  <Chip key={g} label={INTEREST_LABELS[g]} selected={p.interestedIn === g} onPress={() => set({ interestedIn: g })} />
-                ))}
-              </View>
-            </View>
-          )}
+          {step === 2 && <GenderEditor p={p} onChange={set} />}
 
           {step === 3 && (
             <View style={{ gap: Space.lg }}>
@@ -152,15 +143,23 @@ export default function Onboarding() {
             </View>
           )}
 
-          {step === 4 && <PhotoGrid photos={p.photos} onChange={(photos) => set({ photos })} />}
-          {step === 5 && <InterestPicker value={p.interests} onChange={(interests) => set({ interests })} />}
-          {step === 6 && (
+          {step === 4 && (
+            <View style={{ gap: Space.lg }}>
+              <Field label="Größe (cm, optional)" value={p.heightCm ? String(p.heightCm) : ''} keyboardType="number-pad" placeholder="z. B. 172"
+                onChangeText={(t) => { const n = Number(t.replace(/\D/g, '').slice(0, 3)); set({ heightCm: n || undefined }); }} />
+              <TraitsEditor value={p.traits ?? {}} onChange={(traits) => set({ traits })} />
+            </View>
+          )}
+          {step === 5 && <PrefsEditor value={p.prefs ?? {}} onChange={(prefs) => set({ prefs })} />}
+          {step === 6 && <PhotoGrid photos={p.photos} onChange={(photos) => set({ photos })} />}
+          {step === 7 && <InterestPicker value={p.interests} onChange={(interests) => set({ interests })} />}
+          {step === 8 && (
             <View style={{ gap: Space.lg }}>
               <PromptEditor value={p.prompts} onChange={(prompts) => set({ prompts })} />
               <Field label="Kurz über dich (optional)" value={p.bio} onChangeText={(bio) => set({ bio })} multiline maxLength={500} placeholder="Ein paar Sätze, die dich beschreiben …" />
             </View>
           )}
-          {step === 7 && (
+          {step === 9 && (
             <View style={{ gap: Space.md }}>
               <T variant="h3">Wer schreibt nach einem Match zuerst?</T>
               <T muted variant="small">Du entscheidest. Wer zuerst schreiben darf, hat 48 Stunden Zeit – danach läuft das Match ab (einmal verlängerbar).</T>

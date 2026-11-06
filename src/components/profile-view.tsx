@@ -2,20 +2,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Fragment, type ReactNode } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Fragment, useState, type ReactNode } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Brand, Radius, Space, useTheme } from '@/constants/theme';
+import { Brand, Radius, SERIF, Space, useTheme } from '@/constants/theme';
 import { GENDER_LABELS, INTENTION_EMOJI, INTENTION_LABELS, type Activity, type LikeNote, type Mode, type Profile } from '@/lib/types';
+import { PET_OPTIONS, labelOf } from '@/lib/traits';
 import { ageFrom, type Compatibility } from '@/lib/utils';
 
 import { ActivityMini } from './activity-card';
+import { MatchSheet } from './match-sheet';
 import { Chip, T } from './ui';
 
 type Item = NonNullable<LikeNote['item']>;
 
 /** Editorial serif for prompt answers – gives Matchwerk its own voice. */
-export const SERIF = Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, "Times New Roman", serif' });
+export { SERIF };
 
 export interface DecideActions {
   onPass: () => void;
@@ -68,15 +70,31 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
     ) : null;
 
   const basics: [string, string | undefined][] = [
-    ['👤', GENDER_LABELS[profile.gender]],
+    ['👤', profile.genderDetail ? `${GENDER_LABELS[profile.gender]} · ${profile.genderDetail}` : GENDER_LABELS[profile.gender]],
     ['📏', profile.heightCm ? `${profile.heightCm} cm` : undefined],
     ['💼', profile.job],
     ['🎓', profile.school],
     ['🏡', profile.city],
   ];
 
+  const t = profile.traits ?? {};
+  const traitChips: [string, string | undefined][] = [
+    ['👶', t.kidsWish ? labelOf('kidsWish', t.kidsWish) : undefined],
+    ['🏠', t.hasKids === 'yes' ? 'Hat Kinder' : undefined],
+    ['🚭', t.smoking ? labelOf('smoking', t.smoking) : undefined],
+    ['🍷', t.drinking ? `Alkohol: ${labelOf('drinking', t.drinking)}` : undefined],
+    ['🏃', t.sport ? `Sport: ${labelOf('sport', t.sport)}` : undefined],
+    ['🥗', t.diet ? labelOf('diet', t.diet) : undefined],
+    ['🙂', t.personality ? labelOf('personality', t.personality) : undefined],
+    ['⏰', t.rhythm ? labelOf('rhythm', t.rhythm) : undefined],
+    ['🎓', t.education ? labelOf('education', t.education) : undefined],
+    ...(t.pets ?? []).filter((x) => x !== 'none').map((x): [string, string | undefined] => [PET_OPTIONS.find((o) => o.id === x)?.emoji ?? '🐾', PET_OPTIONS.find((o) => o.id === x)?.label]),
+    ['🗣️', t.languages?.length ? t.languages.join(', ') : undefined],
+  ];
+
   const blocks: ReactNode[] = [];
 
+  const [showMatch, setShowMatch] = useState(false);
   const friends = mode === 'friends';
   const yesColor = friends ? Brand.super : Brand.heart;
   const yesLabel = friends ? 'Verbinden' : 'Like';
@@ -86,6 +104,20 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
     <View key="hero" style={styles.heroWrap}>
       <Image source={profile.photos[0]} style={[styles.hero, actions && styles.heroBig]} contentFit="cover" transition={150} />
       <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(20,6,30,0.88)']} style={styles.heroShade} pointerEvents="none" />
+      <LinearGradient colors={['rgba(20,6,30,0.45)', 'rgba(20,6,30,0)']} style={styles.heroTopShade} pointerEvents="none" />
+      {compat && (
+        <Pressable onPress={() => setShowMatch(true)} accessibilityRole="button"
+          accessibilityLabel={`${compat.score} Prozent Match. ${compat.reasons.join(', ')}. Antippen für alle Details`}
+          style={styles.scoreWrap}>
+          <View style={styles.scorePill}>
+            <Text style={styles.scoreNum}>{compat.score}<Text style={styles.scorePct}> %</Text></Text>
+            <Ionicons name="information-circle-outline" size={15} color="#FFE3A3" />
+          </View>
+          {compat.reasons.map((r) => (
+            <View key={r} style={styles.reason}><Text style={styles.reasonText} numberOfLines={1}>{r}</Text></View>
+          ))}
+        </Pressable>
+      )}
       {spark && !actions && (
         <View style={styles.spark} pointerEvents="none">
           <Text style={styles.sparkText}>✨ Dein Daily Spark</Text>
@@ -143,29 +175,6 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
     </View>,
   );
 
-  // 2 · why you match (Matchwerk's own feature)
-  if (compat) {
-    blocks.push(
-      <View key="compat" style={[styles.compat, { backgroundColor: Brand.tint }]}>
-        <View style={styles.score}>
-          <Text style={styles.scoreNum}>{compat.score}</Text>
-          <Text style={styles.scorePct}>%</Text>
-        </View>
-        <View style={{ flex: 1, gap: 6 }}>
-          <T variant="h3">{mode === 'friends' ? 'Was euch verbindet' : 'Warum ihr passt'}</T>
-          <T muted variant="small">{compat.reasons.join(' · ') || 'Lernt euch kennen!'}</T>
-          {compat.shared.length > 0 && (
-            <View style={styles.wrap}>
-              {compat.shared.map((s) => (
-                <View key={s} style={[styles.shared, { borderColor: Brand.text }]}><Text style={[styles.sharedText, { color: Brand.text }]}>{s}</Text></View>
-              ))}
-            </View>
-          )}
-        </View>
-      </View>,
-    );
-  }
-
   // 2b · Macht mit bei … – shared plans are the easiest way to start talking
   if (activities?.length) {
     blocks.push(
@@ -187,7 +196,7 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
         </View>
       </View>
       <View style={styles.wrap}>
-        {basics.filter(([, v]) => v).map(([e, v]) => <Chip key={e} label={v!} icon={e} />)}
+        {[...basics, ...traitChips].filter(([, v]) => v).map(([e, v]) => <Chip key={`${e}${v}`} label={v!} icon={e} />)}
       </View>
     </View>,
   );
@@ -203,6 +212,14 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
     );
   }
   blocks.push(prompt(1), photo(2));
+  if (t.skills?.length) {
+    blocks.push(
+      <View key="skills" style={{ gap: Space.sm }}>
+        <Text style={[styles.question, { color: c.textSecondary }]}>Das kann {profile.name} gut</Text>
+        <View style={styles.wrap}>{t.skills.map((x) => <Chip key={x} label={x} icon="⭐" />)}</View>
+      </View>,
+    );
+  }
   if (profile.interests.length) {
     blocks.push(
       <View key="interests" style={{ gap: Space.sm }}>
@@ -235,7 +252,12 @@ export function ProfileView({ profile, compat, onLikeItem, mode = 'dating', spar
     );
   }
 
-  return <View style={{ gap: Space.lg }}>{blocks.map((b, i) => <Fragment key={i}>{b}</Fragment>)}</View>;
+  return (
+    <View style={{ gap: Space.lg }}>
+      {blocks.map((b, i) => <Fragment key={i}>{b}</Fragment>)}
+      {compat && <MatchSheet visible={showMatch} compat={compat} name={profile.name} onClose={() => setShowMatch(false)} />}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -277,8 +299,17 @@ const styles = StyleSheet.create({
   answer: { fontSize: 26, lineHeight: 34, fontFamily: SERIF },
   compat: { flexDirection: 'row', gap: Space.lg, padding: Space.lg, borderRadius: Radius.xl, alignItems: 'center' },
   score: { flexDirection: 'row', alignItems: 'flex-start' },
-  scoreNum: { fontSize: 44, fontWeight: '900', color: Brand.text, letterSpacing: -1.5, fontFamily: SERIF },
-  scorePct: { fontSize: 18, fontWeight: '800', color: Brand.text, marginTop: 6 },
+  heroTopShade: { position: 'absolute', left: 0, right: 0, top: 0, height: 140 },
+  scoreWrap: { position: 'absolute', top: 12, right: 12, alignItems: 'flex-end', gap: 5, maxWidth: '46%' },
+  scorePill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 12, paddingRight: 8, paddingVertical: 4, borderRadius: Radius.pill,
+    backgroundColor: 'rgba(20,6,30,0.72)', borderWidth: 1.5, borderColor: Brand.accent,
+  },
+  scoreNum: { color: '#FFE3A3', fontSize: 22, fontWeight: '900', fontFamily: SERIF, letterSpacing: -0.5 },
+  scorePct: { fontSize: 14, fontWeight: '800' },
+  reasonFirst: { marginTop: 4 },
+  reason: { backgroundColor: 'rgba(20,6,30,0.6)', borderRadius: Radius.pill, paddingHorizontal: 9, paddingVertical: 3 },
+  reasonText: { color: '#fff', fontSize: 11.5, fontWeight: '700' },
   intent: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: Space.md, borderRadius: Radius.lg, borderWidth: 1 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   shared: { borderWidth: 1, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 },

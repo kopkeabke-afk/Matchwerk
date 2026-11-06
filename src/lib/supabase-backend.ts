@@ -4,6 +4,7 @@ import { AppState, Platform } from 'react-native';
 
 import type { Backend } from './backend';
 import { appleIdToken, googleIdToken } from './social-auth';
+import { interestFrom, seekingOf } from './utils';
 import type { Activity, ActivityMessage, Filters, IncomingLike, Limits, Match, Message, Person, Profile } from './types';
 
 type Row = Record<string, any>;
@@ -30,6 +31,10 @@ function toProfile(r: Row): Profile {
     firstMove: r.first_move ?? 'anyone',
     paused: !!r.paused,
     modes: r.modes ?? ['dating'],
+    genderDetail: r.gender_detail ?? undefined,
+    seeking: r.seeking?.length ? r.seeking : undefined,
+    traits: r.traits ?? {},
+    prefs: r.prefs ?? {},
     distanceKm: r.distance_km ?? undefined,
   };
 }
@@ -40,7 +45,11 @@ function fromProfile(p: Profile, id: string): Row {
     name: p.name.trim(),
     birthdate: p.birthdate,
     gender: p.gender,
-    interested_in: p.interestedIn,
+    interested_in: p.seeking?.length ? interestFrom(p.seeking) : p.interestedIn,
+    seeking: p.seeking?.length ? p.seeking : seekingOf(p),
+    gender_detail: p.genderDetail || null,
+    traits: p.traits ?? {},
+    prefs: p.prefs ?? {},
     bio: p.bio,
     photos: p.photos,
     prompts: p.prompts,

@@ -9,11 +9,11 @@ F = '/usr/share/fonts/opentype/inter/'
 big = ImageFont.truetype(F + 'InterDisplay-ExtraBold.otf', 100)
 small = ImageFont.truetype(F + 'InterDisplay-Medium.otf', 46)
 small2 = ImageFont.truetype(F + 'InterDisplay-Medium.otf', 40)
-TAB = {'1-discover', '3-why', '2-activities', '4-likes', '7-friends'}  # web build shows tabs on top; cut them off
+TAB = {'1-discover', '2-activities', '4-likes', '7-friends'}  # web build shows tabs on top; cut them off
 ITEMS = [
     ('1-discover', 'Dein bestes Match\ndes Tages zuerst', 'Daily Spark – jeden Tag neu für dich ausgewählt'),
     ('2-activities', 'Gemeinsam\netwas erleben', 'Aktivitäten mit Gruppenchat – für jedes Alter'),
-    ('3-why', 'Sieh, warum\nihr passt', 'Match-Score mit Gründen statt Bauchgefühl'),
+    ('3-why', 'Sieh, warum\nihr passt', 'Match-Score in beide Richtungen – mit allen Gründen'),
     ('4-likes', 'Sieh kostenlos,\nwer dich mag', 'Like zurück – und es funkt'),
     ('5-match', 'Es funkt!', 'Gegenseitig gemocht? Dann seid ihr ein Match'),
     ('6-chat', 'Sag es mit\ndeiner Stimme', 'Sprachnachrichten bis 60 Sekunden – direkt im Chat'),

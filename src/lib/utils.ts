@@ -21,14 +21,38 @@ export function haversineKm(aLat: number, aLng: number, bLat: number, bLng: numb
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-function wants(interest: Interest, g: Gender): boolean {
-  if (interest === 'everyone') return true;
-  return (interest === 'women' && g === 'woman') || (interest === 'men' && g === 'man');
+const ALL_GENDERS: Gender[] = ['woman', 'man', 'nonbinary'];
+
+/** Whom someone wants to meet: the explicit choice, or derived from the older single setting. */
+export function seekingOf(p: Pick<Profile, 'seeking' | 'interestedIn'>): Gender[] {
+  if (p.seeking?.length) return p.seeking;
+  return p.interestedIn === 'women' ? ['woman'] : p.interestedIn === 'men' ? ['man'] : ALL_GENDERS;
+}
+
+/** The older single setting, kept in sync for compatibility. */
+export function interestFrom(seeking: Gender[]): Interest {
+  if (seeking.length === 1 && seeking[0] === 'woman') return 'women';
+  if (seeking.length === 1 && seeking[0] === 'man') return 'men';
+  return 'everyone';
 }
 
 /** Both sides must be interested in each other's gender. */
 export function mutuallyCompatible(me: Profile, other: Profile): boolean {
-  return wants(me.interestedIn, other.gender) && wants(other.interestedIn, me.gender);
+  return seekingOf(me).includes(other.gender) && seekingOf(other).includes(me.gender);
+}
+
+/** Dealbreakers from "Was dir wichtig ist" – checked in both directions. */
+export function passesPrefs(viewer: Profile, cand: Profile): boolean {
+  const p = viewer.prefs;
+  if (!p) return true;
+  const h = cand.heightCm;
+  if (h && p.heightMin && h < p.heightMin) return false;
+  if (h && p.heightMax && h > p.heightMax) return false;
+  if (p.nonSmokerOnly && cand.traits?.smoking && cand.traits.smoking !== 'never') return false;
+  const a = viewer.traits?.kidsWish;
+  const b = cand.traits?.kidsWish;
+  if (p.kidsMatch && a && b && ((a === 'want' && b === 'no') || (a === 'no' && b === 'want'))) return false;
+  return true;
 }
 
 export function passesFilters(other: Profile, f: Filters): boolean {
@@ -40,43 +64,7 @@ export function passesFilters(other: Profile, f: Filters): boolean {
   return true;
 }
 
-const INTENTION_GROUP: Record<string, number> = {
-  long_term: 0, long_open: 1, short_open: 2, short_fun: 3, friends: 5, unsure: 2,
-};
-
-export interface Compatibility {
-  score: number; // 0–100
-  reasons: string[];
-  shared: string[];
-}
-
-/**
- * Transparent compatibility score – shown to users so they understand *why* someone is suggested.
- * Weighted: shared interests 45 %, dating intentions 35 %, distance 10 %, profile quality 10 %.
- */
-export function compatibility(me: Profile, other: Profile, mode: 'dating' | 'friends' = 'dating'): Compatibility {
-  const shared = other.interests.filter((i) => me.interests.includes(i));
-  const reasons: string[] = [];
-  const interestScore = Math.min(1, shared.length / 3);
-  if (shared.length) reasons.push(`${shared.length} gemeinsame Interessen`);
-
-  // in Freunde mode dating intentions don't matter
-  const gap = mode === 'friends' ? 0 : Math.abs((INTENTION_GROUP[me.intention] ?? 2) - (INTENTION_GROUP[other.intention] ?? 2));
-  const intentionScore = gap === 0 ? 1 : gap === 1 ? 0.75 : gap === 2 ? 0.45 : 0.15;
-  if (mode === 'friends') reasons.push('Ihr sucht beide neue Leute');
-  else if (gap === 0) reasons.push('Ihr sucht dasselbe');
-  else if (gap === 1) reasons.push('Ähnliche Absichten');
-
-  const d = other.distanceKm ?? 25;
-  const distScore = d <= 5 ? 1 : d <= 15 ? 0.75 : d <= 40 ? 0.45 : 0.2;
-  if (d <= 5) reasons.push('Ganz in deiner Nähe');
-
-  const quality = (other.photos.length >= 3 ? 0.4 : 0.2) + (other.prompts.length >= 2 ? 0.3 : 0.1) + (other.verified ? 0.3 : 0);
-  if (other.verified) reasons.push('Verifiziert');
-
-  const score = Math.round(40 + 60 * (0.45 * interestScore + 0.35 * intentionScore + 0.1 * distScore + 0.1 * quality));
-  return { score: Math.min(99, score), reasons, shared };
-}
+export { compatibility, type Compatibility } from './match';
 
 /** Personalised conversation starters based on what two profiles have in common. */
 export function icebreakers(me: Profile, other: Profile): string[] {

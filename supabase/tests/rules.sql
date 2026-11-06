@@ -256,4 +256,28 @@ select cancel_activity(:'cov');
 select tst.fails(format($f$insert into messages (match_id, sender_id, text, kind, activity_id) select id, auth.uid(), '', 'invite', %L from matches where mode = 'friends' and auth.uid() in (user_a, user_b)$f$, :'cov'), 'no invites to cancelled activities');
 set request.jwt.claim.sub = '99999999-0000-0000-0000-000000000001';
 select tst.check((select count(*) from person_activities('99999999-0000-0000-0000-000000000002')) = 0, 'cancelled activities leave the profile');
+-- ───────── seeking, traits & dealbreakers ─────────
+reset role;
+insert into auth.users (id, email) values
+  ('66666666-0000-0000-0000-000000000001','s1@x'),('66666666-0000-0000-0000-000000000002','s2@x'),('66666666-0000-0000-0000-000000000003','s3@x');
+set role authenticated;
+set request.jwt.claim.sub = '66666666-0000-0000-0000-000000000001';
+insert into profiles (id,name,birthdate,gender,interested_in,seeking,lat,lng,traits,prefs)
+  values (auth.uid(),'Noa','1994-01-01','nonbinary','everyone','{woman,nonbinary}',-33.80,151.00,'{"smoking":"never","kidsWish":"want"}','{"nonSmokerOnly":true,"kidsMatch":true}');
+select tst.fails($$update profiles set seeking = '{aliens}' where id = auth.uid()$$, 'seeking only allows known genders');
+set request.jwt.claim.sub = '66666666-0000-0000-0000-000000000002';
+insert into profiles (id,name,birthdate,gender,interested_in,seeking,lat,lng,traits)
+  values (auth.uid(),'Ida','1995-02-02','woman','everyone','{nonbinary}',-33.81,151.01,'{"smoking":"never","kidsWish":"open"}');
+set request.jwt.claim.sub = '66666666-0000-0000-0000-000000000003';
+insert into profiles (id,name,birthdate,gender,interested_in,seeking,lat,lng,traits)
+  values (auth.uid(),'Rae','1996-03-03','woman','everyone','{nonbinary}',-33.82,151.02,'{"smoking":"yes"}');
+set request.jwt.claim.sub = '66666666-0000-0000-0000-000000000001';
+select tst.check((select count(*) from get_deck(18,99,50,'{}',false)) = 1
+  and (select d->>'name' from get_deck(18,99,50,'{}',false) d) = 'Ida', 'seeking + non-smoker dealbreaker filter the deck');
+set request.jwt.claim.sub = '66666666-0000-0000-0000-000000000003';
+select tst.check((select count(*) from get_deck(18,99,50,'{}',false)) = 0, 'dealbreakers work in both directions');
+set request.jwt.claim.sub = '66666666-0000-0000-0000-000000000002';
+update profiles set traits = '{"smoking":"never","kidsWish":"no"}' where id = auth.uid();
+set request.jwt.claim.sub = '66666666-0000-0000-0000-000000000001';
+select tst.check((select count(*) from get_deck(18,99,50,'{}',false)) = 0, 'different Kinderwunsch hidden when it matters');
 \echo ALL DATABASE CHECKS PASSED

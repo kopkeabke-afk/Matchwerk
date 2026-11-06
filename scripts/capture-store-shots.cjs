@@ -4,7 +4,7 @@
 const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] }); const errs = [];
-  const me = { id: 'me', name: 'Alex', birthdate: '1992-03-14', gender: 'man', interestedIn: 'women', bio: 'Neugierig, Kaffee-Liebhaber, Wochenend-Wanderer.', photos: ['https://i.pravatar.cc/800?img=12','https://picsum.photos/seed/alex-a/800/1000','https://picsum.photos/seed/alex-b/800/1000'], prompts: [{ question: 'Ein perfekter Sonntag sieht so aus …', answer: 'Lange frühstücken, dann raus.' }], interests: ['Kaffee', 'Wandern', 'Design', 'Kochen', 'Brettspiele'], intention: 'long_term', verified: true, firstMove: 'anyone', paused: false, lat: 52.52, lng: 13.4, city: 'Berlin', job: 'Produktdesigner', heightCm: 182, modes: ['dating','friends'] };
+  const me = { id: 'me', name: 'Alex', birthdate: '1992-03-14', gender: 'man', interestedIn: 'women', bio: 'Neugierig, Kaffee-Liebhaber, Wochenend-Wanderer.', photos: ['https://i.pravatar.cc/800?img=12','https://picsum.photos/seed/alex-a/800/1000','https://picsum.photos/seed/alex-b/800/1000'], prompts: [{ question: 'Ein perfekter Sonntag sieht so aus …', answer: 'Lange frühstücken, dann raus.' }], interests: ['Kaffee', 'Wandern', 'Design', 'Kochen', 'Brettspiele'], intention: 'long_term', verified: true, firstMove: 'anyone', paused: false, lat: 52.52, lng: 13.4, city: 'Berlin', job: 'Produktdesigner', heightCm: 182, modes: ['dating','friends'], traits: { kidsWish: 'want', smoking: 'never', sport: 'often', rhythm: 'early', diet: 'flexi', pets: ['dog'], languages: ['Deutsch', 'Englisch'], skills: ['Kochen', 'Handwerk'], personality: 'ambi', drinking: 'social' }, prefs: { important: ['kids', 'smoking'] } };
   const mk = async (mode = 'dating') => {
     const ctx = await b.newContext({ viewport: { width: 440, height: 956 }, deviceScaleFactor: 3, permissions: ['microphone'] });
     await ctx.addInitScript(([s, m]) => { if (!localStorage.getItem('matchwerk.demo.v1')) { localStorage.setItem('matchwerk.demo.v1', s); localStorage.setItem('matchwerk.mode', m); } }, [JSON.stringify({ signedIn: true, me, swipes: {}, matches: [], messages: [], blocked: [], likeLog: [], boostCredits: 0 }), mode]);
@@ -15,7 +15,7 @@ const { chromium } = require('playwright');
   let p = await mk();
   await p.goto('http://localhost:8086', { waitUntil: 'networkidle' }); await p.waitForTimeout(3500);
   await shot(p, '1-discover');
-  await scroll(p, 470); await shot(p, '3-why');
+  await p.getByLabel(/Prozent Match/).first().click(); await p.waitForTimeout(600); await shot(p, '3-why'); await p.getByLabel('Schließen').first().click({ position: { x: 20, y: 20 } });
   await p.getByLabel('Auf diese Antwort reagieren').first().click(); await p.waitForTimeout(800);
   await p.getByPlaceholder(/Schreib etwas dazu/).fill('Flohmarkt und Pasta? Da bin ich dabei!');
   await p.getByText('Mit Kommentar senden').click(); await p.waitForTimeout(1200);

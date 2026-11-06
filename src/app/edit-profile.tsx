@@ -3,10 +3,11 @@ import { useState, type ReactNode } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 
 import { InterestPicker, PhotoGrid, PromptEditor } from '@/components/profile-editors';
+import { GenderEditor, PrefsEditor, TraitsEditor } from '@/components/traits-editors';
 import { Button, Chip, Field, T } from '@/components/ui';
 import { Space } from '@/constants/theme';
 import { useSession } from '@/lib/session';
-import { GENDER_LABELS, INTENTION_EMOJI, INTENTION_LABELS, INTEREST_LABELS, type Gender, type Intention, type Interest, type Mode, type Profile } from '@/lib/types';
+import { INTENTION_EMOJI, INTENTION_LABELS, type Intention, type Mode, type Profile } from '@/lib/types';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -74,15 +75,8 @@ export default function EditProfile() {
         <Section title="Ich bin hier für">
           <ModePicker value={p.modes ?? ['dating']} onChange={(modes) => set({ modes })} />
         </Section>
-        <Section title="Ich bin">
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {(Object.keys(GENDER_LABELS) as Gender[]).map((g) => <Chip key={g} label={GENDER_LABELS[g]} selected={p.gender === g} onPress={() => set({ gender: g })} />)}
-          </View>
-        </Section>
-        <Section title="Ich möchte kennenlernen">
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {(Object.keys(INTEREST_LABELS) as Interest[]).map((g) => <Chip key={g} label={INTEREST_LABELS[g]} selected={p.interestedIn === g} onPress={() => set({ interestedIn: g })} />)}
-          </View>
+        <Section title="Geschlecht & wen du suchst">
+          <GenderEditor p={p} onChange={set} />
         </Section>
         <Section title="Ich suche">
           <View style={{ gap: 8 }}>
@@ -90,6 +84,13 @@ export default function EditProfile() {
               <Chip key={i} icon={INTENTION_EMOJI[i]} label={INTENTION_LABELS[i]} selected={p.intention === i} onPress={() => set({ intention: i })} />
             ))}
           </View>
+        </Section>
+        <Section title="Über dich">
+          <T muted variant="small">Alles freiwillig. Je mehr du angibst, desto genauer wird der Match-Score.</T>
+          <TraitsEditor value={p.traits ?? {}} onChange={(traits) => set({ traits })} />
+        </Section>
+        <Section title="Was dir wichtig ist">
+          <PrefsEditor value={p.prefs ?? {}} onChange={(prefs) => set({ prefs })} />
         </Section>
         <Section title="Interessen">
           <InterestPicker value={p.interests} onChange={(interests) => set({ interests })} />

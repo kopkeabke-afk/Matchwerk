@@ -91,7 +91,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
-      <ScrollView contentContainerStyle={{ padding: Space.lg, paddingTop: Space.xxl, paddingBottom: insets.bottom + Space.xl }}>
+      <ScrollView contentContainerStyle={{ padding: Space.lg, paddingTop: (Platform.OS === 'ios' ? 12 : insets.top + 8) + 52, paddingBottom: insets.bottom + Space.xl }}>
         <ProfileView profile={p} compat={compatibility(me, p, mode)} mode={from === 'match' ? 'dating' : mode} onLikeItem={canSwipe ? (item) => setNoteFor(item) : undefined}
           activities={acts}
           actions={canSwipe ? { onPass: () => act('pass'), onLike: () => act('like'), onFunke: () => act('superlike') } : undefined} />

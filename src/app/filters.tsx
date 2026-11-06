@@ -2,12 +2,14 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Switch, View } from 'react-native';
 
+import { PrefsEditor } from '@/components/traits-editors';
 import { Button, Card, Chip, Field, T } from '@/components/ui';
 import { Brand, Space, useTheme } from '@/constants/theme';
 import { currentPlace, findPlace, getTravelPlace, setTravelPlace, type Place } from '@/lib/location';
 import { useSession } from '@/lib/session';
-import { INTENTION_EMOJI, INTENTION_LABELS, type Filters, type Intention } from '@/lib/types';
-import { DEFAULT_FILTERS } from '@/lib/utils';
+import { SEEKING_LABELS, type Prefs } from '@/lib/traits';
+import { INTENTION_EMOJI, INTENTION_LABELS, type Filters, type Gender, type Intention } from '@/lib/types';
+import { DEFAULT_FILTERS, interestFrom, seekingOf } from '@/lib/utils';
 
 function Stepper({ label, value, min, max, step = 1, suffix, onChange }: {
   label: string; value: number; min: number; max: number; step?: number; suffix?: string; onChange: (v: number) => void;
@@ -34,6 +36,9 @@ export default function FiltersScreen() {
   const [travel, setTravel] = useState<Place | null>(null);
   const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
+  // whom to see and dealbreakers live on the profile (they work in both directions on the server)
+  const [seeking, setSeeking] = useState<Gender[]>(profile ? seekingOf(profile) : ['woman', 'man', 'nonbinary']);
+  const [prefs, setPrefs] = useState<Prefs>(profile?.prefs ?? {});
 
   useEffect(() => { getTravelPlace().then(setTravel); }, []);
 
@@ -120,7 +125,33 @@ export default function FiltersScreen() {
         </View>
         <Switch value={f.verifiedOnly} onValueChange={(verifiedOnly) => set({ verifiedOnly })} trackColor={{ true: Brand.primary }} />
       </View>
-      <Button title="Übernehmen" onPress={() => { setFilters(f); if (router.canGoBack()) router.back(); else router.replace('/'); }} />
+      {mode === 'dating' && (
+        <View style={{ gap: Space.md }}>
+          <T variant="h3">Wen möchtest du sehen?</T>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {(['woman', 'man', 'nonbinary'] as Gender[]).map((g) => {
+              const on = seeking.includes(g);
+              return <Chip key={g} label={SEEKING_LABELS[g]} selected={on}
+                onPress={() => { const next = on ? seeking.filter((x) => x !== g) : [...seeking, g]; if (next.length) setSeeking(next); }} />;
+            })}
+          </View>
+          <PrefsEditor value={prefs} onChange={setPrefs} />
+        </View>
+      )}
+      <Button title="Übernehmen" loading={busy} onPress={async () => {
+        setFilters(f);
+        if (profile && (JSON.stringify(prefs) !== JSON.stringify(profile.prefs ?? {}) || seeking.join() !== seekingOf(profile).join())) {
+          setBusy(true);
+          try {
+            await saveProfile({ ...profile, prefs, seeking, interestedIn: interestFrom(seeking) });
+          } catch (e) {
+            Alert.alert('Nicht gespeichert', (e as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }
+        if (router.canGoBack()) router.back(); else router.replace('/');
+      }} />
       <Button title="Zurücksetzen" variant="ghost" onPress={() => setF(DEFAULT_FILTERS)} />
     </ScrollView>
   );

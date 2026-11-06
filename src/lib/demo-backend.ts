@@ -4,7 +4,7 @@ import type { Backend, SwipeResult } from './backend';
 import { DEMO_INCOMING_FRIENDS, DEMO_INCOMING_LIKES, DEMO_PROFILES, DEMO_REPLIES } from './demo-data';
 import { TIER_LIMITS, type Tier } from './plans';
 import type { Activity, ActivityCategory, ActivityMessage, Filters, IncomingLike, LikeNote, Limits, Match, Message, Mode, Person, Profile, SwipeAction } from './types';
-import { ageFrom, MATCH_TTL_HOURS, mutuallyCompatible, passesFilters, resolveOpener, uid } from './utils';
+import { ageFrom, MATCH_TTL_HOURS, mutuallyCompatible, passesFilters, passesPrefs, resolveOpener, uid } from './utils';
 
 const KEY = 'matchwerk.demo.v1';
 const ME = 'me';
@@ -237,7 +237,7 @@ export function createDemoBackend(): Backend {
       const s = await load();
       if (!s.me || !hasMode(s.me, mode)) return [];
       return others(s).filter((p) => !s.swipes[key(mode, p.id)] && hasMode(p, mode)
-        && (mode === 'friends' || mutuallyCompatible(s.me!, p))
+        && (mode === 'friends' || (mutuallyCompatible(s.me!, p) && passesPrefs(s.me!, p) && passesPrefs(p, s.me!)))
         && passesFilters(p, mode === 'friends' ? { ...filters, intentions: [] } : filters));
     },
     async swipe(targetId: string, action: SwipeAction, _note?: LikeNote, mode: Mode = 'dating'): Promise<SwipeResult> {

@@ -1,3 +1,4 @@
+import type { Traits } from './traits';
 import type { Gender, Intention, Profile } from './types';
 
 /**
@@ -107,6 +108,25 @@ function birthdateFor(age: number, i: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** Varied, deterministic "Eigenschaften" so the match score has something to work with. */
+function traitsFor(i: number, intention: Intention, interests: string[]): Traits {
+  const pick = <T,>(arr: T[], k: number) => arr[(i * k + 3) % arr.length];
+  return {
+    hasKids: i % 7 === 3 ? 'yes' : 'no',
+    kidsWish: intention === 'long_term' ? pick(['want', 'want', 'open'] as const, 5) : pick(['open', 'no', 'open'] as const, 3),
+    smoking: pick(['never', 'never', 'never', 'sometimes', 'yes'] as const, 7),
+    drinking: pick(['social', 'social', 'never', 'often'] as const, 5),
+    sport: pick(['sometimes', 'often', 'daily', 'never', 'often'] as const, 3),
+    diet: pick(['all', 'flexi', 'vegetarian', 'all', 'vegan'] as const, 11),
+    pets: interests.includes('Hunde') ? ['dog'] : interests.includes('Katzen') ? ['cat'] : [pick(['none', 'dog', 'cat', 'none', 'allergic'], 13)],
+    personality: pick(['intro', 'ambi', 'extro'] as const, 7),
+    rhythm: pick(['early', 'flexible', 'night'] as const, 5),
+    education: pick(['apprenticeship', 'degree', 'school', 'degree'] as const, 3),
+    languages: ['Deutsch', pick(['Englisch', 'Spanisch', 'Französisch', 'Türkisch', 'Italienisch'], 7)],
+    skills: [pick(['Kochen', 'Handwerk', 'Musik machen', 'Gärtnern', 'Fotografie', 'Tanzen', 'Backen'], 5), pick(['Zuhören', 'Organisieren', 'Reparieren', 'Witze erzählen'], 3)],
+  };
+}
+
 export const DEMO_PROFILES: Profile[] = SEEDS.map((s, i) => {
   const [name, age, gender, img, city, km, intention, job, interests, bio, prompts, verified] = s;
   return {
@@ -115,6 +135,7 @@ export const DEMO_PROFILES: Profile[] = SEEDS.map((s, i) => {
     birthdate: birthdateFor(age, i),
     gender,
     interestedIn: gender === 'woman' ? 'men' : gender === 'man' ? 'women' : 'everyone',
+    traits: traitsFor(i, intention, interests),
     bio,
     photos: [face(img), scene(`${name}-a`), scene(`${name}-b`)],
     prompts: prompts.map(([question, answer]) => ({ question, answer })),

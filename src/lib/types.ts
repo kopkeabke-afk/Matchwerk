@@ -1,3 +1,5 @@
+import type { Prefs, Traits } from './traits';
+
 export type Gender = 'woman' | 'man' | 'nonbinary';
 export type Interest = 'women' | 'men' | 'everyone';
 export type Intention = 'long_term' | 'long_open' | 'short_open' | 'short_fun' | 'friends' | 'unsure';
@@ -34,6 +36,12 @@ export interface Profile {
   paused: boolean;
   /** defaults to ['dating'] */
   modes?: Mode[];
+  /** optional, more precise gender (e.g. Trans, Genderfluid) */
+  genderDetail?: string;
+  /** whom someone wants to meet when dating; empty = derived from interestedIn */
+  seeking?: Gender[];
+  traits?: Traits;
+  prefs?: Prefs;
   /** Only on other profiles: distance from me in km */
   distanceKm?: number;
 }

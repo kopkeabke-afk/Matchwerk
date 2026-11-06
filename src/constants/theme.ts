@@ -78,3 +78,6 @@ export const Type = {
 export const TabInset = Platform.select({ ios: 60, default: 0 }) ?? 0;
 /** On web the tab bar renders at the top; leave room for it. */
 export const WebTabTop = Platform.OS === 'web' ? 52 : 0;
+
+/** Editorial serif for prompt answers and the match score – gives Matchwerk its own voice. */
+export const SERIF = Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, "Times New Roman", serif' });
